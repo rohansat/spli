@@ -1,7 +1,7 @@
 export interface Application {
   id: string;
   name: string;
-  status: 'draft' | 'submitted' | 'under_review' | 'approved' | 'rejected';
+  status: 'draft' | 'under_review' | 'awaiting_action' | 'active';
   type: 'Part 450' | 'License Amendment' | 'Safety Approval' | 'Site License';
   createdAt: string;
   updatedAt: string;

@@ -15,7 +15,7 @@ export const applications: Application[] = [
   {
     id: "app-1",
     name: "Falcon X Launch Vehicle License",
-    status: "under_review",
+    status: "awaiting_action",
     type: "Part 450",
     createdAt: "2025-01-15T12:00:00Z",
     updatedAt: "2025-02-20T14:30:00Z",
@@ -32,7 +32,7 @@ export const applications: Application[] = [
   {
     id: "app-3",
     name: "Orbital Facility Safety Approval",
-    status: "approved",
+    status: "active",
     type: "Safety Approval",
     createdAt: "2024-11-05T10:00:00Z",
     updatedAt: "2025-01-10T16:45:00Z",
@@ -41,7 +41,7 @@ export const applications: Application[] = [
   {
     id: "app-4",
     name: "Launch Site Expansion Amendment",
-    status: "submitted",
+    status: "under_review",
     type: "License Amendment",
     createdAt: "2025-03-03T08:30:00Z",
     updatedAt: "2025-03-05T11:20:00Z",

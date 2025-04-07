@@ -45,14 +45,12 @@ export default function Dashboard() {
     switch (status) {
       case "draft":
         return "bg-gray-500/20 text-gray-200";
-      case "submitted":
-        return "bg-blue-500/20 text-blue-300";
       case "under_review":
         return "bg-yellow-500/20 text-yellow-300";
-      case "approved":
+      case "awaiting_action":
+        return "bg-blue-500/20 text-blue-300";
+      case "active":
         return "bg-green-500/20 text-green-300";
-      case "rejected":
-        return "bg-red-500/20 text-red-300";
       default:
         return "bg-gray-500/20 text-gray-200";
     }
@@ -131,15 +129,15 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
         <Card className="space-card bg-gradient-to-br from-black to-zinc-900">
           <CardHeader>
-            <CardTitle>Active Applications</CardTitle>
+            <CardTitle>Pending Actions</CardTitle>
             <CardDescription className="text-white/60">
-              Your current licensing applications
+              Applications awaiting your attention
             </CardDescription>
           </CardHeader>
           <CardContent>
             {applications.length > 0 ? (
               <div className="space-y-2">
-                {applications.filter(app => app.status !== "approved" && app.status !== "rejected").map((app) => (
+                {applications.filter(app => app.status !== 'active').map((app) => (
                   <Link
                     key={app.id}
                     href={`/applications/${app.id}`}
@@ -157,7 +155,7 @@ export default function Dashboard() {
                           app.status
                         )}`}
                       >
-                        {app.status.replace("_", " ").toUpperCase()}
+                        {app.status === 'awaiting_action' ? 'ACTION NEEDED' : app.status.replace("_", " ").toUpperCase()}
                       </span>
                     </div>
                   </Link>
@@ -166,7 +164,7 @@ export default function Dashboard() {
             ) : (
               <div className="text-center py-8 text-white/60">
                 <FilePlus className="mx-auto h-10 w-10 mb-4 opacity-50" />
-                <p>No active applications</p>
+                <p>No pending actions</p>
                 <p className="text-sm">Create a new application to get started</p>
               </div>
             )}
