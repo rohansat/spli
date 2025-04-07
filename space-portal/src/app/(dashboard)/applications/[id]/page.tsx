@@ -195,34 +195,36 @@ export default function ApplicationPage() {
             <p className="text-white/60 mt-2">Complete all sections of the form to submit your application</p>
           </div>
           
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex gap-8">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex gap-10">
             <div className="w-[340px]">
-              <div className="bg-zinc-900/80 rounded-2xl overflow-hidden border border-white/10 min-h-[600px] sticky top-4">
-                <TabsList className="flex flex-col w-full h-full">
-                  {part450FormTemplate.sections.map((section, index) => (
-                    <TabsTrigger
-                      key={`section-${index}`}
-                      value={`section-${index}`}
-                      className="relative data-[state=active]:bg-white/10 data-[state=active]:text-white 
-                      data-[state=active]:before:content-[''] data-[state=active]:before:absolute data-[state=active]:before:left-0 
-                      data-[state=active]:before:top-0 data-[state=active]:before:h-full data-[state=active]:before:w-1 
-                      data-[state=active]:before:bg-gradient-to-b data-[state=active]:before:from-blue-500 data-[state=active]:before:to-purple-500 
-                      px-8 py-6 text-white/70 justify-start text-left border-b border-white/5 last:border-b-0
-                      hover:bg-white/5 hover:text-white transition-all duration-200 group"
-                    >
-                      <div className="flex items-center space-x-5">
-                        <span className="flex items-center justify-center w-12 h-12 rounded-xl 
-                          bg-gradient-to-br from-zinc-800 to-zinc-900 text-base font-medium 
+              <TabsList className="flex flex-col w-full min-h-[800px] gap-4">
+                {part450FormTemplate.sections.map((section, index) => (
+                  <TabsTrigger
+                    key={`section-${index}`}
+                    value={`section-${index}`}
+                    className="relative data-[state=active]:bg-zinc-900/80 data-[state=active]:text-white 
+                    data-[state=active]:before:content-[''] data-[state=active]:before:absolute data-[state=active]:before:left-0 
+                    data-[state=active]:before:top-0 data-[state=active]:before:h-full data-[state=active]:before:w-1 
+                    data-[state=active]:before:bg-gradient-to-b data-[state=active]:before:from-blue-500 data-[state=active]:before:to-purple-500 
+                    px-8 py-7 text-white/70 justify-start text-left rounded-2xl
+                    hover:bg-zinc-900/40 hover:text-white transition-all duration-200 group"
+                  >
+                    <div className="flex items-center space-x-6">
+                      <div className="relative">
+                        <div className="absolute inset-0 bg-gradient-to-br from-zinc-800 to-zinc-900 rounded-2xl 
                           group-data-[state=active]:from-blue-500/20 group-data-[state=active]:to-purple-500/20 
-                          group-hover:from-zinc-700 group-hover:to-zinc-800 transition-all duration-200">
+                          group-hover:from-zinc-800/80 group-hover:to-zinc-900/80 transition-all duration-200">
+                        </div>
+                        <div className="relative flex items-center justify-center w-14 h-14 rounded-2xl 
+                          bg-gradient-to-br from-zinc-800/50 to-zinc-900/50 text-lg font-medium">
                           {index + 1}
-                        </span>
-                        <span className="font-medium text-lg">{section.title}</span>
+                        </div>
                       </div>
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-              </div>
+                      <span className="font-medium text-lg tracking-wide">{section.title}</span>
+                    </div>
+                  </TabsTrigger>
+                ))}
+              </TabsList>
             </div>
 
             <div className="flex-1 min-w-0 pr-4">
