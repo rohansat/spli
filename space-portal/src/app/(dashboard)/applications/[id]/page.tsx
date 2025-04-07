@@ -196,8 +196,8 @@ export default function ApplicationPage() {
           </div>
           
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex gap-10">
-            <div className="w-[400px]">
-              <TabsList className="flex flex-col w-full min-h-[800px] gap-8">
+            <div className="w-[350px]">
+              <TabsList className="flex flex-col w-full min-h-[600px] gap-6">
                 {part450FormTemplate.sections.map((section, index) => (
                   <TabsTrigger
                     key={`section-${index}`}
@@ -206,16 +206,16 @@ export default function ApplicationPage() {
                     data-[state=active]:before:content-[''] data-[state=active]:before:absolute data-[state=active]:before:left-0 
                     data-[state=active]:before:top-0 data-[state=active]:before:h-full data-[state=active]:before:w-1 
                     data-[state=active]:before:bg-gradient-to-b data-[state=active]:before:from-blue-500 data-[state=active]:before:to-purple-500 
-                    px-8 py-6 text-white/70 justify-start text-left
+                    px-6 py-4 text-white/70 justify-start text-left
                     hover:text-white transition-all duration-200"
                   >
                     <div className="flex items-center">
                       <div className="relative shrink-0">
-                        <div className="absolute inset-0 bg-gradient-to-br from-zinc-800/40 to-zinc-900/40 rounded-2xl 
+                        <div className="absolute inset-0 bg-gradient-to-br from-transparent to-transparent rounded-2xl 
                           group-data-[state=active]:from-blue-500/20 group-data-[state=active]:to-purple-500/20 
                           group-hover:from-zinc-800/60 group-hover:to-zinc-900/60 transition-all duration-200">
                         </div>
-                        <div className="relative flex items-center justify-center w-16 h-16 rounded-2xl text-xl font-medium">
+                        <div className="relative flex items-center justify-center w-12 h-12 rounded-2xl text-lg font-medium">
                           {index + 1}
                         </div>
                       </div>
