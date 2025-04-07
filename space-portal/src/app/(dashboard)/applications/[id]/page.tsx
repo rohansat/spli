@@ -195,9 +195,9 @@ export default function ApplicationPage() {
             <p className="text-white/60 mt-2">Complete all sections of the form to submit your application</p>
           </div>
           
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex gap-10">
-            <div className="w-[350px]">
-              <TabsList className="flex flex-col w-full min-h-[600px] gap-6">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex gap-10 mt-8">
+            <div className="w-[300px]">
+              <TabsList className="flex flex-col w-full min-h-[500px] gap-4">
                 {part450FormTemplate.sections.map((section, index) => (
                   <TabsTrigger
                     key={`section-${index}`}
@@ -206,20 +206,20 @@ export default function ApplicationPage() {
                     data-[state=active]:before:content-[''] data-[state=active]:before:absolute data-[state=active]:before:left-0 
                     data-[state=active]:before:top-0 data-[state=active]:before:h-full data-[state=active]:before:w-1 
                     data-[state=active]:before:bg-gradient-to-b data-[state=active]:before:from-blue-500 data-[state=active]:before:to-purple-500 
-                    px-6 py-4 text-white/70 justify-start text-left
+                    px-4 py-3 text-white/70 justify-start text-left
                     hover:text-white transition-all duration-200"
                   >
                     <div className="flex items-center">
                       <div className="relative shrink-0">
-                        <div className="absolute inset-0 bg-gradient-to-br from-transparent to-transparent rounded-2xl 
+                        <div className="absolute inset-0 bg-gradient-to-br from-transparent to-transparent rounded-xl 
                           group-data-[state=active]:from-blue-500/20 group-data-[state=active]:to-purple-500/20 
                           group-hover:from-zinc-800/60 group-hover:to-zinc-900/60 transition-all duration-200">
                         </div>
-                        <div className="relative flex items-center justify-center w-12 h-12 rounded-2xl text-lg font-medium">
+                        <div className="relative flex items-center justify-center w-8 h-8 rounded-xl text-base font-medium">
                           {index + 1}
                         </div>
                       </div>
-                      <span className="font-medium text-lg tracking-wide ml-6 flex-1">{section.title}</span>
+                      <span className="font-medium text-base tracking-wide ml-4 flex-1">{section.title}</span>
                     </div>
                   </TabsTrigger>
                 ))}
