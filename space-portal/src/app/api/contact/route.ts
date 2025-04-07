@@ -1,40 +1,40 @@
 import { NextResponse } from "next/server";
-import nodemailer from "nodemailer";
+import { Resend } from 'resend';
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { name, company, email, phone, message, recipients } = body;
 
-    // Create a test SMTP transporter
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST || "smtp.gmail.com",
-      port: parseInt(process.env.SMTP_PORT || "587"),
-      secure: false,
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
-    });
+    // Initialize Resend with API key
+    if (!process.env.RESEND_API_KEY) {
+      throw new Error('Resend API key not configured');
+    }
+    const resend = new Resend(process.env.RESEND_API_KEY);
 
     // Email content
-    const mailOptions = {
-      from: process.env.SMTP_FROM || "noreply@spacelicensing.com",
-      to: recipients.join(", "),
-      subject: `New Contact Form Submission from ${company}`,
-      html: `
-        <h2>New Contact Form Submission</h2>
-        <p><strong>Name:</strong> ${name}</p>
-        <p><strong>Company:</strong> ${company}</p>
-        <p><strong>Email:</strong> ${email}</p>
-        <p><strong>Phone:</strong> ${phone || "Not provided"}</p>
-        <h3>Message:</h3>
-        <p>${message.replace(/\n/g, "<br>")}</p>
-      `,
-    };
+    const emailContent = `
+      <h2>New Contact Form Submission</h2>
+      <p><strong>Name:</strong> ${name}</p>
+      <p><strong>Company:</strong> ${company}</p>
+      <p><strong>Email:</strong> ${email}</p>
+      <p><strong>Phone:</strong> ${phone || "Not provided"}</p>
+      <h3>Message:</h3>
+      <p>${message.replace(/\n/g, "<br>")}</p>
+    `;
 
-    // Send email
-    await transporter.sendMail(mailOptions);
+    // Send email to each recipient
+    await Promise.all(
+      recipients.map((recipient: string) =>
+        resend.emails.send({
+          from: 'Space Portal <onboarding@resend.dev>',
+          to: recipient,
+          subject: `New Contact Form Submission from ${company}`,
+          html: emailContent,
+          replyTo: email
+        })
+      )
+    );
 
     return NextResponse.json({ success: true });
   } catch (error) {
