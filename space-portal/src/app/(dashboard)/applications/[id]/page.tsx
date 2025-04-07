@@ -118,7 +118,7 @@ export default function ApplicationPage() {
   };
 
   return (
-    <div className="space-container py-8 max-w-[1400px] mx-auto">
+    <div className="space-container py-8 max-w-[1400px] mx-auto bg-black">
       <div className="mb-8">
         <Link href="/dashboard" className="flex items-center text-white/70 hover:text-white transition-colors">
           <ChevronLeft className="mr-1 h-4 w-4" />
@@ -196,12 +196,12 @@ export default function ApplicationPage() {
         
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex gap-10 mt-8">
           <div className="w-[300px]">
-            <TabsList className="flex flex-col w-full min-h-[500px] gap-4">
+            <TabsList className="flex flex-col w-full min-h-[500px] gap-4 bg-black">
               {part450FormTemplate.sections.map((section, index) => (
                 <TabsTrigger
                   key={`section-${index}`}
                   value={`section-${index}`}
-                  className="relative data-[state=active]:text-white group w-full
+                  className="relative data-[state=active]:text-white group w-full bg-black
                   data-[state=active]:before:content-[''] data-[state=active]:before:absolute data-[state=active]:before:left-0 
                   data-[state=active]:before:top-0 data-[state=active]:before:h-full data-[state=active]:before:w-1 
                   data-[state=active]:before:bg-gradient-to-b data-[state=active]:before:from-blue-500 data-[state=active]:before:to-purple-500 
@@ -214,7 +214,7 @@ export default function ApplicationPage() {
                         group-data-[state=active]:from-blue-500/20 group-data-[state=active]:to-purple-500/20 
                         group-hover:from-zinc-800/60 group-hover:to-zinc-900/60 transition-all duration-200">
                       </div>
-                      <div className="relative flex items-center justify-center w-8 h-8 rounded-xl text-base font-medium">
+                      <div className="relative flex items-center justify-center w-8 h-8 rounded-xl text-base font-medium bg-[#0A0A0A]">
                         {index + 1}
                       </div>
                     </div>
