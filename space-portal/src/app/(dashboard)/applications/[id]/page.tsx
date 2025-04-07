@@ -118,8 +118,8 @@ export default function ApplicationPage() {
   };
 
   return (
-    <div className="space-container py-8">
-      <div className="mb-6">
+    <div className="space-container py-8 max-w-[1400px] mx-auto">
+      <div className="mb-8">
         <Link href="/dashboard" className="flex items-center text-white/70 hover:text-white transition-colors">
           <ChevronLeft className="mr-1 h-4 w-4" />
           Back to Dashboard
@@ -128,14 +128,14 @@ export default function ApplicationPage() {
 
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-white mb-2">{application.name}</h1>
+          <h1 className="text-4xl font-bold text-white mb-3">{application.name}</h1>
           <div className="flex items-center">
             <p className="text-white/60 mr-3">
               {application.type} • Created on{" "}
               {new Date(application.createdAt).toLocaleDateString()}
             </p>
             <span
-              className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
+              className={`px-3 py-1 rounded-full text-xs font-medium ${
                 application.status === "draft"
                   ? "bg-gray-500/20 text-gray-200"
                   : application.status === "under_review"
@@ -150,12 +150,12 @@ export default function ApplicationPage() {
           </div>
         </div>
 
-        <div className="flex space-x-3 mt-4 md:mt-0">
+        <div className="flex space-x-4 mt-4 md:mt-0">
           <Button
             variant="outline"
             onClick={handleSave}
             disabled={isSaving || application.status === "active"}
-            className="border-white/40 text-white"
+            className="border-white/40 text-white px-6"
           >
             <Save className="mr-2 h-4 w-4" />
             {isSaving ? "Saving..." : "Save Draft"}
@@ -163,7 +163,7 @@ export default function ApplicationPage() {
           <Button
             onClick={handleSubmit}
             disabled={isSubmitting || application.status === "active"}
-            className="spacex-button"
+            className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6"
           >
             <Send className="mr-2 h-4 w-4" />
             {isSubmitting ? "Submitting..." : "Submit Application"}
@@ -188,17 +188,17 @@ export default function ApplicationPage() {
         </Alert>
       )}
 
-      <Card className="space-card mb-8">
-        <CardHeader>
-          <CardTitle>Part 450 License Application Form</CardTitle>
-          <CardDescription className="text-white/60">
+      <Card className="space-card">
+        <CardHeader className="pb-6">
+          <CardTitle className="text-2xl">Part 450 License Application Form</CardTitle>
+          <CardDescription className="text-white/60 text-base">
             Complete all sections of the form to submit your application
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex gap-8">
-            <div className="w-72 relative">
-              <TabsList className="bg-zinc-900/50 rounded-xl p-2 flex flex-col w-full sticky top-4">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex gap-10">
+            <div className="w-80 relative">
+              <TabsList className="bg-zinc-900/50 rounded-xl p-3 flex flex-col w-full sticky top-4 gap-2">
                 {part450FormTemplate.sections.map((section, index) => (
                   <TabsTrigger
                     key={`section-${index}`}
@@ -208,35 +208,35 @@ export default function ApplicationPage() {
                     data-[state=active]:before:top-0 data-[state=active]:before:h-full data-[state=active]:before:w-1 
                     data-[state=active]:before:bg-gradient-to-b data-[state=active]:before:from-blue-500 data-[state=active]:before:to-purple-500 
                     data-[state=active]:shadow-lg data-[state=active]:shadow-white/5
-                    px-6 py-4 text-white/70 justify-start text-left rounded-lg transition-all duration-200 
+                    px-6 py-5 text-white/70 justify-start text-left rounded-lg transition-all duration-200 
                     hover:bg-white/5 hover:text-white group"
                   >
-                    <div className="flex items-center space-x-3">
-                      <span className="flex items-center justify-center w-8 h-8 rounded-lg 
+                    <div className="flex items-center space-x-4">
+                      <span className="flex items-center justify-center w-9 h-9 rounded-lg 
                         bg-gradient-to-br from-zinc-800 to-zinc-900 text-sm font-medium 
                         group-data-[state=active]:from-blue-500/20 group-data-[state=active]:to-purple-500/20 
                         group-hover:from-zinc-700 group-hover:to-zinc-800 transition-all duration-200">
                         {index + 1}
                       </span>
-                      <span className="font-medium">{section.title}</span>
+                      <span className="font-medium text-base">{section.title}</span>
                     </div>
                   </TabsTrigger>
                 ))}
               </TabsList>
             </div>
 
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 pr-4">
               {part450FormTemplate.sections.map((section, sectionIndex) => (
                 <TabsContent
                   key={`section-content-${sectionIndex}`}
                   value={`section-${sectionIndex}`}
                   className="space-y-8 mt-0 focus-visible:outline-none focus-visible:ring-0"
                 >
-                  <div className="space-y-2">
-                    <h2 className="text-2xl font-bold text-white bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
+                  <div className="space-y-3">
+                    <h2 className="text-3xl font-bold text-white bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
                       {section.title}
                     </h2>
-                    <p className="text-white/60">
+                    <p className="text-white/60 text-lg">
                       Complete the {section.title.toLowerCase()} details
                     </p>
                   </div>
@@ -245,11 +245,11 @@ export default function ApplicationPage() {
                     {section.fields.map((field, fieldIndex) => (
                       <div 
                         key={`field-${sectionIndex}-${fieldIndex}`} 
-                        className="space-y-2 bg-zinc-900/50 p-6 rounded-xl border border-white/5 hover:border-white/10 transition-colors"
+                        className="space-y-3 bg-zinc-900/50 p-6 rounded-xl border border-white/5 hover:border-white/10 transition-colors"
                       >
                         <label
                           htmlFor={field.name}
-                          className="text-sm font-medium text-white flex items-center space-x-2"
+                          className="text-base font-medium text-white flex items-center space-x-2"
                         >
                           {field.label}
                         </label>
@@ -258,11 +258,11 @@ export default function ApplicationPage() {
                     ))}
                   </div>
 
-                  <div className="flex justify-between pt-6">
+                  <div className="flex justify-between pt-8">
                     {sectionIndex > 0 && (
                       <Button
                         variant="outline"
-                        className="border-white/10 text-white hover:bg-white/5 transition-colors"
+                        className="border-white/10 text-white hover:bg-white/5 transition-colors px-6"
                         onClick={() => setActiveTab(`section-${sectionIndex - 1}`)}
                       >
                         Previous Section
@@ -270,7 +270,7 @@ export default function ApplicationPage() {
                     )}
                     {sectionIndex < part450FormTemplate.sections.length - 1 && (
                       <Button
-                        className="bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:opacity-90 transition-opacity ml-auto"
+                        className="bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:opacity-90 transition-opacity ml-auto px-6"
                         onClick={() => setActiveTab(`section-${sectionIndex + 1}`)}
                       >
                         Next Section
