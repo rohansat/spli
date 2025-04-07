@@ -196,21 +196,21 @@ export default function ApplicationPage() {
           </div>
           
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex gap-10">
-            <div className="w-[340px]">
+            <div className="w-[400px]">
               <TabsList className="flex flex-col w-full min-h-[800px] gap-8">
                 {part450FormTemplate.sections.map((section, index) => (
                   <TabsTrigger
                     key={`section-${index}`}
                     value={`section-${index}`}
-                    className="relative data-[state=active]:text-white group
+                    className="relative data-[state=active]:text-white group w-full
                     data-[state=active]:before:content-[''] data-[state=active]:before:absolute data-[state=active]:before:left-0 
                     data-[state=active]:before:top-0 data-[state=active]:before:h-full data-[state=active]:before:w-1 
                     data-[state=active]:before:bg-gradient-to-b data-[state=active]:before:from-blue-500 data-[state=active]:before:to-purple-500 
                     px-8 py-6 text-white/70 justify-start text-left
                     hover:text-white transition-all duration-200"
                   >
-                    <div className="flex items-center space-x-6">
-                      <div className="relative">
+                    <div className="flex items-center">
+                      <div className="relative shrink-0">
                         <div className="absolute inset-0 bg-gradient-to-br from-zinc-800/40 to-zinc-900/40 rounded-2xl 
                           group-data-[state=active]:from-blue-500/20 group-data-[state=active]:to-purple-500/20 
                           group-hover:from-zinc-800/60 group-hover:to-zinc-900/60 transition-all duration-200">
@@ -219,7 +219,7 @@ export default function ApplicationPage() {
                           {index + 1}
                         </div>
                       </div>
-                      <span className="font-medium text-lg tracking-wide">{section.title}</span>
+                      <span className="font-medium text-lg tracking-wide ml-6 flex-1">{section.title}</span>
                     </div>
                   </TabsTrigger>
                 ))}
