@@ -1,0 +1,105 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+
+    --card: 0 0% 5%;
+    --card-foreground: 0 0% 100%;
+
+    --popover: 0 0% 5%;
+    --popover-foreground: 0 0% 100%;
+
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+
+    --secondary: 0 0% 10%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 65%;
+
+    --accent: 0 0% 15%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 65% 45%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 0 0% 80%;
+
+    --radius: 0.5rem;
+  }
+}
+
+@font-face {
+  font-family: 'D-DIN';
+  src: url('https://ext.same-assets.com/3608545068/2370459469.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'D-DIN-Bold';
+  src: url('https://ext.same-assets.com/1896989750/625239618.woff2') format('woff2');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'D-DIN', sans-serif;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'D-DIN-Bold', sans-serif;
+    text-transform: uppercase;
+  }
+}
+
+@layer components {
+  .space-container {
+    @apply container mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .spacex-button {
+    @apply bg-transparent border border-white uppercase text-sm font-bold px-6 py-2 hover:bg-white hover:text-black transition-all duration-300;
+  }
+
+  .space-gradient {
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.6));
+  }
+
+  .space-card {
+    @apply rounded-none border border-border/20 bg-card p-6;
+  }
+
+  .animated-arrow {
+    animation: arrow-bounce 2s infinite;
+  }
+
+  @keyframes arrow-bounce {
+    0%, 20%, 50%, 80%, 100% {
+      transform: translateY(0);
+    }
+    40% {
+      transform: translateY(-12px);
+    }
+    60% {
+      transform: translateY(-5px);
+    }
+  }
+
+  .space-transition {
+    @apply transition-all duration-300 ease-in-out;
+  }
+}
