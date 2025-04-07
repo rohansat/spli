@@ -196,39 +196,60 @@ export default function ApplicationPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex">
-            <TabsList className="bg-white/10 p-0 flex flex-col w-64 h-fit border-r border-white/20">
-              {part450FormTemplate.sections.map((section, index) => (
-                <TabsTrigger
-                  key={`section-${index}`}
-                  value={`section-${index}`}
-                  className="data-[state=active]:bg-white/20 data-[state=active]:text-white px-4 py-4 text-white/70 justify-start text-left border-b border-white/10 last:border-b-0"
-                >
-                  {index + 1}. {section.title}
-                </TabsTrigger>
-              ))}
-            </TabsList>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex gap-8">
+            <div className="w-72 relative">
+              <TabsList className="bg-zinc-900/50 rounded-xl p-2 flex flex-col w-full sticky top-4">
+                {part450FormTemplate.sections.map((section, index) => (
+                  <TabsTrigger
+                    key={`section-${index}`}
+                    value={`section-${index}`}
+                    className="relative data-[state=active]:bg-white/10 data-[state=active]:text-white 
+                    data-[state=active]:before:content-[''] data-[state=active]:before:absolute data-[state=active]:before:left-0 
+                    data-[state=active]:before:top-0 data-[state=active]:before:h-full data-[state=active]:before:w-1 
+                    data-[state=active]:before:bg-gradient-to-b data-[state=active]:before:from-blue-500 data-[state=active]:before:to-purple-500 
+                    data-[state=active]:shadow-lg data-[state=active]:shadow-white/5
+                    px-6 py-4 text-white/70 justify-start text-left rounded-lg transition-all duration-200 
+                    hover:bg-white/5 hover:text-white group"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <span className="flex items-center justify-center w-8 h-8 rounded-lg 
+                        bg-gradient-to-br from-zinc-800 to-zinc-900 text-sm font-medium 
+                        group-data-[state=active]:from-blue-500/20 group-data-[state=active]:to-purple-500/20 
+                        group-hover:from-zinc-700 group-hover:to-zinc-800 transition-all duration-200">
+                        {index + 1}
+                      </span>
+                      <span className="font-medium">{section.title}</span>
+                    </div>
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </div>
 
-            <div className="flex-1 pl-8">
+            <div className="flex-1 min-w-0">
               {part450FormTemplate.sections.map((section, sectionIndex) => (
                 <TabsContent
                   key={`section-content-${sectionIndex}`}
                   value={`section-${sectionIndex}`}
-                  className="space-y-6 pt-4 m-0"
+                  className="space-y-8 mt-0 focus-visible:outline-none focus-visible:ring-0"
                 >
-                  <div className="space-y-1 mb-4">
-                    <h2 className="text-xl font-bold text-white">{section.title}</h2>
+                  <div className="space-y-2">
+                    <h2 className="text-2xl font-bold text-white bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
+                      {section.title}
+                    </h2>
                     <p className="text-white/60">
                       Complete the {section.title.toLowerCase()} details
                     </p>
                   </div>
 
-                  <div className="space-y-4">
+                  <div className="space-y-6">
                     {section.fields.map((field, fieldIndex) => (
-                      <div key={`field-${sectionIndex}-${fieldIndex}`} className="space-y-2">
+                      <div 
+                        key={`field-${sectionIndex}-${fieldIndex}`} 
+                        className="space-y-2 bg-zinc-900/50 p-6 rounded-xl border border-white/5 hover:border-white/10 transition-colors"
+                      >
                         <label
                           htmlFor={field.name}
-                          className="text-sm font-medium text-white"
+                          className="text-sm font-medium text-white flex items-center space-x-2"
                         >
                           {field.label}
                         </label>
@@ -237,11 +258,11 @@ export default function ApplicationPage() {
                     ))}
                   </div>
 
-                  <div className="flex justify-between pt-4">
+                  <div className="flex justify-between pt-6">
                     {sectionIndex > 0 && (
                       <Button
                         variant="outline"
-                        className="border-white/40 text-white"
+                        className="border-white/10 text-white hover:bg-white/5 transition-colors"
                         onClick={() => setActiveTab(`section-${sectionIndex - 1}`)}
                       >
                         Previous Section
@@ -249,7 +270,7 @@ export default function ApplicationPage() {
                     )}
                     {sectionIndex < part450FormTemplate.sections.length - 1 && (
                       <Button
-                        className="spacex-button ml-auto"
+                        className="bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:opacity-90 transition-opacity ml-auto"
                         onClick={() => setActiveTab(`section-${sectionIndex + 1}`)}
                       >
                         Next Section
