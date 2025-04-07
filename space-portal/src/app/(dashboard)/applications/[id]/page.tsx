@@ -195,10 +195,10 @@ export default function ApplicationPage() {
             Complete all sections of the form to submit your application
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-8">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex gap-10">
-            <div className="w-80 relative">
-              <TabsList className="bg-zinc-900/50 rounded-xl p-3 flex flex-col w-full sticky top-4 gap-2">
+            <div className="w-80">
+              <TabsList className="bg-zinc-900/50 rounded-xl p-3 flex flex-col w-full gap-2 mt-16">
                 {part450FormTemplate.sections.map((section, index) => (
                   <TabsTrigger
                     key={`section-${index}`}
