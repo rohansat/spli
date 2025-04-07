@@ -11,7 +11,9 @@ const nextConfig = {
         hostname: "ugc.same-assets.com",
       }
     ],
+    unoptimized: true
   },
+  output: 'export',
 };
 
 module.exports = nextConfig;
