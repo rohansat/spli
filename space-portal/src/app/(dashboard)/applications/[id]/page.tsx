@@ -196,67 +196,69 @@ export default function ApplicationPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="bg-white/10 p-0 flex overflow-x-auto">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex">
+            <TabsList className="bg-white/10 p-0 flex flex-col w-64 h-fit border-r border-white/20">
               {part450FormTemplate.sections.map((section, index) => (
                 <TabsTrigger
                   key={`section-${index}`}
                   value={`section-${index}`}
-                  className="data-[state=active]:bg-white/20 data-[state=active]:text-white px-4 py-2 text-white/70"
+                  className="data-[state=active]:bg-white/20 data-[state=active]:text-white px-4 py-4 text-white/70 justify-start text-left border-b border-white/10 last:border-b-0"
                 >
                   {index + 1}. {section.title}
                 </TabsTrigger>
               ))}
             </TabsList>
 
-            {part450FormTemplate.sections.map((section, sectionIndex) => (
-              <TabsContent
-                key={`section-content-${sectionIndex}`}
-                value={`section-${sectionIndex}`}
-                className="space-y-6 pt-4"
-              >
-                <div className="space-y-1 mb-4">
-                  <h2 className="text-xl font-bold text-white">{section.title}</h2>
-                  <p className="text-white/60">
-                    Complete the {section.title.toLowerCase()} details
-                  </p>
-                </div>
+            <div className="flex-1 pl-8">
+              {part450FormTemplate.sections.map((section, sectionIndex) => (
+                <TabsContent
+                  key={`section-content-${sectionIndex}`}
+                  value={`section-${sectionIndex}`}
+                  className="space-y-6 pt-4 m-0"
+                >
+                  <div className="space-y-1 mb-4">
+                    <h2 className="text-xl font-bold text-white">{section.title}</h2>
+                    <p className="text-white/60">
+                      Complete the {section.title.toLowerCase()} details
+                    </p>
+                  </div>
 
-                <div className="space-y-4">
-                  {section.fields.map((field, fieldIndex) => (
-                    <div key={`field-${sectionIndex}-${fieldIndex}`} className="space-y-2">
-                      <label
-                        htmlFor={field.name}
-                        className="text-sm font-medium text-white"
+                  <div className="space-y-4">
+                    {section.fields.map((field, fieldIndex) => (
+                      <div key={`field-${sectionIndex}-${fieldIndex}`} className="space-y-2">
+                        <label
+                          htmlFor={field.name}
+                          className="text-sm font-medium text-white"
+                        >
+                          {field.label}
+                        </label>
+                        {renderField(field as FormField)}
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="flex justify-between pt-4">
+                    {sectionIndex > 0 && (
+                      <Button
+                        variant="outline"
+                        className="border-white/40 text-white"
+                        onClick={() => setActiveTab(`section-${sectionIndex - 1}`)}
                       >
-                        {field.label}
-                      </label>
-                      {renderField(field as FormField)}
-                    </div>
-                  ))}
-                </div>
-
-                <div className="flex justify-between pt-4">
-                  {sectionIndex > 0 && (
-                    <Button
-                      variant="outline"
-                      className="border-white/40 text-white"
-                      onClick={() => setActiveTab(`section-${sectionIndex - 1}`)}
-                    >
-                      Previous Section
-                    </Button>
-                  )}
-                  {sectionIndex < part450FormTemplate.sections.length - 1 && (
-                    <Button
-                      className="spacex-button ml-auto"
-                      onClick={() => setActiveTab(`section-${sectionIndex + 1}`)}
-                    >
-                      Next Section
-                    </Button>
-                  )}
-                </div>
-              </TabsContent>
-            ))}
+                        Previous Section
+                      </Button>
+                    )}
+                    {sectionIndex < part450FormTemplate.sections.length - 1 && (
+                      <Button
+                        className="spacex-button ml-auto"
+                        onClick={() => setActiveTab(`section-${sectionIndex + 1}`)}
+                      >
+                        Next Section
+                      </Button>
+                    )}
+                  </div>
+                </TabsContent>
+              ))}
+            </div>
           </Tabs>
         </CardContent>
       </Card>
