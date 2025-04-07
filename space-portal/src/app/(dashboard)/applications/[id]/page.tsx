@@ -196,32 +196,33 @@ export default function ApplicationPage() {
           </div>
           
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex gap-10">
-            <div className="w-80">
-              <TabsList className="bg-zinc-900/50 rounded-xl p-3 flex flex-col w-full gap-2">
-                {part450FormTemplate.sections.map((section, index) => (
-                  <TabsTrigger
-                    key={`section-${index}`}
-                    value={`section-${index}`}
-                    className="relative data-[state=active]:bg-white/10 data-[state=active]:text-white 
-                    data-[state=active]:before:content-[''] data-[state=active]:before:absolute data-[state=active]:before:left-0 
-                    data-[state=active]:before:top-0 data-[state=active]:before:h-full data-[state=active]:before:w-1 
-                    data-[state=active]:before:bg-gradient-to-b data-[state=active]:before:from-blue-500 data-[state=active]:before:to-purple-500 
-                    data-[state=active]:shadow-lg data-[state=active]:shadow-white/5
-                    px-6 py-5 text-white/70 justify-start text-left rounded-lg transition-all duration-200 
-                    hover:bg-white/5 hover:text-white group"
-                  >
-                    <div className="flex items-center space-x-4">
-                      <span className="flex items-center justify-center w-9 h-9 rounded-lg 
-                        bg-gradient-to-br from-zinc-800 to-zinc-900 text-sm font-medium 
-                        group-data-[state=active]:from-blue-500/20 group-data-[state=active]:to-purple-500/20 
-                        group-hover:from-zinc-700 group-hover:to-zinc-800 transition-all duration-200">
-                        {index + 1}
-                      </span>
-                      <span className="font-medium text-base">{section.title}</span>
-                    </div>
-                  </TabsTrigger>
-                ))}
-              </TabsList>
+            <div className="w-64">
+              <div className="bg-zinc-900/80 rounded-xl overflow-hidden border border-white/10">
+                <TabsList className="flex flex-col w-full">
+                  {part450FormTemplate.sections.map((section, index) => (
+                    <TabsTrigger
+                      key={`section-${index}`}
+                      value={`section-${index}`}
+                      className="relative data-[state=active]:bg-white/10 data-[state=active]:text-white 
+                      data-[state=active]:before:content-[''] data-[state=active]:before:absolute data-[state=active]:before:left-0 
+                      data-[state=active]:before:top-0 data-[state=active]:before:h-full data-[state=active]:before:w-1 
+                      data-[state=active]:before:bg-gradient-to-b data-[state=active]:before:from-blue-500 data-[state=active]:before:to-purple-500 
+                      px-4 py-3 text-white/70 justify-start text-left border-b border-white/5 last:border-b-0
+                      hover:bg-white/5 hover:text-white transition-all duration-200 group"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <span className="flex items-center justify-center w-8 h-8 rounded-lg 
+                          bg-gradient-to-br from-zinc-800 to-zinc-900 text-sm font-medium 
+                          group-data-[state=active]:from-blue-500/20 group-data-[state=active]:to-purple-500/20 
+                          group-hover:from-zinc-700 group-hover:to-zinc-800 transition-all duration-200">
+                          {index + 1}
+                        </span>
+                        <span className="font-medium text-sm">{section.title}</span>
+                      </div>
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </div>
             </div>
 
             <div className="flex-1 min-w-0 pr-4">
