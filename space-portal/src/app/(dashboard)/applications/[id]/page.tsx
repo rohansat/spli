@@ -189,16 +189,15 @@ export default function ApplicationPage() {
       )}
 
       <Card className="space-card">
-        <CardHeader className="pb-6">
-          <CardTitle className="text-2xl">Part 450 License Application Form</CardTitle>
-          <CardDescription className="text-white/60 text-base">
-            Complete all sections of the form to submit your application
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="pt-8">
+        <CardContent>
+          <div className="mb-6">
+            <h1 className="text-3xl font-bold text-white">Part 450 License Application Form</h1>
+            <p className="text-white/60 mt-2">Complete all sections of the form to submit your application</p>
+          </div>
+          
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex gap-10">
             <div className="w-80">
-              <TabsList className="bg-zinc-900/50 rounded-xl p-3 flex flex-col w-full gap-2 mt-16">
+              <TabsList className="bg-zinc-900/50 rounded-xl p-3 flex flex-col w-full gap-2">
                 {part450FormTemplate.sections.map((section, index) => (
                   <TabsTrigger
                     key={`section-${index}`}
