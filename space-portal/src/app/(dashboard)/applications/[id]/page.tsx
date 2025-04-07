@@ -197,26 +197,25 @@ export default function ApplicationPage() {
           
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex gap-10">
             <div className="w-[340px]">
-              <TabsList className="flex flex-col w-full min-h-[800px] gap-4">
+              <TabsList className="flex flex-col w-full min-h-[800px] gap-8">
                 {part450FormTemplate.sections.map((section, index) => (
                   <TabsTrigger
                     key={`section-${index}`}
                     value={`section-${index}`}
-                    className="relative data-[state=active]:bg-zinc-900/80 data-[state=active]:text-white 
+                    className="relative data-[state=active]:text-white group
                     data-[state=active]:before:content-[''] data-[state=active]:before:absolute data-[state=active]:before:left-0 
                     data-[state=active]:before:top-0 data-[state=active]:before:h-full data-[state=active]:before:w-1 
                     data-[state=active]:before:bg-gradient-to-b data-[state=active]:before:from-blue-500 data-[state=active]:before:to-purple-500 
-                    px-8 py-7 text-white/70 justify-start text-left rounded-2xl
-                    hover:bg-zinc-900/40 hover:text-white transition-all duration-200 group"
+                    px-8 py-6 text-white/70 justify-start text-left
+                    hover:text-white transition-all duration-200"
                   >
                     <div className="flex items-center space-x-6">
                       <div className="relative">
-                        <div className="absolute inset-0 bg-gradient-to-br from-zinc-800 to-zinc-900 rounded-2xl 
+                        <div className="absolute inset-0 bg-gradient-to-br from-zinc-800/40 to-zinc-900/40 rounded-2xl 
                           group-data-[state=active]:from-blue-500/20 group-data-[state=active]:to-purple-500/20 
-                          group-hover:from-zinc-800/80 group-hover:to-zinc-900/80 transition-all duration-200">
+                          group-hover:from-zinc-800/60 group-hover:to-zinc-900/60 transition-all duration-200">
                         </div>
-                        <div className="relative flex items-center justify-center w-14 h-14 rounded-2xl 
-                          bg-gradient-to-br from-zinc-800/50 to-zinc-900/50 text-lg font-medium">
+                        <div className="relative flex items-center justify-center w-16 h-16 rounded-2xl text-xl font-medium">
                           {index + 1}
                         </div>
                       </div>
