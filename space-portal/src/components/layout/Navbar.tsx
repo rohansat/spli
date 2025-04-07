@@ -38,6 +38,9 @@ export function Navbar({ userInitials = 'U', userImage }: NavbarProps) {
             <NavLink href="/messages" isActive={pathname.startsWith('/messages')}>
               MESSAGES
             </NavLink>
+            <NavLink href="/contact" isActive={pathname === '/contact'}>
+              CONTACT
+            </NavLink>
           </div>
         </div>
 
