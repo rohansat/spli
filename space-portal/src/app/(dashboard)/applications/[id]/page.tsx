@@ -138,16 +138,14 @@ export default function ApplicationPage() {
               className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
                 application.status === "draft"
                   ? "bg-gray-500/20 text-gray-200"
-                  : application.status === "submitted"
-                  ? "bg-blue-500/20 text-blue-300"
                   : application.status === "under_review"
                   ? "bg-yellow-500/20 text-yellow-300"
-                  : application.status === "approved"
-                  ? "bg-green-500/20 text-green-300"
-                  : "bg-red-500/20 text-red-300"
+                  : application.status === "awaiting_action"
+                  ? "bg-blue-500/20 text-blue-300"
+                  : "bg-green-500/20 text-green-300"
               }`}
             >
-              {application.status.replace("_", " ").toUpperCase()}
+              {application.status === "awaiting_action" ? "ACTION NEEDED" : application.status.replace("_", " ").toUpperCase()}
             </span>
           </div>
         </div>
@@ -156,7 +154,7 @@ export default function ApplicationPage() {
           <Button
             variant="outline"
             onClick={handleSave}
-            disabled={isSaving}
+            disabled={isSaving || application.status === "active"}
             className="border-white/40 text-white"
           >
             <Save className="mr-2 h-4 w-4" />
@@ -164,7 +162,7 @@ export default function ApplicationPage() {
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={isSubmitting}
+            disabled={isSubmitting || application.status === "active"}
             className="spacex-button"
           >
             <Send className="mr-2 h-4 w-4" />
