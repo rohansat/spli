@@ -8,7 +8,7 @@ export function middleware(request: NextRequest) {
   // Define public paths that don't require authentication
   const isPublicPath = path === '/' || 
                       path === '/company' || 
-                      path.startsWith('/demo') || 
+                      path === '/demo' || 
                       path === '/signin' || 
                       path === '/signup';
 
@@ -20,8 +20,12 @@ export function middleware(request: NextRequest) {
   // Get the token from the cookies
   const token = request.cookies.get('authToken')?.value;
 
+  // Check if this is a demo request
+  const isDemoRequest = request.cookies.get('demoMode')?.value === 'true';
+
   // If the path is protected and there's no token, redirect to signin
-  if (isProtectedPath && !token) {
+  // Skip this check if it's a demo request
+  if (isProtectedPath && !token && !isDemoRequest) {
     return NextResponse.redirect(new URL('/signin', request.url));
   }
 
@@ -35,5 +39,5 @@ export function middleware(request: NextRequest) {
 
 // Configure the paths that middleware will run on
 export const config = {
-  matcher: ['/', '/company', '/demo/:path*', '/signin', '/signup', '/dashboard/:path*', '/documents/:path*', '/messages/:path*']
+  matcher: ['/', '/company', '/demo', '/signin', '/signup', '/dashboard/:path*', '/documents/:path*', '/messages/:path*']
 }; 
