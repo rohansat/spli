@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { part450FormTemplate } from "@/lib/mock-data";
-import { ChevronLeft, Save, Send, AlertTriangle } from "lucide-react";
+import { ChevronLeft, Save, Send, AlertTriangle, Upload, X } from "lucide-react";
 import Link from "next/link";
 
 interface FormField {
@@ -29,6 +29,8 @@ export default function ApplicationPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
 
   const applicationId = params?.id as string;
   const application = applicationId ? getApplicationById(applicationId) : undefined;
@@ -69,6 +71,17 @@ export default function ApplicationPage() {
       setIsSubmitting(false);
       router.push("/dashboard");
     }, 1500);
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const filesArray = Array.from(e.target.files);
+      setUploadedFiles((prev) => [...prev, ...filesArray]);
+    }
+  };
+
+  const removeFile = (index: number) => {
+    setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const renderField = (field: FormField) => {
@@ -150,7 +163,25 @@ export default function ApplicationPage() {
           </div>
         </div>
 
-        <div className="flex space-x-4 mt-4 md:mt-0">
+        <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4 mt-4 md:mt-0">
+          <div className="relative">
+            <input
+              type="file"
+              id="file-upload"
+              className="hidden"
+              onChange={handleFileUpload}
+              multiple
+              accept=".pdf,.doc,.docx,.txt"
+            />
+            <label
+              htmlFor="file-upload"
+              className="cursor-pointer inline-flex items-center justify-center px-6 py-2 border border-white/40 rounded-md text-white hover:bg-white/5 transition-colors"
+            >
+              <Upload className="mr-2 h-4 w-4" />
+              Upload Documents
+            </label>
+          </div>
+
           <Button
             variant="outline"
             onClick={handleSave}
@@ -160,6 +191,7 @@ export default function ApplicationPage() {
             <Save className="mr-2 h-4 w-4" />
             {isSaving ? "Saving..." : "Save Draft"}
           </Button>
+
           <Button
             onClick={handleSubmit}
             disabled={isSubmitting || application.status === "active"}
@@ -186,6 +218,27 @@ export default function ApplicationPage() {
             This application is in draft mode. Complete all required fields before submitting.
           </AlertDescription>
         </Alert>
+      )}
+
+      {uploadedFiles.length > 0 && (
+        <div className="mb-8 bg-white/5 p-4 rounded-lg border border-white/10">
+          <h3 className="text-white font-medium mb-3">Uploaded Documents</h3>
+          <div className="space-y-2">
+            {uploadedFiles.map((file, index) => (
+              <div key={index} className="flex items-center justify-between bg-white/5 p-2 rounded">
+                <span className="text-sm text-white/80">{file.name}</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => removeFile(index)}
+                  className="text-white/60 hover:text-white"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        </div>
       )}
 
       <div>
