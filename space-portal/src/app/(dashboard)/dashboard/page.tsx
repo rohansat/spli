@@ -9,7 +9,7 @@ import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Application } from "@/types";
-import { Clock } from "lucide-react";
+import { Clock, FilePlus, Rocket } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { cn } from "@/lib/utils";
 
@@ -128,30 +128,38 @@ export default function Dashboard() {
             <h2 className="text-xl font-semibold text-white mb-1">Active Applications</h2>
             <p className="text-zinc-500 text-sm mb-6">Your current licensing applications</p>
             
-            <div className="space-y-3">
-              {activeApplications.map((app) => (
-                <Link
-                  key={app.id}
-                  href={`/applications/${app.id}`}
-                  className="block p-4 rounded-lg bg-black border border-zinc-800 hover:border-zinc-700 transition-colors"
-                >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="font-medium text-white mb-1">{app.name}</h3>
-                      <p className="text-sm text-zinc-500">
-                        {app.type} • Last updated {formatDate(app.updatedAt)}
-                      </p>
+            {applications.length === 0 ? (
+              <div className="text-center py-8">
+                <FilePlus className="mx-auto h-12 w-12 text-zinc-600 mb-4" />
+                <p className="text-zinc-400 font-medium">No active applications</p>
+                <p className="text-zinc-500 text-sm mt-1">Create your first application to get started</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {applications.map((app) => (
+                  <Link
+                    key={app.id}
+                    href={`/applications/${app.id}`}
+                    className="block p-4 rounded-lg bg-black border border-zinc-800 hover:border-zinc-700 transition-colors"
+                  >
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h3 className="font-medium text-white mb-1">{app.name}</h3>
+                        <p className="text-sm text-zinc-500">
+                          {app.type} • Last updated {formatDate(app.updatedAt)}
+                        </p>
+                      </div>
+                      <span className={cn(
+                        "px-3 py-1 rounded-full text-xs font-medium uppercase",
+                        getStatusBadgeClass(app.status)
+                      )}>
+                        {app.status.replace("_", " ")}
+                      </span>
                     </div>
-                    <span className={cn(
-                      "px-3 py-1 rounded-full text-xs font-medium uppercase",
-                      getStatusBadgeClass(app.status)
-                    )}>
-                      {app.status.replace("_", " ")}
-                    </span>
-                  </div>
-                </Link>
-              ))}
-            </div>
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
         </Card>
 
@@ -160,25 +168,35 @@ export default function Dashboard() {
             <h2 className="text-xl font-semibold text-white mb-1">Launch Status</h2>
             <p className="text-zinc-500 text-sm mb-6">Recent and upcoming launches</p>
             
-            <div className="space-y-4">
-              {launchStatusItems.map((app) => (
-                <div key={app.id} className="p-4 rounded-lg bg-black border border-zinc-800">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className={cn(
-                      "h-2 w-2 rounded-full",
-                      app.status === "approved" ? "bg-green-500" : "bg-yellow-500"
-                    )} />
-                    <h3 className="font-medium text-white">
-                      {app.status === "approved" ? "APPROVED LAUNCH WINDOW" : "PENDING APPROVAL"}
-                    </h3>
-                  </div>
-                  <p className="text-sm text-zinc-500 mb-1">{app.name}</p>
-                  <p className="text-xs text-zinc-600">
-                    {app.status === "approved" ? "May 15, 2025 - June 30, 2025" : `Submitted on ${formatDate(app.updatedAt)}`}
-                  </p>
-                </div>
-              ))}
-            </div>
+            {applications.length === 0 ? (
+              <div className="text-center py-8">
+                <Rocket className="mx-auto h-12 w-12 text-zinc-600 mb-4" />
+                <p className="text-zinc-400 font-medium">No launches yet</p>
+                <p className="text-zinc-500 text-sm mt-1">Your approved launches will appear here</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {applications
+                  .filter(app => app.status === "approved" || app.status === "under_review")
+                  .map((app) => (
+                    <div key={app.id} className="p-4 rounded-lg bg-black border border-zinc-800">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className={cn(
+                          "h-2 w-2 rounded-full",
+                          app.status === "approved" ? "bg-green-500" : "bg-yellow-500"
+                        )} />
+                        <h3 className="font-medium text-white">
+                          {app.status === "approved" ? "APPROVED LAUNCH WINDOW" : "PENDING APPROVAL"}
+                        </h3>
+                      </div>
+                      <p className="text-sm text-zinc-500 mb-1">{app.name}</p>
+                      <p className="text-xs text-zinc-600">
+                        {app.status === "approved" ? "May 15, 2025 - June 30, 2025" : `Submitted on ${formatDate(app.updatedAt)}`}
+                      </p>
+                    </div>
+                  ))}
+              </div>
+            )}
           </div>
         </Card>
       </div>
@@ -188,41 +206,49 @@ export default function Dashboard() {
           <h2 className="text-xl font-semibold text-white mb-1">All Applications</h2>
           <p className="text-zinc-500 text-sm mb-6">Complete history of your license applications</p>
           
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="text-left border-b border-zinc-800">
-                  <th className="pb-3 text-sm font-medium text-white">Name</th>
-                  <th className="pb-3 text-sm font-medium text-white">Type</th>
-                  <th className="pb-3 text-sm font-medium text-white">Status</th>
-                  <th className="pb-3 text-sm font-medium text-white">Created</th>
-                  <th className="pb-3 text-sm font-medium text-white">Last Update</th>
-                </tr>
-              </thead>
-              <tbody>
-                {applications.map((app) => (
-                  <tr
-                    key={app.id}
-                    className="border-b border-zinc-800 hover:bg-black/50 cursor-pointer"
-                    onClick={() => router.push(`/applications/${app.id}`)}
-                  >
-                    <td className="py-4 text-white">{app.name}</td>
-                    <td className="py-4 text-zinc-400">{app.type}</td>
-                    <td className="py-4">
-                      <span className={cn(
-                        "px-2.5 py-1 rounded-full text-xs font-medium",
-                        getStatusBadgeClass(app.status)
-                      )}>
-                        {app.status.replace("_", " ").toUpperCase()}
-                      </span>
-                    </td>
-                    <td className="py-4 text-zinc-400">{formatDate(app.createdAt)}</td>
-                    <td className="py-4 text-zinc-400">{formatDate(app.updatedAt)}</td>
+          {applications.length === 0 ? (
+            <div className="text-center py-8">
+              <FilePlus className="mx-auto h-12 w-12 text-zinc-600 mb-4" />
+              <p className="text-zinc-400 font-medium">No applications yet</p>
+              <p className="text-zinc-500 text-sm mt-1">Create your first application to get started</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="text-left border-b border-zinc-800">
+                    <th className="pb-3 text-sm font-medium text-white">Name</th>
+                    <th className="pb-3 text-sm font-medium text-white">Type</th>
+                    <th className="pb-3 text-sm font-medium text-white">Status</th>
+                    <th className="pb-3 text-sm font-medium text-white">Created</th>
+                    <th className="pb-3 text-sm font-medium text-white">Last Update</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {applications.map((app) => (
+                    <tr
+                      key={app.id}
+                      className="border-b border-zinc-800 hover:bg-black/50 cursor-pointer"
+                      onClick={() => router.push(`/applications/${app.id}`)}
+                    >
+                      <td className="py-4 text-white">{app.name}</td>
+                      <td className="py-4 text-zinc-400">{app.type}</td>
+                      <td className="py-4">
+                        <span className={cn(
+                          "px-2.5 py-1 rounded-full text-xs font-medium",
+                          getStatusBadgeClass(app.status)
+                        )}>
+                          {app.status.replace("_", " ").toUpperCase()}
+                        </span>
+                      </td>
+                      <td className="py-4 text-zinc-400">{formatDate(app.createdAt)}</td>
+                      <td className="py-4 text-zinc-400">{formatDate(app.updatedAt)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </Card>
     </div>
