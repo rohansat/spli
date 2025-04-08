@@ -150,15 +150,15 @@ export default function ApplicationPage() {
             <span
               className={`px-3 py-1 rounded-full text-xs font-medium ${
                 application.status === "draft"
-                  ? "bg-gray-500/20 text-gray-200"
+                  ? "bg-zinc-500/20 text-zinc-300"
                   : application.status === "under_review"
                   ? "bg-yellow-500/20 text-yellow-300"
-                  : application.status === "awaiting_action"
+                  : application.status === "submitted"
                   ? "bg-blue-500/20 text-blue-300"
                   : "bg-green-500/20 text-green-300"
               }`}
             >
-              {application.status === "awaiting_action" ? "ACTION NEEDED" : application.status.replace("_", " ").toUpperCase()}
+              {application.status === "submitted" ? "SUBMITTED" : application.status.replace("_", " ").toUpperCase()}
             </span>
           </div>
         </div>
@@ -185,7 +185,7 @@ export default function ApplicationPage() {
           <Button
             variant="outline"
             onClick={handleSave}
-            disabled={isSaving || application.status === "active"}
+            disabled={isSaving || application.status === "approved"}
             className="border-white/40 text-white px-6"
           >
             <Save className="mr-2 h-4 w-4" />
@@ -194,7 +194,7 @@ export default function ApplicationPage() {
 
           <Button
             onClick={handleSubmit}
-            disabled={isSubmitting || application.status === "active"}
+            disabled={isSubmitting || application.status === "approved"}
             className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6"
           >
             <Send className="mr-2 h-4 w-4" />

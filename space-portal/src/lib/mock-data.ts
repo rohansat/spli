@@ -15,11 +15,12 @@ export const applications: Application[] = [
   {
     id: "app-1",
     name: "Falcon X Launch Vehicle License",
-    status: "awaiting_action",
+    status: "submitted",
     type: "Part 450",
-    createdAt: "2025-01-15T12:00:00Z",
-    updatedAt: "2025-02-20T14:30:00Z",
+    createdAt: "2024-01-15T08:00:00Z",
+    updatedAt: "2024-02-20T15:30:00Z",
     submittedAt: "2025-02-20T14:30:00Z",
+    userId: "1"
   },
   {
     id: "app-2",
@@ -32,11 +33,12 @@ export const applications: Application[] = [
   {
     id: "app-3",
     name: "Orbital Facility Safety Approval",
-    status: "active",
+    status: "approved",
     type: "Safety Approval",
-    createdAt: "2024-11-05T10:00:00Z",
-    updatedAt: "2025-01-10T16:45:00Z",
+    createdAt: "2023-11-05T10:00:00Z",
+    updatedAt: "2024-01-10T16:45:00Z",
     submittedAt: "2024-11-07T14:20:00Z",
+    userId: "1"
   },
   {
     id: "app-4",
