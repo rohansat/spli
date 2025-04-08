@@ -10,18 +10,24 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { currentUser } from "@/lib/mock-data";
 import { Application } from "@/types";
 import { FilePlus, Rocket, PlusCircle, Upload, X } from "lucide-react";
+import { useAuth } from "@/lib/auth-context";
 
 export default function Dashboard() {
   const router = useRouter();
+  const { user } = useAuth();
   const { applications, createApplication } = useApplication();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newApplicationName, setNewApplicationName] = useState("");
   const [newApplicationType, setNewApplicationType] = useState<Application["type"]>("Part 450");
   const [documentDescription, setDocumentDescription] = useState("");
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+
+  if (!user) {
+    router.push('/signin');
+    return null;
+  }
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -78,7 +84,7 @@ export default function Dashboard() {
         <div>
           <h1 className="text-3xl font-bold text-white mb-2">MISSION CONTROL</h1>
           <p className="text-white/60">
-            Welcome back, {currentUser.name}. Manage your aerospace licensing applications.
+            Welcome back, {user.displayName || 'Astronaut'}. Manage your aerospace licensing applications.
           </p>
         </div>
 
