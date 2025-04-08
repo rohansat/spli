@@ -24,11 +24,6 @@ export default function Dashboard() {
   const [documentDescription, setDocumentDescription] = useState("");
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
 
-  if (!user) {
-    router.push('/signin');
-    return null;
-  }
-
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const filesArray = Array.from(e.target.files);
@@ -84,7 +79,7 @@ export default function Dashboard() {
         <div>
           <h1 className="text-3xl font-bold text-white mb-2">MISSION CONTROL</h1>
           <p className="text-white/60">
-            Welcome back, {user.displayName || 'Astronaut'}. Manage your aerospace licensing applications.
+            Welcome back, {user?.displayName || 'Astronaut'}. Manage your aerospace licensing applications.
           </p>
         </div>
 

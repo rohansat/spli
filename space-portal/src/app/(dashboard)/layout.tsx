@@ -5,22 +5,25 @@ import { ApplicationProvider } from "@/components/providers/ApplicationProvider"
 import { Footer } from "@/components/layout/Footer";
 import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const router = useRouter();
 
-  if (!user) {
-    router.push('/signin');
-    return null;
-  }
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/signin');
+    }
+  }, [user, loading, router]);
 
   // Get user initials from display name or email
   const getUserInitials = () => {
+    if (!user) return 'A';
     if (user.displayName) {
       return user.displayName
         .split(' ')
@@ -30,6 +33,23 @@ export default function DashboardLayout({
     }
     return user.email ? user.email[0].toUpperCase() : 'A';
   };
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black">
+        <div className="space-y-4 text-center">
+          <div className="w-16 h-16 border-4 border-t-white border-white/20 rounded-full animate-spin mx-auto"></div>
+          <p className="text-white/60">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't show anything while redirecting to signin
+  if (!user) {
+    return null;
+  }
 
   return (
     <ApplicationProvider>
