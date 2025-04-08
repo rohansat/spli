@@ -16,8 +16,11 @@ export function Navbar({ userInitials = 'U', userImage }: NavbarProps) {
   const pathname = usePathname();
 
   // Show landing page navigation for public routes
-  const publicRoutes = ['/', '/company'];
-  if (publicRoutes.includes(pathname)) {
+  if (pathname === '/signin' || pathname === '/signup') {
+    return null;
+  }
+
+  if (pathname === '/' || pathname === '/company') {
     return (
       <nav className="fixed w-full z-50 bg-black border-b border-white/10">
         <div className="space-container flex items-center justify-between h-16">
@@ -45,10 +48,6 @@ export function Navbar({ userInitials = 'U', userImage }: NavbarProps) {
   }
 
   // Show dashboard navigation for authenticated routes
-  if (pathname === '/signin' || pathname === '/signup') {
-    return null;
-  }
-
   return (
     <nav className="fixed w-full z-50 bg-black border-b border-white/10">
       <div className="space-container flex items-center justify-between h-16">
