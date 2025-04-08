@@ -8,119 +8,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Application } from "@/types";
-import { FilePlus, Rocket, PlusCircle, Upload, X } from "lucide-react";
+import { FilePlus, Rocket, PlusCircle } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { cn } from "@/lib/utils";
-import { Search, Filter, Download, Trash2, Star, Plus } from "lucide-react";
-
-// Mock data
-const ACTIVE_APPLICATIONS = [
-  {
-    name: "FALCON X LAUNCH VEHICLE LICENSE",
-    type: "Part 450",
-    lastUpdated: "Feb 20, 2025",
-    status: "UNDER REVIEW"
-  },
-  {
-    name: "STARCRUISER REENTRY VEHICLE",
-    type: "Part 450",
-    lastUpdated: "Feb 27, 2025",
-    status: "DRAFT"
-  },
-  {
-    name: "LAUNCH SITE EXPANSION AMENDMENT",
-    type: "License Amendment",
-    lastUpdated: "Mar 5, 2025",
-    status: "SUBMITTED"
-  }
-];
-
-const LAUNCH_STATUS = [
-  {
-    type: "APPROVED LAUNCH WINDOW",
-    name: "Orbital Facility Deployment",
-    date: "May 15, 2025 - June 30, 2025",
-    status: "approved"
-  },
-  {
-    type: "PENDING APPROVAL",
-    name: "Falcon X Launch Vehicle",
-    date: "Submitted on Feb 20, 2025",
-    status: "pending"
-  }
-];
-
-const DOCUMENTS = [
-  {
-    name: "Falcon X License Application.pdf",
-    type: "Application",
-    size: "4.2 MB",
-    uploaded: "Feb 20, 2025",
-    application: "Falcon X Launch Vehicle License"
-  },
-  {
-    name: "Flight Safety Analysis.pdf",
-    type: "Attachment",
-    size: "8.7 MB",
-    uploaded: "Feb 20, 2025",
-    application: "Falcon X Launch Vehicle License"
-  },
-  {
-    name: "Environmental Assessment Report.pdf",
-    type: "Attachment",
-    size: "12.1 MB",
-    uploaded: "Feb 21, 2025",
-    application: "Falcon X Launch Vehicle License"
-  },
-  {
-    name: "Starcruiser Draft Application.pdf",
-    type: "Application",
-    size: "3.8 MB",
-    uploaded: "Feb 27, 2025",
-    application: "Starcruiser Reentry Vehicle"
-  },
-  {
-    name: "Orbital Facility Approval.pdf",
-    type: "License",
-    size: "2.5 MB",
-    uploaded: "Jan 10, 2025",
-    application: "Orbital Facility Safety Approval"
-  }
-];
-
-const MESSAGES = [
-  {
-    from: "faa-admin@faa.gov",
-    subject: "Falcon X License Application Received",
-    preview: "We have received your application for the Falcon X Laun...",
-    date: "Feb 20",
-    unread: true
-  },
-  {
-    from: "sarah.johnson@faa.gov",
-    subject: "Additional Information Needed for Falcon X Ap...",
-    preview: "After reviewing your Falcon X Launch Vehicle License ap...",
-    date: "Mar 5",
-    unread: false
-  },
-  {
-    from: "faa-admin@faa.gov",
-    subject: "Orbital Facility Safety Approval Granted",
-    preview: "Your application for Orbital Facility Safety Approval has ...",
-    date: "Jan 10",
-    unread: false
-  },
-  {
-    from: "faa-admin@faa.gov",
-    subject: "Launch Site Expansion Amendment Received",
-    preview: "We have received your Launch Site Expansion Amendm...",
-    date: "Mar 5",
-    unread: false
-  }
-];
 
 export default function Dashboard() {
   const router = useRouter();
@@ -129,20 +21,6 @@ export default function Dashboard() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newApplicationName, setNewApplicationName] = useState("");
   const [newApplicationType, setNewApplicationType] = useState<Application["type"]>("Part 450");
-  const [documentDescription, setDocumentDescription] = useState("");
-  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
-  const [selectedMessage, setSelectedMessage] = useState(MESSAGES[0]);
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const filesArray = Array.from(e.target.files);
-      setUploadedFiles((prev) => [...prev, ...filesArray]);
-    }
-  };
-
-  const removeFile = (index: number) => {
-    setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
-  };
 
   const handleCreateApplication = () => {
     if (newApplicationName.trim() === "") return;
@@ -150,9 +28,6 @@ export default function Dashboard() {
     const newApp = createApplication(newApplicationName, newApplicationType);
     setIsDialogOpen(false);
     setNewApplicationName("");
-    setDocumentDescription("");
-    setUploadedFiles([]);
-
     router.push(`/applications/${newApp.id}`);
   };
 
