@@ -26,20 +26,20 @@ export function Navbar({ userInitials = 'U', userImage }: NavbarProps) {
   // Show public navigation
   if (isPublicPage) {
     return (
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-black">
-        <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-black h-[72px] flex items-center">
+        <div className="w-full px-[60px] mx-auto">
+          <div className="flex items-center justify-between">
             {/* Logo */}
-            <Link href="/" className="text-white text-xl font-bold">
+            <Link href="/" className="text-white text-xl font-medium">
               SPLI
             </Link>
 
             {/* Navigation Links */}
-            <div className="flex items-center space-x-8">
+            <div className="flex items-center gap-[32px]">
               <Link
                 href="/"
                 className={cn(
-                  "text-sm text-white uppercase hover:text-gray-300 transition-colors",
+                  "text-[14px] text-white uppercase hover:text-gray-300 transition-colors font-normal",
                   pathname === "/" && "font-medium"
                 )}
               >
@@ -48,7 +48,7 @@ export function Navbar({ userInitials = 'U', userImage }: NavbarProps) {
               <Link
                 href="/company"
                 className={cn(
-                  "text-sm text-white uppercase hover:text-gray-300 transition-colors",
+                  "text-[14px] text-white uppercase hover:text-gray-300 transition-colors font-normal",
                   pathname === "/company" && "font-medium"
                 )}
               >
@@ -57,7 +57,7 @@ export function Navbar({ userInitials = 'U', userImage }: NavbarProps) {
               <Link
                 href="/signin"
                 className={cn(
-                  "text-sm text-white uppercase hover:text-gray-300 transition-colors",
+                  "text-[14px] text-white uppercase hover:text-gray-300 transition-colors font-normal",
                   pathname?.startsWith("/signin") && "font-medium"
                 )}
               >
