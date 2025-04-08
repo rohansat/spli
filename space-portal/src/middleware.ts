@@ -4,23 +4,20 @@ import type { NextRequest } from 'next/server';
 export function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
-  // Allow unrestricted access to demo routes
-  if (path.startsWith('/demo')) {
+  // Allow unrestricted access to ALL demo-related paths and features
+  if (path.startsWith('/demo') || path.includes('demo')) {
     return NextResponse.next();
   }
 
-  // Check if the path is public
+  // Only apply authentication checks to non-demo routes
   const isPublicPath = path === '/login' || path === '/signup' || path === '/';
-
-  // Get the token from the cookies
   const token = request.cookies.get('token')?.value || '';
 
-  // Redirect logic for non-demo routes
   if (isPublicPath && token) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
-  if (!isPublicPath && !token) {
+  if (!isPublicPath && !token && !path.includes('demo')) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
@@ -37,6 +34,7 @@ export const config = {
     '/documents/:path*',
     '/messages/:path*',
     '/profile/:path*',
-    '/demo/:path*'
+    '/demo/:path*',
+    '/api/:path*'
   ]
 }; 
