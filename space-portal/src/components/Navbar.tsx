@@ -82,7 +82,10 @@ export function Navbar() {
               <DropdownMenuSeparator className="bg-zinc-800" />
               <DropdownMenuItem 
                 className="flex items-center gap-2 text-zinc-400 focus:bg-[#111111] focus:text-white cursor-pointer"
-                onClick={() => signOut()}
+                onClick={async (e) => {
+                  e.preventDefault();
+                  await signOut();
+                }}
               >
                 <LogOut className="h-4 w-4" />
                 Log out

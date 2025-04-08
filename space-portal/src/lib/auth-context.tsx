@@ -59,15 +59,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signOut = async () => {
-    console.log('Starting sign out...');
     try {
       await auth.signOut();
-      console.log('Sign out successful');
-      // Don't set loading false here - let the auth state listener handle it
+      // Clear any local storage or state
+      localStorage.clear();
+      // Redirect to home page
+      window.location.href = '/';
     } catch (error) {
       console.error('Error signing out:', error);
-      setLoading(false);
-      throw error;
     }
   };
 
