@@ -30,22 +30,16 @@ export function Navbar({ userInitials = 'U', userImage }: NavbarProps) {
           </Link>
 
           <div className="flex items-center gap-6">
-            <NavLink href="/" isActive={pathname === '/'}>
+            <Link href="/" className="text-sm font-medium text-white/70 hover:text-white transition-colors">
               HOME
-            </NavLink>
-            <NavLink href="/company" isActive={pathname === '/company'}>
+            </Link>
+            <Link href="/company" className="text-sm font-medium text-white/70 hover:text-white transition-colors">
               COMPANY
-            </NavLink>
-            <Link
-              href="/demo"
-              className="px-6 py-2 text-sm font-medium text-white bg-zinc-800 hover:bg-zinc-700 rounded-md transition-colors"
-            >
+            </Link>
+            <Link href="/demo" className="px-4 py-2 text-sm font-medium text-white bg-zinc-800 hover:bg-zinc-700 rounded-md transition-colors">
               DEMO
             </Link>
-            <Link
-              href="/signin"
-              className="ml-2 px-6 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
-            >
+            <Link href="/signin" className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors">
               LOG IN
             </Link>
           </div>
