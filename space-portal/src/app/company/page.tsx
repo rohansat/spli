@@ -2,26 +2,12 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Footer } from '@/components/layout/Footer';
 import { Rocket, Award, Globe, ShieldCheck } from 'lucide-react';
+import { PublicNav } from '@/components/layout/PublicNav';
 
 export default function CompanyPage() {
   return (
     <main className="min-h-screen bg-black">
-      {/* Navigation */}
-      <div className="fixed w-full z-50 p-6 bg-black/30 backdrop-blur-sm">
-        <div className="container mx-auto flex justify-between items-center">
-          <Link href="/" className="text-white text-xl font-bold tracking-wider">
-            SPLI
-          </Link>
-          <div className="flex space-x-6">
-            <Link href="/" className="text-sm font-medium text-white/80 hover:text-white transition-colors">
-              HOME
-            </Link>
-            <Link href="/company" className="text-sm font-medium text-white text-white transition-colors">
-              COMPANY
-            </Link>
-          </div>
-        </div>
-      </div>
+      <PublicNav />
 
       {/* Hero Section - Full Height */}
       <div className="min-h-screen flex items-center relative">

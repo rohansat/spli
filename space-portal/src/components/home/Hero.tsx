@@ -1,29 +1,12 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowDown } from 'lucide-react';
+import { PublicNav } from '@/components/layout/PublicNav';
 
 export function Hero() {
   return (
     <div className="relative h-screen w-full flex flex-col justify-center items-center text-white overflow-hidden">
-      {/* Top Navigation */}
-      <div className="absolute top-0 right-0 left-0 z-20 p-6">
-        <div className="container mx-auto flex justify-between items-center">
-          <Link href="/" className="text-white text-xl font-bold tracking-wider">
-            SPLI
-          </Link>
-          <div className="flex space-x-6 items-center">
-            <Link href="/" className="text-sm font-medium text-white/80 hover:text-white transition-colors">
-              HOME
-            </Link>
-            <Link href="/company" className="text-sm font-medium text-white/80 hover:text-white transition-colors">
-              COMPANY
-            </Link>
-            <Link href="/signin" className="text-sm font-medium text-white/80 hover:text-white transition-colors">
-              LOG IN
-            </Link>
-          </div>
-        </div>
-      </div>
+      <PublicNav transparent />
 
       {/* Background image with gradient overlay */}
       <div
