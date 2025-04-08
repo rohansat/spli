@@ -8,10 +8,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { currentUser } from "@/lib/mock-data";
 import { Application } from "@/types";
-import { FilePlus, Rocket, PlusCircle } from "lucide-react";
+import { FilePlus, Rocket, PlusCircle, Upload, X } from "lucide-react";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -19,6 +20,19 @@ export default function Dashboard() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newApplicationName, setNewApplicationName] = useState("");
   const [newApplicationType, setNewApplicationType] = useState<Application["type"]>("Part 450");
+  const [documentDescription, setDocumentDescription] = useState("");
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const filesArray = Array.from(e.target.files);
+      setUploadedFiles((prev) => [...prev, ...filesArray]);
+    }
+  };
+
+  const removeFile = (index: number) => {
+    setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const handleCreateApplication = () => {
     if (newApplicationName.trim() === "") return;
@@ -26,6 +40,8 @@ export default function Dashboard() {
     const newApp = createApplication(newApplicationName, newApplicationType);
     setIsDialogOpen(false);
     setNewApplicationName("");
+    setDocumentDescription("");
+    setUploadedFiles([]);
 
     // Redirect to the new application form
     router.push(`/applications/${newApp.id}`);
@@ -109,11 +125,69 @@ export default function Dashboard() {
                   <option value="Site License">Site License</option>
                 </select>
               </div>
+              <div className="space-y-2">
+                <label htmlFor="documents" className="text-sm font-medium">
+                  Important Documents
+                </label>
+                <Textarea
+                  id="documents"
+                  value={documentDescription}
+                  onChange={(e) => setDocumentDescription(e.target.value)}
+                  placeholder="e.g., Important Documents Needed For Licensing"
+                  className="bg-white/10 border-white/20 text-white min-h-[100px]"
+                />
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="file-upload" className="text-sm font-medium">
+                  Upload Documents
+                </label>
+                <div className="flex items-center justify-center w-full">
+                  <label htmlFor="file-upload" className="w-full flex flex-col items-center justify-center px-4 py-6 bg-white/10 border-2 border-white/20 border-dashed rounded-lg cursor-pointer hover:bg-white/5 transition-colors">
+                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                      <Upload className="h-8 w-8 text-white/60 mb-2" />
+                      <p className="mb-2 text-sm text-white/80">
+                        <span className="font-semibold">Click to upload</span> or drag and drop
+                      </p>
+                      <p className="text-xs text-white/60">PDF, DOC, DOCX, or TXT (MAX. 10MB)</p>
+                    </div>
+                    <input
+                      id="file-upload"
+                      type="file"
+                      className="hidden"
+                      accept=".pdf,.doc,.docx,.txt"
+                      onChange={handleFileUpload}
+                      multiple
+                    />
+                  </label>
+                </div>
+                {uploadedFiles.length > 0 && (
+                  <div className="mt-4 space-y-2">
+                    {uploadedFiles.map((file, index) => (
+                      <div key={index} className="flex items-center justify-between bg-white/5 p-2 rounded">
+                        <span className="text-sm text-white/80">{file.name}</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeFile(index)}
+                          className="text-white/60 hover:text-white"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
             <DialogFooter>
               <Button
                 variant="outline"
-                onClick={() => setIsDialogOpen(false)}
+                onClick={() => {
+                  setIsDialogOpen(false);
+                  setNewApplicationName("");
+                  setDocumentDescription("");
+                  setUploadedFiles([]);
+                }}
                 className="border-white/40 text-white"
               >
                 Cancel
