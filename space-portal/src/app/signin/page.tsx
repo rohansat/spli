@@ -6,10 +6,10 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
-import { Footer } from '@/components/layout/Footer';
 import { useAuth } from '@/lib/auth-context';
-import { redirect } from 'next/navigation';
 import { PublicNav } from '@/components/layout/PublicNav';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 
 export default function SignInPage() {
   const router = useRouter();
@@ -17,38 +17,105 @@ export default function SignInPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
   if (user) {
-    redirect('/dashboard');
+    router.push('/dashboard');
+    return null;
   }
 
-  // For demo purposes, we're simulating authentication
-  const handleSignIn = (e: React.FormEvent) => {
+  const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError('');
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-      // Redirect to dashboard on successful login
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
       router.push('/dashboard');
-    }, 1000);
+    } catch (error: any) {
+      console.error('Error signing in:', error);
+      setError(error.message || 'Failed to sign in');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      await signInWithGoogle();
+      router.push('/dashboard');
+    } catch (error: any) {
+      console.error('Error signing in with Google:', error);
+      setError(error.message || 'Failed to sign in with Google');
+    }
   };
 
   return (
-    <main className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-black flex flex-col">
       <PublicNav />
-      
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="max-w-md w-full mx-4">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold mb-2">Welcome Back</h1>
-            <p className="text-gray-400">Sign in to continue to SPLI</p>
-          </div>
 
-          <div className="space-y-4">
+      <main className="flex-1 flex items-center justify-center z-10 p-4">
+        <Card className="w-full max-w-md bg-black/80 border border-white/20 backdrop-blur-sm">
+          <CardHeader className="text-center pb-6">
+            <h1 className="text-3xl font-bold text-white">SIGN IN</h1>
+            <p className="text-white/60 mt-2">
+              Welcome back to SPLI
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <form onSubmit={handleEmailSignIn} className="space-y-4">
+              <div className="space-y-2">
+                <label htmlFor="email" className="text-sm text-white font-medium">
+                  EMAIL
+                </label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  required
+                  className="bg-white/10 border-white/20 text-white"
+                />
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="password" className="text-sm text-white font-medium">
+                  PASSWORD
+                </label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                  className="bg-white/10 border-white/20 text-white"
+                />
+              </div>
+              {error && (
+                <p className="text-red-500 text-sm">{error}</p>
+              )}
+              <Button
+                type="submit"
+                className="w-full spacex-button"
+                disabled={isLoading}
+              >
+                {isLoading ? 'SIGNING IN...' : 'SIGN IN'}
+              </Button>
+            </form>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-white/20"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-black text-white/60">Or continue with</span>
+              </div>
+            </div>
+
             <Button
-              onClick={signInWithGoogle}
+              onClick={handleGoogleSignIn}
+              type="button"
               className="w-full py-6 flex items-center justify-center space-x-2 bg-white hover:bg-gray-100 text-black"
             >
               <svg className="w-6 h-6" viewBox="0 0 24 24">
@@ -69,11 +136,19 @@ export default function SignInPage() {
                   d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                 />
               </svg>
-              <span>Continue with Google</span>
+              <span>Google</span>
             </Button>
-          </div>
-        </div>
-      </div>
-    </main>
+          </CardContent>
+          <CardFooter className="flex justify-center">
+            <p className="text-white/60 text-sm">
+              Don't have an account?{' '}
+              <Link href="/signup" className="text-white hover:underline">
+                Sign up
+              </Link>
+            </p>
+          </CardFooter>
+        </Card>
+      </main>
+    </div>
   );
 }
