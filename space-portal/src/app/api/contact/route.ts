@@ -31,7 +31,7 @@ export async function POST(request: Request) {
           to: recipient,
           subject: `New Contact Form Submission from ${company}`,
           html: emailContent,
-          replyTo: email
+          reply_to: email
         })
       )
     );
