@@ -6,7 +6,7 @@ interface PublicNavProps {
 
 export function PublicNav({ transparent = false }: PublicNavProps) {
   return (
-    <div className={`fixed w-full z-50 p-6 ${transparent ? '' : 'bg-black/30 backdrop-blur-sm'}`}>
+    <div className={`absolute top-0 right-0 left-0 z-50 p-6 ${transparent ? '' : 'bg-black/30 backdrop-blur-sm'}`}>
       <div className="container mx-auto flex justify-between items-center">
         <Link href="/" className="text-white text-xl font-bold tracking-wider">
           SPLI
