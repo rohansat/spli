@@ -64,7 +64,7 @@ export default function Dashboard() {
 
   return (
     <div className="p-8">
-      <div className="flex justify-between items-start mb-12">
+      <div className="flex justify-between items-center mb-12">
         <div>
           <h1 className="text-3xl font-semibold text-white mb-2">Welcome back, {user?.displayName || user?.email?.split('@')[0] || 'John Doe'}.</h1>
           <p className="text-lg text-zinc-400">
@@ -73,9 +73,9 @@ export default function Dashboard() {
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-white text-black hover:bg-white/90 font-medium">
-              <Clock className="mr-2 h-4 w-4" />
-              NEW APPLICATION
+            <Button className="bg-white text-black hover:bg-white/90 font-medium px-6 py-5 text-sm">
+              <FilePlus className="mr-2 h-4 w-4" />
+              New Application
             </Button>
           </DialogTrigger>
           <DialogContent className="bg-black border border-zinc-800">
