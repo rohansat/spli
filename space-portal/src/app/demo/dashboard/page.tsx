@@ -1,8 +1,8 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import Link from 'next/link';
 import { Button } from "@/components/ui/button";
+import Link from 'next/link';
 
 export default function DemoDashboard() {
   const pendingActions = [
@@ -61,13 +61,12 @@ export default function DemoDashboard() {
   const getStatusStyle = (status: string) => {
     switch (status.toUpperCase()) {
       case 'ACTION NEEDED':
+      case 'AWAITING ACTION':
         return 'bg-blue-900 text-blue-100';
       case 'DRAFT':
         return 'bg-gray-700 text-gray-100';
       case 'UNDER REVIEW':
         return 'bg-yellow-900/70 text-yellow-100';
-      case 'AWAITING ACTION':
-        return 'bg-blue-900 text-blue-100';
       default:
         return 'bg-gray-700 text-gray-100';
     }
@@ -82,9 +81,11 @@ export default function DemoDashboard() {
             Welcome back, Astronaut. Manage your aerospace licensing applications.
           </p>
         </div>
-        <Button variant="outline" className="bg-white text-black hover:bg-gray-200">
-          <Link href="/demo/applications/new">+ NEW APPLICATION</Link>
-        </Button>
+        <Link href="/demo/applications/new">
+          <Button variant="outline" className="bg-white text-black hover:bg-gray-200">
+            + NEW APPLICATION
+          </Button>
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
