@@ -211,8 +211,8 @@ export default function Dashboard() {
 
           <Card className="bg-[#1A1A1A] border-zinc-800/50 rounded-xl overflow-hidden">
             <div className="p-6">
-              <h2 className="text-base font-medium text-white mb-1">All Applications</h2>
-              <p className="text-sm text-zinc-500 mb-6">Complete history of your license applications</p>
+              <h2 className="text-lg font-medium text-white mb-1">All Applications</h2>
+              <p className="text-sm text-zinc-500 mb-8">Complete history of your license applications</p>
               
               {applications.length === 0 ? (
                 <div className="text-center py-12">
@@ -224,28 +224,28 @@ export default function Dashboard() {
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
-                      <tr className="text-left border-b border-zinc-800">
-                        <th className="pb-3 text-xs font-medium text-white">Name</th>
-                        <th className="pb-3 text-xs font-medium text-white">Type</th>
-                        <th className="pb-3 text-xs font-medium text-white">Status</th>
-                        <th className="pb-3 text-xs font-medium text-white">Created</th>
-                        <th className="pb-3 text-xs font-medium text-white">Last Update</th>
+                      <tr className="text-left border-b border-zinc-800/50">
+                        <th className="pb-4 text-sm font-medium text-white">Name</th>
+                        <th className="pb-4 text-sm font-medium text-white">Type</th>
+                        <th className="pb-4 text-sm font-medium text-white">Status</th>
+                        <th className="pb-4 text-sm font-medium text-white">Created</th>
+                        <th className="pb-4 text-sm font-medium text-white">Last Update</th>
                       </tr>
                     </thead>
                     <tbody>
                       {applications.map((app) => (
                         <tr
                           key={app.id}
-                          className="border-b border-zinc-800 hover:bg-[#111111] cursor-pointer"
+                          className="border-b border-zinc-800/50 hover:bg-[#111111] cursor-pointer transition-colors"
                           onClick={() => router.push(`/applications/${app.id}`)}
                         >
-                          <td className="py-4 text-sm text-white">{app.name}</td>
-                          <td className="py-4 text-sm text-zinc-400">{app.type}</td>
-                          <td className="py-4">
+                          <td className="py-5 text-[15px] font-medium text-white">{app.name}</td>
+                          <td className="py-5 text-[15px] text-zinc-400">{app.type}</td>
+                          <td className="py-5">
                             <span className={cn(
-                              "px-2.5 py-1 rounded-full text-[11px] font-medium",
+                              "px-3 py-1.5 rounded-full text-[11px] font-medium tracking-wide",
                               app.status === "under_review" ? "bg-[#423A19] text-[#FFB224]" :
-                              app.status === "draft" ? "bg-zinc-800 text-zinc-300" :
+                              app.status === "draft" ? "bg-zinc-800/80 text-zinc-300" :
                               app.status === "approved" ? "bg-[#1C3829] text-[#22C55E]" :
                               "bg-[#4A3524] text-[#FF9351]"
                             )}>
@@ -255,8 +255,8 @@ export default function Dashboard() {
                                "AWAITING ACTION"}
                             </span>
                           </td>
-                          <td className="py-4 text-sm text-zinc-400">{formatDate(app.createdAt)}</td>
-                          <td className="py-4 text-sm text-zinc-400">{formatDate(app.updatedAt)}</td>
+                          <td className="py-5 text-[15px] text-zinc-400">{formatDate(app.createdAt)}</td>
+                          <td className="py-5 text-[15px] text-zinc-400">{formatDate(app.updatedAt)}</td>
                         </tr>
                       ))}
                     </tbody>
