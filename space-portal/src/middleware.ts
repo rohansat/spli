@@ -1,47 +1,42 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-// Define public paths that don't require authentication
-const publicPaths = ['/', '/company', '/demo', '/signin', '/signup'];
-
-// Define protected paths that require authentication
-const protectedPaths = ['/dashboard', '/documents', '/messages'];
-
 export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-  const token = request.cookies.get('token');
-  const demoMode = request.cookies.get('demoMode');
+  const path = request.nextUrl.pathname;
 
-  // Allow access to public paths
-  if (publicPaths.includes(pathname)) {
+  // Allow unrestricted access to demo routes
+  if (path.startsWith('/demo')) {
     return NextResponse.next();
   }
 
-  // Check if the path is protected
-  const isProtectedPath = protectedPaths.some(path => pathname.startsWith(path));
+  // Check if the path is public
+  const isPublicPath = path === '/login' || path === '/signup' || path === '/';
 
-  // Allow access to protected paths if user is authenticated or in demo mode
-  if (isProtectedPath && (token || demoMode)) {
-    return NextResponse.next();
+  // Get the token from the cookies
+  const token = request.cookies.get('token')?.value || '';
+
+  // Redirect logic for non-demo routes
+  if (isPublicPath && token) {
+    return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
-  // Redirect to signin for protected paths without authentication
-  if (isProtectedPath) {
-    return NextResponse.redirect(new URL('/signin', request.url));
+  if (!isPublicPath && !token) {
+    return NextResponse.redirect(new URL('/login', request.url));
   }
 
   return NextResponse.next();
 }
 
+// Configure which routes to run middleware on
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     */
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
-  ],
+    '/',
+    '/login',
+    '/signup',
+    '/dashboard/:path*',
+    '/documents/:path*',
+    '/messages/:path*',
+    '/profile/:path*',
+    '/demo/:path*'
+  ]
 }; 
