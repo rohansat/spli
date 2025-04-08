@@ -21,7 +21,7 @@ export function Navbar({ userInitials = 'U', userImage }: NavbarProps) {
   }
 
   // Check if we're on a public page
-  const isPublicPage = pathname === '/' || pathname === '/company' || pathname === '/demo';
+  const isPublicPage = pathname === '/' || pathname === '/company';
 
   // Show public navigation
   if (isPublicPage) {
@@ -53,15 +53,6 @@ export function Navbar({ userInitials = 'U', userImage }: NavbarProps) {
               )}
             >
               COMPANY
-            </Link>
-            <Link 
-              href="/demo" 
-              className={cn(
-                "px-4 py-2 text-sm font-medium text-white bg-zinc-800 hover:bg-zinc-700 rounded-md transition-colors",
-                pathname === '/demo' && "bg-zinc-700"
-              )}
-            >
-              DEMO
             </Link>
             <Link 
               href="/signin" 

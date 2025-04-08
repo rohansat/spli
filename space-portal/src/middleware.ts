@@ -3,22 +3,21 @@ import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
+  const token = request.cookies.get('token')?.value;
 
-  // Allow unrestricted access to ALL demo-related paths and features
-  if (path.startsWith('/demo') || path.includes('demo')) {
-    return NextResponse.next();
+  const isPublicPath = path === '/' || 
+    path === '/signin' || 
+    path === '/signup' || 
+    path === '/company' || 
+    path === '/contact' || 
+    path === '/privacy';
+
+  if (!isPublicPath && !token) {
+    return NextResponse.redirect(new URL('/signin', request.url));
   }
 
-  // Only apply authentication checks to non-demo routes
-  const isPublicPath = path === '/login' || path === '/signup' || path === '/';
-  const token = request.cookies.get('token')?.value || '';
-
-  if (isPublicPath && token) {
+  if ((path === '/signin' || path === '/signup') && token) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
-  }
-
-  if (!isPublicPath && !token && !path.includes('demo')) {
-    return NextResponse.redirect(new URL('/login', request.url));
   }
 
   return NextResponse.next();
@@ -28,13 +27,14 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     '/',
-    '/login',
-    '/signup',
-    '/dashboard/:path*',
+    '/dashboard',
+    '/applications/:path*',
     '/documents/:path*',
     '/messages/:path*',
-    '/profile/:path*',
-    '/demo/:path*',
-    '/api/:path*'
+    '/signin',
+    '/signup',
+    '/company',
+    '/contact',
+    '/privacy'
   ]
 }; 

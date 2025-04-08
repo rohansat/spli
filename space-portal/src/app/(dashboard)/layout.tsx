@@ -4,39 +4,27 @@ import { Navbar } from "@/components/layout/Navbar";
 import { ApplicationProvider } from "@/components/providers/ApplicationProvider";
 import { Footer } from "@/components/layout/Footer";
 import { useAuth } from "@/lib/auth-context";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
+import { useEffect } from "react";
+import { Sidebar } from "@/components/layout/Sidebar";
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { user, loading } = useAuth();
   const router = useRouter();
-  const [isRedirecting, setIsRedirecting] = useState(false);
   const pathname = usePathname();
+  const { user, loading } = useAuth();
 
   useEffect(() => {
-    // Skip auth check for demo access
-    if (pathname.startsWith('/demo')) {
-      return;
-    }
-
-    console.log('Dashboard layout effect:', { user: user?.email, loading });
     if (!loading && !user) {
-      console.log('Redirecting to signin...');
-      setIsRedirecting(true);
-      router.replace('/signin');
+      router.push('/signin');
     }
-  }, [user, loading, router, pathname]);
+  }, [user, loading, router]);
 
   // Get user initials from display name or email
   const getUserInitials = () => {
-    if (pathname.startsWith('/demo')) {
-      return 'D';
-    }
     if (!user) return 'A';
     if (user.displayName) {
       return user.displayName
@@ -57,43 +45,24 @@ export default function DashboardLayout({
     </div>
   );
 
-  // Skip loading states for demo access
-  if (pathname.startsWith('/demo')) {
+  if (loading) {
     return (
-      <ApplicationProvider>
-        <div className="min-h-screen flex flex-col bg-black text-white">
-          <Navbar userInitials="D" />
-          <div className="flex-grow pt-16">
-            {children}
-          </div>
-          <Footer />
-        </div>
-      </ApplicationProvider>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
     );
   }
 
-  // Show loading state while checking auth
-  if (loading) {
-    console.log('Showing loading spinner...');
-    return <LoadingSpinner message="Loading..." />;
+  if (!user) {
+    return null;
   }
 
-  // Show loading state while redirecting
-  if (isRedirecting || !user) {
-    console.log('Showing redirect spinner...');
-    return <LoadingSpinner message="Redirecting to sign in..." />;
-  }
-
-  console.log('Rendering dashboard layout...');
   return (
-    <ApplicationProvider>
-      <div className="min-h-screen flex flex-col bg-black text-white">
-        <Navbar userInitials={getUserInitials()} />
-        <div className="flex-grow pt-16">
-          {children}
-        </div>
-        <Footer />
-      </div>
-    </ApplicationProvider>
+    <div className="flex h-screen bg-zinc-900">
+      <Sidebar />
+      <main className="flex-1 overflow-y-auto">
+        {children}
+      </main>
+    </div>
   );
 }
