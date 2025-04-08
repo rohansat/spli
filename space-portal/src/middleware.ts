@@ -1,22 +1,40 @@
-import { authMiddleware } from "@clerk/nextjs";
-import { NextResponse } from "next/server";
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 
-export default authMiddleware({
-  // Public routes that don't require authentication
-  publicRoutes: ["/", "/company", "/signin", "/signup"],
+// List of public routes that don't require authentication
+const publicRoutes = ['/', '/signin', '/signup'];
+
+export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
   
-  // Handle auth
-  afterAuth(auth, req) {
-    // If the user is not signed in and the route is not public, redirect to sign-in
-    if (!auth.userId && !auth.isPublicRoute) {
-      const signInUrl = new URL('/signin', req.url);
-      signInUrl.searchParams.set('redirect_url', req.url);
-      return NextResponse.redirect(signInUrl);
-    }
+  // Allow access to public routes
+  if (publicRoutes.includes(pathname)) {
     return NextResponse.next();
   }
-});
 
+  // Check for authentication token
+  const token = request.cookies.get('auth-token')?.value;
+
+  // If no token is present and trying to access protected route, redirect to signin
+  if (!token && !publicRoutes.includes(pathname)) {
+    const signInUrl = new URL('/signin', request.url);
+    signInUrl.searchParams.set('redirect', pathname);
+    return NextResponse.redirect(signInUrl);
+  }
+
+  return NextResponse.next();
+}
+
+// Configure which routes to run middleware on
 export const config = {
-  matcher: ['/((?!.+\\.[\\w]+$|_next).*)', '/', '/(api|trpc)(.*)'],
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     */
+    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+  ],
 }; 
