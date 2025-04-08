@@ -63,14 +63,62 @@ export default function Dashboard() {
   );
 
   return (
-    <div className="p-8 pt-16">
-      <div className="mb-12">
+    <div className="p-8">
+      <div className="flex justify-between items-start mb-12">
         <div>
-          <h1 className="text-2xl font-medium text-white mb-1">Welcome back, {user?.displayName || user?.email?.split('@')[0] || 'John Doe'}.</h1>
-          <p className="text-zinc-500">
+          <h1 className="text-3xl font-semibold text-white mb-2">Welcome back, {user?.displayName || user?.email?.split('@')[0] || 'John Doe'}.</h1>
+          <p className="text-lg text-zinc-400">
             Manage your aerospace licensing applications.
           </p>
         </div>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="bg-white text-black hover:bg-white/90 font-medium">
+              <Clock className="mr-2 h-4 w-4" />
+              NEW APPLICATION
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="bg-black border border-zinc-800">
+            <DialogHeader>
+              <DialogTitle className="text-white">Create New Application</DialogTitle>
+              <DialogDescription className="text-zinc-400">
+                Fill in the details to start a new license application.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-white">
+                  Application Name
+                </label>
+                <Input
+                  value={newApplicationName}
+                  onChange={(e) => setNewApplicationName(e.target.value)}
+                  placeholder="Enter application name"
+                  className="bg-zinc-900 border-zinc-700"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-white">
+                  Application Type
+                </label>
+                <select
+                  value={newApplicationType}
+                  onChange={(e) => setNewApplicationType(e.target.value as Application["type"])}
+                  className="w-full bg-zinc-900 border-zinc-700 rounded-md p-2 text-white"
+                >
+                  <option value="Part 450">Part 450</option>
+                  <option value="License Amendment">License Amendment</option>
+                  <option value="Safety Approval">Safety Approval</option>
+                </select>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button onClick={handleCreateApplication} className="bg-white text-black hover:bg-white/90">
+                Create Application
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="grid grid-cols-[2fr,1fr] gap-4 mb-4">
@@ -202,55 +250,6 @@ export default function Dashboard() {
           )}
         </div>
       </Card>
-
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogTrigger asChild>
-          <Button className="fixed top-8 right-8 bg-white text-black hover:bg-white/90 font-medium">
-            <Clock className="mr-2 h-4 w-4" />
-            NEW APPLICATION
-          </Button>
-        </DialogTrigger>
-        <DialogContent className="bg-black border border-zinc-800">
-          <DialogHeader>
-            <DialogTitle className="text-white">Create New Application</DialogTitle>
-            <DialogDescription className="text-zinc-400">
-              Fill in the details to start a new license application.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-white">
-                Application Name
-              </label>
-              <Input
-                value={newApplicationName}
-                onChange={(e) => setNewApplicationName(e.target.value)}
-                placeholder="Enter application name"
-                className="bg-zinc-900 border-zinc-700"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-white">
-                Application Type
-              </label>
-              <select
-                value={newApplicationType}
-                onChange={(e) => setNewApplicationType(e.target.value as Application["type"])}
-                className="w-full bg-zinc-900 border-zinc-700 rounded-md p-2 text-white"
-              >
-                <option value="Part 450">Part 450</option>
-                <option value="License Amendment">License Amendment</option>
-                <option value="Safety Approval">Safety Approval</option>
-              </select>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button onClick={handleCreateApplication} className="bg-white text-black hover:bg-white/90">
-              Create Application
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
