@@ -4,7 +4,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { ApplicationProvider } from "@/components/providers/ApplicationProvider";
 import { Footer } from "@/components/layout/Footer";
 import { useAuth } from "@/lib/auth-context";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Sidebar } from "@/components/layout/Sidebar";
 
@@ -14,20 +14,22 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const pathname = usePathname();
   const { user, loading } = useAuth();
 
   useEffect(() => {
-    // Immediately redirect if no user and not loading
     if (!loading && !user) {
+      console.log('No user found, redirecting to signin');
       router.replace('/signin');
+    } else if (user && window.location.pathname === '/') {
+      console.log('User found, redirecting to dashboard');
+      router.replace('/dashboard');
     }
   }, [user, loading, router]);
 
   // Show loading spinner while checking auth
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-zinc-900">
+      <div className="flex items-center justify-center min-h-screen bg-black">
         <div className="space-y-4 text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
           <p className="text-white/60">Loading your dashboard...</p>
@@ -38,16 +40,12 @@ export default function DashboardLayout({
 
   // If no user, render nothing (redirect will happen)
   if (!user) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-zinc-900">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
-    );
+    return null;
   }
 
   // User is authenticated, render dashboard layout
   return (
-    <div className="min-h-screen bg-zinc-900">
+    <div className="min-h-screen bg-black">
       <ApplicationProvider>
         <div className="flex min-h-screen">
           <Sidebar />

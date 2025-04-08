@@ -21,9 +21,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     console.log('Setting up auth state listener');
     
-    const unsubscribe = auth.onAuthStateChanged((user) => {
+    const unsubscribe = auth.onAuthStateChanged(async (user) => {
       console.log('Auth state changed:', user ? `User logged in: ${user.email}` : 'No user');
       setUser(user);
+      
+      if (user) {
+        const token = await user.getIdToken();
+        document.cookie = `token=${token}; path=/`;
+      } else {
+        document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+      }
+      
       setLoading(false);
     }, (error) => {
       console.error('Auth state change error:', error);
