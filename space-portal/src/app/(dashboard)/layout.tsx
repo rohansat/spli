@@ -39,7 +39,7 @@ export default function DashboardLayout({
   };
 
   const LoadingSpinner = ({ message }: { message: string }) => (
-    <div className="min-h-screen flex items-center justify-center bg-black">
+    <div className="min-h-screen flex items-center justify-center bg-black text-white">
       <div className="space-y-4 text-center">
         <div className="w-16 h-16 border-4 border-t-white border-white/20 rounded-full animate-spin mx-auto"></div>
         <p className="text-white/60">{message}</p>
@@ -62,7 +62,7 @@ export default function DashboardLayout({
   console.log('Rendering dashboard layout...');
   return (
     <ApplicationProvider>
-      <div className="min-h-screen flex flex-col bg-black">
+      <div className="min-h-screen flex flex-col bg-black text-white">
         <Navbar userInitials={getUserInitials()} />
         <div className="flex-grow pt-16">
           {children}
