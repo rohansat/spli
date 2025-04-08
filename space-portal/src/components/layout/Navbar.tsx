@@ -20,7 +20,8 @@ export function Navbar({ userInitials = 'U', userImage }: NavbarProps) {
     return null;
   }
 
-  if (pathname === '/' || pathname === '/company') {
+  // Show public navigation for home and company pages
+  if (!pathname.startsWith('/dashboard') && !pathname.startsWith('/documents') && !pathname.startsWith('/messages')) {
     return (
       <nav className="fixed w-full z-50 bg-black border-b border-white/10">
         <div className="space-container flex items-center justify-between h-16">
