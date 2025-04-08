@@ -1,7 +1,7 @@
 "use client";
 
-import { Navbar } from "@/components/layout/Navbar";
 import { ApplicationProvider } from "@/components/providers/ApplicationProvider";
+import { Navbar } from "@/components/Navbar";
 import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -43,15 +43,15 @@ export default function DashboardLayout({
 
   // User is authenticated, render dashboard layout
   return (
-    <div className="min-h-screen bg-black">
-      <ApplicationProvider>
+    <ApplicationProvider>
+      <Navbar />
+      <div className="min-h-screen bg-black">
         <div className="flex flex-col min-h-screen">
-          <Navbar userInitials={user.displayName?.[0] || user.email?.[0] || 'A'} />
           <main className="flex-1">
             {children}
           </main>
         </div>
-      </ApplicationProvider>
-    </div>
+      </div>
+    </ApplicationProvider>
   );
 }
