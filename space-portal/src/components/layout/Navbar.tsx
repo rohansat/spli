@@ -21,7 +21,7 @@ export function Navbar({ userInitials = 'U', userImage }: NavbarProps) {
   }
 
   // Show public navigation for home and company pages
-  if (!pathname.startsWith('/dashboard') && !pathname.startsWith('/documents') && !pathname.startsWith('/messages') && pathname !== '/demo') {
+  if (!pathname.startsWith('/dashboard') && !pathname.startsWith('/documents') && !pathname.startsWith('/messages')) {
     return (
       <nav className="fixed w-full z-50 bg-black border-b border-white/10">
         <div className="space-container flex items-center justify-between h-16">
@@ -36,9 +36,12 @@ export function Navbar({ userInitials = 'U', userImage }: NavbarProps) {
             <NavLink href="/company" isActive={pathname === '/company'}>
               COMPANY
             </NavLink>
-            <NavLink href="/demo" isActive={pathname === '/demo'}>
+            <Link
+              href="/demo"
+              className="px-6 py-2 text-sm font-medium text-white bg-zinc-800 hover:bg-zinc-700 rounded-md transition-colors"
+            >
               DEMO
-            </NavLink>
+            </Link>
             <Link
               href="/signin"
               className="ml-2 px-6 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
