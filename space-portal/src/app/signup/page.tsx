@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { useAuth } from '@/lib/auth-context';
 import { PublicNav } from '@/components/layout/PublicNav';
-import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { createUserWithEmailAndPassword, updateProfile, AuthError } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 
 export default function SignUpPage() {
@@ -43,9 +43,10 @@ export default function SignUpPage() {
         displayName: name
       });
       router.push('/dashboard');
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error signing up:', error);
-      setError(error.message || 'Failed to sign up');
+      const authError = error as AuthError;
+      setError(authError.message || 'Failed to sign up');
     } finally {
       setIsLoading(false);
     }
@@ -55,9 +56,10 @@ export default function SignUpPage() {
     try {
       await signInWithGoogle();
       router.push('/dashboard');
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error signing up with Google:', error);
-      setError(error.message || 'Failed to sign up with Google');
+      const authError = error as AuthError;
+      setError(authError.message || 'Failed to sign up with Google');
     }
   };
 
