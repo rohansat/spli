@@ -17,12 +17,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Handle auth state changes
   useEffect(() => {
-    // Set loading to true when starting to check auth state
-    setLoading(true);
-
+    console.log('Setting up auth state listener');
+    
     const unsubscribe = auth.onAuthStateChanged((user) => {
-      console.log('Auth state changed:', user ? 'User logged in' : 'No user');
+      console.log('Auth state changed:', user ? `User logged in: ${user.email}` : 'No user');
       setUser(user);
       setLoading(false);
     }, (error) => {
@@ -31,15 +31,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     return () => {
+      console.log('Cleaning up auth state listener');
       unsubscribe();
     };
   }, []);
 
   const signInWithGoogle = async () => {
+    console.log('Starting Google sign in...');
     try {
-      setLoading(true);
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, provider);
+      console.log('Google sign in successful:', result.user.email);
+      // Don't set loading false here - let the auth state listener handle it
     } catch (error) {
       console.error('Error signing in with Google:', error);
       setLoading(false);
@@ -48,15 +51,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signOut = async () => {
+    console.log('Starting sign out...');
     try {
-      setLoading(true);
       await auth.signOut();
+      console.log('Sign out successful');
+      // Don't set loading false here - let the auth state listener handle it
     } catch (error) {
       console.error('Error signing out:', error);
       setLoading(false);
       throw error;
     }
   };
+
+  console.log('Current auth state:', { user: user?.email, loading });
 
   const value = {
     user,
