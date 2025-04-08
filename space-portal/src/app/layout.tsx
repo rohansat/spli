@@ -1,35 +1,26 @@
 import type { Metadata } from "next";
-import { Inter as FontSans } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
-import { cn } from "@/lib/utils";
+import { ClerkProvider } from "@clerk/nextjs";
 
-const fontSans = FontSans({
-  subsets: ["latin"],
-  variable: "--font-sans",
-});
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "spli | Aerospace Licensing System",
-  description: "Streamline your aerospace licensing process with our space-themed portal",
-  icons: {
-    icon: "/favicon.svg",
-  },
+  title: "SPLI - Space Licensing Platform",
+  description: "Streamlining the complex licensing process for commercial space operations.",
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="en">
-      <body
-        className={cn(
-          "min-h-screen bg-background font-sans antialiased",
-          fontSans.variable
-        )}
-      >
-        {children}
+      <body className={inter.className}>
+        <ClerkProvider>
+          {children}
+        </ClerkProvider>
       </body>
     </html>
   );
