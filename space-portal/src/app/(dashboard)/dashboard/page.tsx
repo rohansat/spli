@@ -5,12 +5,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useApplication } from "@/components/providers/ApplicationProvider";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Application } from "@/types";
-import { FilePlus, Rocket, PlusCircle } from "lucide-react";
+import { Clock } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { cn } from "@/lib/utils";
 
@@ -24,7 +23,6 @@ export default function Dashboard() {
 
   const handleCreateApplication = () => {
     if (newApplicationName.trim() === "") return;
-
     const newApp = createApplication(newApplicationName, newApplicationType);
     setIsDialogOpen(false);
     setNewApplicationName("");
@@ -42,82 +40,81 @@ export default function Dashboard() {
   const getStatusBadgeClass = (status: Application["status"]) => {
     switch (status) {
       case "draft":
-        return "bg-gray-500/20 text-gray-200";
+        return "bg-zinc-500/20 text-zinc-300";
       case "under_review":
         return "bg-yellow-500/20 text-yellow-300";
-      case "awaiting_action":
+      case "submitted":
         return "bg-blue-500/20 text-blue-300";
-      case "active":
+      case "approved":
         return "bg-green-500/20 text-green-300";
       default:
-        return "bg-gray-500/20 text-gray-200";
+        return "bg-zinc-500/20 text-zinc-300";
     }
   };
 
-  // Get pending applications
-  const pendingApplications = applications.filter(app => 
-    app.status === "draft" || app.status === "under_review" || app.status === "awaiting_action"
-  ).slice(0, 3);
+  // Get active applications (not completed)
+  const activeApplications = applications.filter(app => 
+    app.status === "draft" || app.status === "under_review" || app.status === "submitted"
+  );
 
-  // Get active applications
-  const activeApplications = applications.filter(app => app.status === "active");
+  // Get launch status items
+  const launchStatusItems = applications.filter(app => 
+    app.status === "approved" || app.status === "under_review"
+  );
 
   return (
-    <div className="space-container py-8">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+    <div className="space-y-8">
+      <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-white mb-2">MISSION CONTROL</h1>
-          <p className="text-white/60">
-            Welcome back, {user?.displayName || user?.email?.split('@')[0] || 'Astronaut'}
+          <p className="text-zinc-500">
+            Welcome back, {user?.displayName || user?.email?.split('@')[0] || 'John Doe'}. Manage your aerospace licensing applications.
           </p>
         </div>
 
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="spacex-button mt-4 md:mt-0">
-              <PlusCircle className="mr-2 h-4 w-4" />
+            <Button className="bg-white text-black hover:bg-white/90 font-medium">
+              <Clock className="mr-2 h-4 w-4" />
               NEW APPLICATION
             </Button>
           </DialogTrigger>
-          <DialogContent className="bg-black text-white border border-white/20">
+          <DialogContent className="bg-black border border-zinc-800">
             <DialogHeader>
-              <DialogTitle>Create New Application</DialogTitle>
-              <DialogDescription className="text-white/60">
+              <DialogTitle className="text-white">Create New Application</DialogTitle>
+              <DialogDescription className="text-zinc-400">
                 Fill in the details to start a new license application.
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <label htmlFor="name" className="text-sm font-medium text-white">
+                <label className="text-sm font-medium text-white">
                   Application Name
                 </label>
                 <Input
-                  id="name"
                   value={newApplicationName}
                   onChange={(e) => setNewApplicationName(e.target.value)}
                   placeholder="Enter application name"
-                  className="bg-white/10 border-white/20"
+                  className="bg-zinc-900 border-zinc-700"
                 />
               </div>
               <div className="space-y-2">
-                <label htmlFor="type" className="text-sm font-medium text-white">
+                <label className="text-sm font-medium text-white">
                   Application Type
                 </label>
                 <select
-                  id="type"
                   value={newApplicationType}
                   onChange={(e) => setNewApplicationType(e.target.value as Application["type"])}
-                  className="w-full bg-white/10 border-white/20 rounded-md p-2 text-white"
+                  className="w-full bg-zinc-900 border-zinc-700 rounded-md p-2 text-white"
                 >
-                  <option value="Part 450">Part 450 License</option>
+                  <option value="Part 450">Part 450</option>
                   <option value="License Amendment">License Amendment</option>
                   <option value="Safety Approval">Safety Approval</option>
-                  <option value="Site License">Site License</option>
                 </select>
               </div>
             </div>
             <DialogFooter>
-              <Button onClick={handleCreateApplication} className="spacex-button">
+              <Button onClick={handleCreateApplication} className="bg-white text-black hover:bg-white/90">
                 Create Application
               </Button>
             </DialogFooter>
@@ -125,138 +122,108 @@ export default function Dashboard() {
         </Dialog>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-        <Card className="space-card bg-gradient-to-br from-black to-zinc-900">
-          <CardHeader>
-            <CardTitle>Pending Actions</CardTitle>
-            <CardDescription className="text-white/60">
-              Applications awaiting your attention
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {pendingApplications.length > 0 ? (
-              <div className="space-y-2">
-                {pendingApplications.map((app) => (
-                  <Link
-                    key={app.id}
-                    href={`/applications/${app.id}`}
-                    className="block p-4 border border-white/10 hover:border-white/30 bg-white/5 hover:bg-white/10 transition-colors rounded-lg"
-                  >
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <h3 className="text-white font-medium">{app.name}</h3>
-                        <p className="text-sm text-white/60">
-                          {app.type} • Last updated {formatDate(app.updatedAt)}
-                        </p>
-                      </div>
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusBadgeClass(
-                          app.status
-                        )}`}
-                      >
-                        {app.status === 'awaiting_action' ? 'ACTION NEEDED' : app.status.replace("_", " ").toUpperCase()}
-                      </span>
+      <div className="grid grid-cols-2 gap-6">
+        <Card className="bg-zinc-900 border-zinc-800">
+          <div className="p-6">
+            <h2 className="text-xl font-semibold text-white mb-1">Active Applications</h2>
+            <p className="text-zinc-500 text-sm mb-6">Your current licensing applications</p>
+            
+            <div className="space-y-3">
+              {activeApplications.map((app) => (
+                <Link
+                  key={app.id}
+                  href={`/applications/${app.id}`}
+                  className="block p-4 rounded-lg bg-black border border-zinc-800 hover:border-zinc-700 transition-colors"
+                >
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="font-medium text-white mb-1">{app.name}</h3>
+                      <p className="text-sm text-zinc-500">
+                        {app.type} • Last updated {formatDate(app.updatedAt)}
+                      </p>
                     </div>
-                  </Link>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-white/60">
-                <FilePlus className="mx-auto h-10 w-10 mb-4 opacity-50" />
-                <p>No pending actions</p>
-                <p className="text-sm">Create a new application to get started</p>
-              </div>
-            )}
-          </CardContent>
+                    <span className={cn(
+                      "px-3 py-1 rounded-full text-xs font-medium uppercase",
+                      getStatusBadgeClass(app.status)
+                    )}>
+                      {app.status.replace("_", " ")}
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
         </Card>
 
-        <Card className="space-card bg-gradient-to-br from-black to-zinc-900">
-          <CardHeader>
-            <CardTitle>Launch Status</CardTitle>
-            <CardDescription className="text-white/60">
-              Recent and upcoming launches
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {activeApplications.length > 0 ? (
-              <div className="space-y-4">
-                {activeApplications.map((app) => (
-                  <div key={app.id} className="p-4 border border-white/10 bg-white/5 rounded-lg">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <div className="h-2 w-2 rounded-full bg-green-500"></div>
-                      <h3 className="text-white font-medium">{app.status.toUpperCase()}</h3>
-                    </div>
-                    <p className="text-sm text-white/60 mb-1">
-                      {app.name}
-                    </p>
-                    <p className="text-xs text-white/40">
-                      Updated {formatDate(app.updatedAt)}
-                    </p>
+        <Card className="bg-zinc-900 border-zinc-800">
+          <div className="p-6">
+            <h2 className="text-xl font-semibold text-white mb-1">Launch Status</h2>
+            <p className="text-zinc-500 text-sm mb-6">Recent and upcoming launches</p>
+            
+            <div className="space-y-4">
+              {launchStatusItems.map((app) => (
+                <div key={app.id} className="p-4 rounded-lg bg-black border border-zinc-800">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className={cn(
+                      "h-2 w-2 rounded-full",
+                      app.status === "approved" ? "bg-green-500" : "bg-yellow-500"
+                    )} />
+                    <h3 className="font-medium text-white">
+                      {app.status === "approved" ? "APPROVED LAUNCH WINDOW" : "PENDING APPROVAL"}
+                    </h3>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-white/60">
-                <Rocket className="mx-auto h-10 w-10 mb-4 opacity-50" />
-                <p>No active launches</p>
-                <p className="text-sm">Your approved launches will appear here</p>
-              </div>
-            )}
-          </CardContent>
+                  <p className="text-sm text-zinc-500 mb-1">{app.name}</p>
+                  <p className="text-xs text-zinc-600">
+                    {app.status === "approved" ? "May 15, 2025 - June 30, 2025" : `Submitted on ${formatDate(app.updatedAt)}`}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
         </Card>
       </div>
 
-      <Card className="space-card">
-        <CardHeader>
-          <CardTitle>All Applications</CardTitle>
-          <CardDescription className="text-white/60">
-            Complete history of your license applications
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {applications.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow className="border-white/10">
-                  <TableHead className="text-white">Name</TableHead>
-                  <TableHead className="text-white">Type</TableHead>
-                  <TableHead className="text-white">Status</TableHead>
-                  <TableHead className="text-white">Created</TableHead>
-                  <TableHead className="text-white">Last Update</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+      <Card className="bg-zinc-900 border-zinc-800">
+        <div className="p-6">
+          <h2 className="text-xl font-semibold text-white mb-1">All Applications</h2>
+          <p className="text-zinc-500 text-sm mb-6">Complete history of your license applications</p>
+          
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="text-left border-b border-zinc-800">
+                  <th className="pb-3 text-sm font-medium text-white">Name</th>
+                  <th className="pb-3 text-sm font-medium text-white">Type</th>
+                  <th className="pb-3 text-sm font-medium text-white">Status</th>
+                  <th className="pb-3 text-sm font-medium text-white">Created</th>
+                  <th className="pb-3 text-sm font-medium text-white">Last Update</th>
+                </tr>
+              </thead>
+              <tbody>
                 {applications.map((app) => (
-                  <TableRow
+                  <tr
                     key={app.id}
-                    className="border-white/10 hover:bg-white/5 cursor-pointer"
+                    className="border-b border-zinc-800 hover:bg-black/50 cursor-pointer"
                     onClick={() => router.push(`/applications/${app.id}`)}
                   >
-                    <TableCell className="font-medium text-white">{app.name}</TableCell>
-                    <TableCell className="text-white/80">{app.type}</TableCell>
-                    <TableCell>
-                      <span
-                        className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeClass(
-                          app.status
-                        )}`}
-                      >
+                    <td className="py-4 text-white">{app.name}</td>
+                    <td className="py-4 text-zinc-400">{app.type}</td>
+                    <td className="py-4">
+                      <span className={cn(
+                        "px-2.5 py-1 rounded-full text-xs font-medium",
+                        getStatusBadgeClass(app.status)
+                      )}>
                         {app.status.replace("_", " ").toUpperCase()}
                       </span>
-                    </TableCell>
-                    <TableCell className="text-white/60">{formatDate(app.createdAt)}</TableCell>
-                    <TableCell className="text-white/60">{formatDate(app.updatedAt)}</TableCell>
-                  </TableRow>
+                    </td>
+                    <td className="py-4 text-zinc-400">{formatDate(app.createdAt)}</td>
+                    <td className="py-4 text-zinc-400">{formatDate(app.updatedAt)}</td>
+                  </tr>
                 ))}
-              </TableBody>
-            </Table>
-          ) : (
-            <div className="text-center py-8 text-white/60">
-              <FilePlus className="mx-auto h-10 w-10 mb-4 opacity-50" />
-              <p>No applications yet</p>
-              <p className="text-sm">Create your first application to get started</p>
-            </div>
-          )}
-        </CardContent>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </Card>
     </div>
   );
