@@ -6,6 +6,7 @@ export interface Application {
   createdAt: string;
   updatedAt: string;
   submittedAt?: string;
+  userId?: string;
 }
 
 export interface Document {
@@ -16,6 +17,7 @@ export interface Document {
   fileSize: string;
   uploadedAt: string;
   url: string;
+  userId?: string;
 }
 
 export interface Message {
