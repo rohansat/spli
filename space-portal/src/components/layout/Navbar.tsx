@@ -26,44 +26,30 @@ export function Navbar({ userInitials = 'U', userImage }: NavbarProps) {
   // Show public navigation
   if (isPublicPage) {
     return (
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-black h-[72px] flex items-center">
-        <div className="w-full px-[60px] mx-auto">
-          <div className="flex items-center justify-between">
-            {/* Logo */}
-            <Link href="/" className="text-white text-xl font-medium">
-              SPLI
+      <nav className="fixed top-0 left-0 right-0 z-50 p-6 bg-black">
+        <div className="container mx-auto flex justify-between items-center">
+          <Link href="/" className="text-white text-xl font-bold tracking-wider">
+            SPLI
+          </Link>
+          <div className="flex space-x-6 items-center">
+            <Link
+              href="/"
+              className="text-sm font-medium text-white/80 hover:text-white transition-colors"
+            >
+              HOME
             </Link>
-
-            {/* Navigation Links */}
-            <div className="flex items-center gap-[32px]">
-              <Link
-                href="/"
-                className={cn(
-                  "text-[14px] text-white uppercase hover:text-gray-300 transition-colors font-normal",
-                  pathname === "/" && "font-medium"
-                )}
-              >
-                HOME
-              </Link>
-              <Link
-                href="/company"
-                className={cn(
-                  "text-[14px] text-white uppercase hover:text-gray-300 transition-colors font-normal",
-                  pathname === "/company" && "font-medium"
-                )}
-              >
-                COMPANY
-              </Link>
-              <Link
-                href="/signin"
-                className={cn(
-                  "text-[14px] text-white uppercase hover:text-gray-300 transition-colors font-normal",
-                  pathname?.startsWith("/signin") && "font-medium"
-                )}
-              >
-                LOG IN
-              </Link>
-            </div>
+            <Link
+              href="/company"
+              className="text-sm font-medium text-white/80 hover:text-white transition-colors"
+            >
+              COMPANY
+            </Link>
+            <Link
+              href="/signin"
+              className="text-sm font-medium text-white/80 hover:text-white transition-colors"
+            >
+              LOG IN
+            </Link>
           </div>
         </div>
       </nav>
@@ -74,58 +60,37 @@ export function Navbar({ userInitials = 'U', userImage }: NavbarProps) {
   return (
     <nav className="fixed w-full z-50 bg-black border-b border-white/10">
       <div className="space-container flex items-center justify-between h-16">
-        <div className="flex items-center space-x-8">
-          <Link href="/dashboard" className="text-white text-lg font-bold tracking-wider">
-            SPACE PORTAL
+        <Link href="/dashboard" className="text-white text-lg font-bold tracking-wider">
+          SPACE PORTAL
+        </Link>
+        <div className="flex items-center space-x-6">
+          <Link
+            href="/dashboard"
+            className={cn(
+              "text-sm font-medium text-white/80 hover:text-white transition-colors",
+              pathname === '/dashboard' && "text-white"
+            )}
+          >
+            DASHBOARD
           </Link>
-
-          <div className="hidden md:flex space-x-6">
-            <NavLink href="/dashboard" isActive={pathname === '/dashboard'}>
-              HOME
-            </NavLink>
-            <NavLink href="/documents" isActive={pathname.startsWith('/documents')}>
-              DOCUMENT MANAGEMENT
-            </NavLink>
-            <NavLink href="/messages" isActive={pathname.startsWith('/messages')}>
-              MESSAGES
-            </NavLink>
-          </div>
-        </div>
-
-        <div className="flex items-center space-x-4">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="focus:outline-none">
-                <Avatar className="h-8 w-8 transition-opacity hover:opacity-80">
-                  {userImage ? (
-                    <AvatarImage src={userImage} alt="User" />
-                  ) : null}
-                  <AvatarFallback className="bg-secondary text-secondary-foreground">
-                    {userInitials}
-                  </AvatarFallback>
-                </Avatar>
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="cursor-pointer">
-                <User className="mr-2 h-4 w-4" />
-                <span>Profile</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer">
-                <Settings className="mr-2 h-4 w-4" />
-                <span>Settings</span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <Link href="/" passHref>
-                <DropdownMenuItem className="cursor-pointer">
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Log out</span>
-                </DropdownMenuItem>
-              </Link>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <Link
+            href="/documents"
+            className={cn(
+              "text-sm font-medium text-white/80 hover:text-white transition-colors",
+              pathname === '/documents' && "text-white"
+            )}
+          >
+            DOCUMENTS
+          </Link>
+          <Link
+            href="/messages"
+            className={cn(
+              "text-sm font-medium text-white/80 hover:text-white transition-colors",
+              pathname === '/messages' && "text-white"
+            )}
+          >
+            MESSAGES
+          </Link>
         </div>
       </div>
     </nav>
