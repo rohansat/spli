@@ -66,11 +66,64 @@ export default function Dashboard() {
     <div className="min-h-screen bg-black pt-24">
       <div className="max-w-[1400px] mx-auto px-8">
         <div className="flex flex-col gap-8">
-          <div>
-            <h1 className="text-[28px] font-medium text-white mb-1">MISSION CONTROL</h1>
-            <p className="text-zinc-500">
-              Welcome back, {user?.displayName || user?.email?.split('@')[0] || 'John Doe'}. Manage your aerospace licensing applications.
-            </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-[28px] font-medium text-white mb-1">MISSION CONTROL</h1>
+              <p className="text-zinc-500">
+                Welcome back, {user?.displayName || user?.email?.split('@')[0] || 'John Doe'}. Manage your aerospace licensing applications.
+              </p>
+            </div>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="bg-zinc-800 hover:bg-zinc-700 text-white border-0 gap-2 h-10 px-4">
+                  <Clock className="h-4 w-4" />
+                  NEW APPLICATION
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="bg-[#1A1A1A] border border-zinc-800">
+                <DialogHeader>
+                  <DialogTitle className="text-white text-lg">Create New Application</DialogTitle>
+                  <DialogDescription className="text-zinc-400">
+                    Fill in the details to start a new license application.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-white">
+                      Application Name
+                    </label>
+                    <Input
+                      value={newApplicationName}
+                      onChange={(e) => setNewApplicationName(e.target.value)}
+                      placeholder="Enter application name"
+                      className="bg-[#111111] border-zinc-800 text-white"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-white">
+                      Application Type
+                    </label>
+                    <select
+                      value={newApplicationType}
+                      onChange={(e) => setNewApplicationType(e.target.value as Application["type"])}
+                      className="w-full bg-[#111111] border-zinc-800 rounded-md p-2 text-white"
+                    >
+                      <option value="Part 450">Part 450</option>
+                      <option value="License Amendment">License Amendment</option>
+                      <option value="Safety Approval">Safety Approval</option>
+                    </select>
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button 
+                    onClick={handleCreateApplication} 
+                    className="bg-zinc-800 hover:bg-zinc-700 text-white border-0"
+                  >
+                    Create Application
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
 
           <div className="grid grid-cols-2 gap-6 mb-6">
