@@ -15,13 +15,16 @@ interface NavbarProps {
 export function Navbar({ userInitials = 'U', userImage }: NavbarProps) {
   const pathname = usePathname();
 
-  // Show landing page navigation for public routes
+  // Hide navigation on sign in/up pages
   if (pathname === '/signin' || pathname === '/signup') {
     return null;
   }
 
-  // Show public navigation for home and company pages
-  if (pathname === '/' || pathname === '/company' || pathname === '/demo') {
+  // Check if we're on a public page
+  const isPublicPage = pathname === '/' || pathname === '/company' || pathname === '/demo';
+
+  // Show public navigation
+  if (isPublicPage) {
     return (
       <nav className={cn(
         "fixed w-full z-50",
@@ -77,12 +80,12 @@ export function Navbar({ userInitials = 'U', userImage }: NavbarProps) {
     <nav className="fixed w-full z-50 bg-black border-b border-white/10">
       <div className="space-container flex items-center justify-between h-16">
         <div className="flex items-center space-x-8">
-          <Link href={pathname === '/demo' ? '/demo' : '/dashboard'} className="text-white text-lg font-bold tracking-wider">
+          <Link href="/dashboard" className="text-white text-lg font-bold tracking-wider">
             SPACE PORTAL
           </Link>
 
           <div className="hidden md:flex space-x-6">
-            <NavLink href={pathname === '/demo' ? '/demo' : '/dashboard'} isActive={pathname === '/dashboard' || pathname === '/demo'}>
+            <NavLink href="/dashboard" isActive={pathname === '/dashboard'}>
               HOME
             </NavLink>
             <NavLink href="/documents" isActive={pathname.startsWith('/documents')}>

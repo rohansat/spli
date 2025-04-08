@@ -1,40 +1,39 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-// List of public routes that don't require authentication
-const publicRoutes = ['/', '/signin', '/signup'];
-
 export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-  
-  // Allow access to public routes
-  if (publicRoutes.includes(pathname)) {
-    return NextResponse.next();
+  // Get the pathname of the request
+  const path = request.nextUrl.pathname;
+
+  // Define public paths that don't require authentication
+  const isPublicPath = path === '/' || 
+                      path === '/company' || 
+                      path === '/demo' || 
+                      path === '/signin' || 
+                      path === '/signup';
+
+  // Define protected paths that require authentication
+  const isProtectedPath = path.startsWith('/dashboard') || 
+                         path.startsWith('/documents') || 
+                         path.startsWith('/messages');
+
+  // Get the token from the cookies
+  const token = request.cookies.get('authToken')?.value;
+
+  // If the path is protected and there's no token, redirect to signin
+  if (isProtectedPath && !token) {
+    return NextResponse.redirect(new URL('/signin', request.url));
   }
 
-  // Check for authentication token
-  const token = request.cookies.get('auth-token')?.value;
-
-  // If no token is present and trying to access protected route, redirect to signin
-  if (!token && !publicRoutes.includes(pathname)) {
-    const signInUrl = new URL('/signin', request.url);
-    signInUrl.searchParams.set('redirect', pathname);
-    return NextResponse.redirect(signInUrl);
+  // If we have a token and we're on auth pages, redirect to dashboard
+  if (token && (path === '/signin' || path === '/signup')) {
+    return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
   return NextResponse.next();
 }
 
-// Configure which routes to run middleware on
+// Configure the paths that middleware will run on
 export const config = {
-  matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     */
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
-  ],
+  matcher: ['/', '/company', '/demo', '/signin', '/signup', '/dashboard/:path*', '/documents/:path*', '/messages/:path*']
 }; 
