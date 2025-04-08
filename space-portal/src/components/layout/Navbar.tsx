@@ -34,7 +34,7 @@ export function Navbar({ userInitials = 'U', userImage }: NavbarProps) {
             </NavLink>
             <Link
               href="/signin"
-              className="px-4 py-2 text-sm font-medium text-white bg-white/10 rounded-md hover:bg-white/20 transition-colors"
+              className="px-6 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
             >
               LOG IN
             </Link>
