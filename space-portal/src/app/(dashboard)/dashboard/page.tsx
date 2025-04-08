@@ -123,11 +123,11 @@ export default function Dashboard() {
             </Dialog>
           </div>
 
-          <div className="grid grid-cols-[2fr,1fr] gap-4 mb-4">
-            <Card className="bg-[#1A1A1A] border-zinc-800/50">
+          <div className="grid grid-cols-2 gap-6 mb-6">
+            <Card className="bg-[#1A1A1A] border-zinc-800/50 rounded-xl">
               <div className="p-6">
-                <h2 className="text-lg font-medium text-white mb-1">ACTIVE APPLICATIONS</h2>
-                <p className="text-zinc-500 text-sm mb-4">Your current licensing applications</p>
+                <h2 className="text-lg font-medium text-white mb-1">Pending Actions</h2>
+                <p className="text-zinc-500 text-sm mb-6">Applications that require your attention</p>
                 
                 {applications.length === 0 ? (
                   <div className="text-center py-12">
@@ -141,7 +141,7 @@ export default function Dashboard() {
                       <Link
                         key={app.id}
                         href={`/applications/${app.id}`}
-                        className="block p-4 rounded-lg bg-black border border-zinc-800 hover:border-zinc-700 transition-colors"
+                        className="block p-4 rounded-lg bg-black/40 hover:bg-black/60 transition-colors"
                       >
                         <div className="flex justify-between items-start">
                           <div>
@@ -151,10 +151,14 @@ export default function Dashboard() {
                             </p>
                           </div>
                           <span className={cn(
-                            "px-3 py-1 rounded-full text-xs font-medium uppercase",
-                            getStatusBadgeClass(app.status)
+                            "px-3 py-1 rounded-full text-xs font-medium",
+                            app.status === "under_review" ? "bg-yellow-500/20 text-yellow-300" :
+                            app.status === "draft" ? "bg-zinc-500/20 text-zinc-300" :
+                            "bg-orange-500/20 text-orange-300"
                           )}>
-                            {app.status.replace("_", " ")}
+                            {app.status === "under_review" ? "UNDER REVIEW" :
+                             app.status === "draft" ? "DRAFT" :
+                             "AWAITING ACTION"}
                           </span>
                         </div>
                       </Link>
@@ -164,10 +168,10 @@ export default function Dashboard() {
               </div>
             </Card>
 
-            <Card className="bg-[#1A1A1A] border-zinc-800/50">
+            <Card className="bg-[#1A1A1A] border-zinc-800/50 rounded-xl">
               <div className="p-6">
-                <h2 className="text-lg font-medium text-white mb-1">LAUNCH STATUS</h2>
-                <p className="text-zinc-500 text-sm mb-4">Recent and upcoming launches</p>
+                <h2 className="text-lg font-medium text-white mb-1">Launch Status</h2>
+                <p className="text-zinc-500 text-sm mb-6">Recent and upcoming launches</p>
                 
                 {applications.length === 0 ? (
                   <div className="text-center py-12">
@@ -180,14 +184,14 @@ export default function Dashboard() {
                     {applications
                       .filter(app => app.status === "approved" || app.status === "under_review")
                       .map((app) => (
-                        <div key={app.id} className="p-4 rounded-lg bg-black border border-zinc-800">
+                        <div key={app.id} className="p-4 rounded-lg bg-black/40">
                           <div className="flex items-center gap-3 mb-2">
                             <div className={cn(
                               "h-2 w-2 rounded-full",
                               app.status === "approved" ? "bg-green-500" : "bg-yellow-500"
                             )} />
                             <h3 className="font-medium text-white">
-                              {app.status === "approved" ? "APPROVED LAUNCH WINDOW" : "PENDING APPROVAL"}
+                              {app.status === "approved" ? "ACTIVE LICENSE" : "PENDING APPROVAL"}
                             </h3>
                           </div>
                           <p className="text-sm text-zinc-500 mb-1">{app.name}</p>
@@ -202,10 +206,10 @@ export default function Dashboard() {
             </Card>
           </div>
 
-          <Card className="bg-[#1A1A1A] border-zinc-800/50">
+          <Card className="bg-[#1A1A1A] border-zinc-800/50 rounded-xl">
             <div className="p-6">
-              <h2 className="text-lg font-medium text-white mb-1">ALL APPLICATIONS</h2>
-              <p className="text-zinc-500 text-sm mb-4">Complete history of your license applications</p>
+              <h2 className="text-lg font-medium text-white mb-1">All Applications</h2>
+              <p className="text-zinc-500 text-sm mb-6">Complete history of your license applications</p>
               
               {applications.length === 0 ? (
                 <div className="text-center py-12">
@@ -229,7 +233,7 @@ export default function Dashboard() {
                       {applications.map((app) => (
                         <tr
                           key={app.id}
-                          className="border-b border-zinc-800 hover:bg-black/50 cursor-pointer"
+                          className="border-b border-zinc-800 hover:bg-black/40 cursor-pointer"
                           onClick={() => router.push(`/applications/${app.id}`)}
                         >
                           <td className="py-4 text-white">{app.name}</td>
@@ -237,9 +241,15 @@ export default function Dashboard() {
                           <td className="py-4">
                             <span className={cn(
                               "px-2.5 py-1 rounded-full text-xs font-medium",
-                              getStatusBadgeClass(app.status)
+                              app.status === "under_review" ? "bg-yellow-500/20 text-yellow-300" :
+                              app.status === "draft" ? "bg-zinc-500/20 text-zinc-300" :
+                              app.status === "approved" ? "bg-green-500/20 text-green-300" :
+                              "bg-orange-500/20 text-orange-300"
                             )}>
-                              {app.status.replace("_", " ").toUpperCase()}
+                              {app.status === "under_review" ? "UNDER REVIEW" :
+                               app.status === "draft" ? "DRAFT" :
+                               app.status === "approved" ? "ACTIVE" :
+                               "AWAITING ACTION"}
                             </span>
                           </td>
                           <td className="py-4 text-zinc-400">{formatDate(app.createdAt)}</td>
