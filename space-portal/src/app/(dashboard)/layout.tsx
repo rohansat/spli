@@ -17,7 +17,7 @@ export default function DashboardLayout({
 
   useEffect(() => {
     if (!loading && !user) {
-      router.push('/signin');
+      router.replace('/signin');
     }
   }, [user, loading, router]);
 
@@ -46,9 +46,16 @@ export default function DashboardLayout({
     );
   }
 
-  // Don't show anything while redirecting to signin
+  // Show loading state while redirecting
   if (!user) {
-    return null;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black">
+        <div className="space-y-4 text-center">
+          <div className="w-16 h-16 border-4 border-t-white border-white/20 rounded-full animate-spin mx-auto"></div>
+          <p className="text-white/60">Redirecting to sign in...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
