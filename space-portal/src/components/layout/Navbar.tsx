@@ -15,8 +15,37 @@ interface NavbarProps {
 export function Navbar({ userInitials = 'U', userImage }: NavbarProps) {
   const pathname = usePathname();
 
-  // Only show the navbar when not on the landing page and auth pages
-  if (pathname === '/' || pathname === '/signin' || pathname === '/signup') {
+  // Show landing page navigation for public routes
+  const publicRoutes = ['/', '/company'];
+  if (publicRoutes.includes(pathname)) {
+    return (
+      <nav className="fixed w-full z-50 bg-black border-b border-white/10">
+        <div className="space-container flex items-center justify-between h-16">
+          <Link href="/" className="text-white text-lg font-bold tracking-wider">
+            SPLI
+          </Link>
+
+          <div className="flex items-center space-x-6">
+            <NavLink href="/" isActive={pathname === '/'}>
+              HOME
+            </NavLink>
+            <NavLink href="/company" isActive={pathname === '/company'}>
+              COMPANY
+            </NavLink>
+            <Link
+              href="/signin"
+              className="px-4 py-2 text-sm font-medium text-white bg-white/10 rounded-md hover:bg-white/20 transition-colors"
+            >
+              LOG IN
+            </Link>
+          </div>
+        </div>
+      </nav>
+    );
+  }
+
+  // Show dashboard navigation for authenticated routes
+  if (pathname === '/signin' || pathname === '/signup') {
     return null;
   }
 
