@@ -26,40 +26,44 @@ export function Navbar({ userInitials = 'U', userImage }: NavbarProps) {
   // Show public navigation
   if (isPublicPage) {
     return (
-      <nav className={cn(
-        "fixed w-full z-50",
-        pathname === '/company' ? "absolute bg-transparent" : "bg-black border-b border-white/10"
-      )}>
-        <div className="space-container flex items-center justify-between h-16">
-          <Link href="/" className="text-white text-lg font-bold tracking-wider">
-            SPLI
-          </Link>
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-black">
+        <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo */}
+            <Link href="/" className="text-white text-xl font-bold">
+              SPLI
+            </Link>
 
-          <div className="flex items-center gap-6">
-            <Link 
-              href="/" 
-              className={cn(
-                "text-sm font-medium text-white/80 hover:text-white transition-colors",
-                pathname === '/' && "text-white"
-              )}
-            >
-              HOME
-            </Link>
-            <Link 
-              href="/company" 
-              className={cn(
-                "text-sm font-medium text-white/80 hover:text-white transition-colors",
-                pathname === '/company' && "text-white"
-              )}
-            >
-              COMPANY
-            </Link>
-            <Link 
-              href="/signin" 
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
-            >
-              LOG IN
-            </Link>
+            {/* Navigation Links */}
+            <div className="flex items-center space-x-8">
+              <Link
+                href="/"
+                className={cn(
+                  "text-sm text-white uppercase hover:text-gray-300 transition-colors",
+                  pathname === "/" && "font-medium"
+                )}
+              >
+                HOME
+              </Link>
+              <Link
+                href="/company"
+                className={cn(
+                  "text-sm text-white uppercase hover:text-gray-300 transition-colors",
+                  pathname === "/company" && "font-medium"
+                )}
+              >
+                COMPANY
+              </Link>
+              <Link
+                href="/signin"
+                className={cn(
+                  "text-sm text-white uppercase hover:text-gray-300 transition-colors",
+                  pathname?.startsWith("/signin") && "font-medium"
+                )}
+              >
+                LOG IN
+              </Link>
+            </div>
           </div>
         </div>
       </nav>
