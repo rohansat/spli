@@ -2,12 +2,12 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Footer } from '@/components/layout/Footer';
 import { Rocket, Award, Globe, ShieldCheck } from 'lucide-react';
-import { PublicNav } from '@/components/layout/PublicNav';
+import { Navbar } from '@/components/layout/Navbar';
 
 export default function CompanyPage() {
   return (
     <main className="min-h-screen bg-black">
-      <PublicNav />
+      <Navbar />
 
       {/* Hero Section - Full Height */}
       <div className="min-h-screen flex items-center relative">

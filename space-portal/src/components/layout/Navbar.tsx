@@ -21,25 +21,49 @@ export function Navbar({ userInitials = 'U', userImage }: NavbarProps) {
   }
 
   // Show public navigation for home and company pages
-  if (!pathname.startsWith('/dashboard') && !pathname.startsWith('/documents') && !pathname.startsWith('/messages')) {
+  if (pathname === '/' || pathname === '/company' || pathname === '/demo') {
     return (
-      <nav className="fixed w-full z-50 bg-black border-b border-white/10">
+      <nav className={cn(
+        "fixed w-full z-50",
+        pathname === '/company' ? "absolute bg-transparent" : "bg-black border-b border-white/10"
+      )}>
         <div className="space-container flex items-center justify-between h-16">
           <Link href="/" className="text-white text-lg font-bold tracking-wider">
             SPLI
           </Link>
 
           <div className="flex items-center gap-6">
-            <Link href="/" className="text-sm font-medium text-white/70 hover:text-white transition-colors">
+            <Link 
+              href="/" 
+              className={cn(
+                "text-sm font-medium text-white/80 hover:text-white transition-colors",
+                pathname === '/' && "text-white"
+              )}
+            >
               HOME
             </Link>
-            <Link href="/company" className="text-sm font-medium text-white/70 hover:text-white transition-colors">
+            <Link 
+              href="/company" 
+              className={cn(
+                "text-sm font-medium text-white/80 hover:text-white transition-colors",
+                pathname === '/company' && "text-white"
+              )}
+            >
               COMPANY
             </Link>
-            <Link href="/demo" className="px-4 py-2 text-sm font-medium text-white bg-zinc-800 hover:bg-zinc-700 rounded-md transition-colors">
+            <Link 
+              href="/demo" 
+              className={cn(
+                "px-4 py-2 text-sm font-medium text-white bg-zinc-800 hover:bg-zinc-700 rounded-md transition-colors",
+                pathname === '/demo' && "bg-zinc-700"
+              )}
+            >
               DEMO
             </Link>
-            <Link href="/signin" className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors">
+            <Link 
+              href="/signin" 
+              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
+            >
               LOG IN
             </Link>
           </div>
