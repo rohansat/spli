@@ -1,43 +1,47 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
+// Define public paths that don't require authentication
+const publicPaths = ['/', '/company', '/demo', '/signin', '/signup'];
+
+// Define protected paths that require authentication
+const protectedPaths = ['/dashboard', '/documents', '/messages'];
+
 export function middleware(request: NextRequest) {
-  // Get the pathname of the request
-  const path = request.nextUrl.pathname;
+  const { pathname } = request.nextUrl;
+  const token = request.cookies.get('token');
+  const demoMode = request.cookies.get('demoMode');
 
-  // Define public paths that don't require authentication
-  const isPublicPath = path === '/' || 
-                      path === '/company' || 
-                      path === '/demo' || 
-                      path === '/signin' || 
-                      path === '/signup';
-
-  // Define protected paths that require authentication
-  const isProtectedPath = path.startsWith('/dashboard') || 
-                         path.startsWith('/documents') || 
-                         path.startsWith('/messages');
-
-  // Get the token from the cookies
-  const token = request.cookies.get('authToken')?.value;
-
-  // Check if this is a demo request
-  const isDemoRequest = request.cookies.get('demoMode')?.value === 'true';
-
-  // If the path is protected and there's no token, redirect to signin
-  // Skip this check if it's a demo request
-  if (isProtectedPath && !token && !isDemoRequest) {
-    return NextResponse.redirect(new URL('/signin', request.url));
+  // Allow access to public paths
+  if (publicPaths.includes(pathname)) {
+    return NextResponse.next();
   }
 
-  // If we have a token and we're on auth pages, redirect to dashboard
-  if (token && (path === '/signin' || path === '/signup')) {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+  // Check if the path is protected
+  const isProtectedPath = protectedPaths.some(path => pathname.startsWith(path));
+
+  // Allow access to protected paths if user is authenticated or in demo mode
+  if (isProtectedPath && (token || demoMode)) {
+    return NextResponse.next();
+  }
+
+  // Redirect to signin for protected paths without authentication
+  if (isProtectedPath) {
+    return NextResponse.redirect(new URL('/signin', request.url));
   }
 
   return NextResponse.next();
 }
 
-// Configure the paths that middleware will run on
 export const config = {
-  matcher: ['/', '/company', '/demo', '/signin', '/signup', '/dashboard/:path*', '/documents/:path*', '/messages/:path*']
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     */
+    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+  ],
 }; 

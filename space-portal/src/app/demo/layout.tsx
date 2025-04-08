@@ -1,8 +1,8 @@
 "use client";
 
-import { Navbar } from "@/components/layout/Navbar";
-import { ApplicationProvider } from "@/components/providers/ApplicationProvider";
-import { Footer } from "@/components/layout/Footer";
+import { Navbar } from '@/components/layout/Navbar';
+import { ApplicationProvider } from '@/components/providers/ApplicationProvider';
+import { Footer } from '@/components/layout/Footer';
 
 export default function DemoLayout({
   children,
@@ -11,11 +11,11 @@ export default function DemoLayout({
 }) {
   return (
     <ApplicationProvider>
-      <div className="min-h-screen flex flex-col bg-black text-white">
-        <Navbar userInitials="D" />
-        <div className="flex-grow pt-16">
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <main className="flex-grow">
           {children}
-        </div>
+        </main>
         <Footer />
       </div>
     </ApplicationProvider>
