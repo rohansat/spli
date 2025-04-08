@@ -21,7 +21,7 @@ export function Navbar({ userInitials = 'U', userImage }: NavbarProps) {
   }
 
   // Show public navigation for home and company pages
-  if (!pathname.startsWith('/dashboard') && !pathname.startsWith('/documents') && !pathname.startsWith('/messages')) {
+  if (!pathname.startsWith('/dashboard') && !pathname.startsWith('/documents') && !pathname.startsWith('/messages') && pathname !== '/demo') {
     return (
       <nav className="fixed w-full z-50 bg-black border-b border-white/10">
         <div className="space-container flex items-center justify-between h-16">
@@ -35,6 +35,9 @@ export function Navbar({ userInitials = 'U', userImage }: NavbarProps) {
             </NavLink>
             <NavLink href="/company" isActive={pathname === '/company'}>
               COMPANY
+            </NavLink>
+            <NavLink href="/demo" isActive={pathname === '/demo'}>
+              DEMO
             </NavLink>
             <Link
               href="/signin"
@@ -53,12 +56,12 @@ export function Navbar({ userInitials = 'U', userImage }: NavbarProps) {
     <nav className="fixed w-full z-50 bg-black border-b border-white/10">
       <div className="space-container flex items-center justify-between h-16">
         <div className="flex items-center space-x-8">
-          <Link href="/dashboard" className="text-white text-lg font-bold tracking-wider">
+          <Link href={pathname === '/demo' ? '/demo' : '/dashboard'} className="text-white text-lg font-bold tracking-wider">
             SPACE PORTAL
           </Link>
 
           <div className="hidden md:flex space-x-6">
-            <NavLink href="/dashboard" isActive={pathname === '/dashboard'}>
+            <NavLink href={pathname === '/demo' ? '/demo' : '/dashboard'} isActive={pathname === '/dashboard' || pathname === '/demo'}>
               HOME
             </NavLink>
             <NavLink href="/documents" isActive={pathname.startsWith('/documents')}>
