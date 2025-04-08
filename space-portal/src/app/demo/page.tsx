@@ -260,59 +260,59 @@ export default function DemoPage() {
                 </CardContent>
               </Card>
 
-              <Card className="space-card">
+              <Card className="space-card min-h-[800px]">
                 <CardHeader>
                   <CardTitle>Part 450 License Application</CardTitle>
                   <CardDescription>Complete your application form</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Tabs defaultValue="section1" className="w-full">
-                    <ScrollArea className="w-full">
-                      <TabsList className="w-full flex gap-8 pb-6 mb-6 border-b border-white/10">
-                        <TabsTrigger value="section1" className="flex items-center space-x-6 py-6 px-4 rounded-none border-none relative group">
-                          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-xl font-semibold">1</div>
+                    <div className="flex flex-col gap-8">
+                      <TabsList className="w-full flex flex-col gap-8">
+                        <TabsTrigger value="section1" className="flex items-center space-x-6 py-6 px-4 rounded-2xl hover:bg-zinc-900/40 transition-colors">
+                          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-xl font-semibold">1</div>
                           <div className="text-left">
                             <div className="text-xl font-medium tracking-wide">General Information</div>
                             <div className="text-sm text-white/60">Basic details about your application</div>
                           </div>
                         </TabsTrigger>
-                        <TabsTrigger value="section2" className="flex items-center space-x-6 py-6 px-4 rounded-none border-none relative group">
-                          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500/20 to-purple-600/20 flex items-center justify-center text-xl font-semibold">2</div>
+                        <TabsTrigger value="section2" className="flex items-center space-x-6 py-6 px-4 rounded-2xl hover:bg-zinc-900/40 transition-colors">
+                          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500/20 to-purple-600/20 flex items-center justify-center text-xl font-semibold">2</div>
                           <div className="text-left">
                             <div className="text-xl font-medium tracking-wide">Vehicle Description</div>
                             <div className="text-sm text-white/60">Details about your launch vehicle</div>
                           </div>
                         </TabsTrigger>
-                        <TabsTrigger value="section3" className="flex items-center space-x-6 py-6 px-4 rounded-none border-none relative group">
-                          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500/20 to-purple-600/20 flex items-center justify-center text-xl font-semibold">3</div>
+                        <TabsTrigger value="section3" className="flex items-center space-x-6 py-6 px-4 rounded-2xl hover:bg-zinc-900/40 transition-colors">
+                          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500/20 to-purple-600/20 flex items-center justify-center text-xl font-semibold">3</div>
                           <div className="text-left">
                             <div className="text-xl font-medium tracking-wide">Launch Operations</div>
                             <div className="text-sm text-white/60">Launch site and operations</div>
                           </div>
                         </TabsTrigger>
-                        <TabsTrigger value="section4" className="flex items-center space-x-6 py-6 px-4 rounded-none border-none relative group">
-                          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500/20 to-purple-600/20 flex items-center justify-center text-xl font-semibold">4</div>
+                        <TabsTrigger value="section4" className="flex items-center space-x-6 py-6 px-4 rounded-2xl hover:bg-zinc-900/40 transition-colors">
+                          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500/20 to-purple-600/20 flex items-center justify-center text-xl font-semibold">4</div>
                           <div className="text-left">
                             <div className="text-xl font-medium tracking-wide">Safety Analysis</div>
                             <div className="text-sm text-white/60">Risk assessment and mitigation</div>
                           </div>
                         </TabsTrigger>
-                        <TabsTrigger value="section5" className="flex items-center space-x-6 py-6 px-4 rounded-none border-none relative group">
-                          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500/20 to-purple-600/20 flex items-center justify-center text-xl font-semibold">5</div>
+                        <TabsTrigger value="section5" className="flex items-center space-x-6 py-6 px-4 rounded-2xl hover:bg-zinc-900/40 transition-colors">
+                          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500/20 to-purple-600/20 flex items-center justify-center text-xl font-semibold">5</div>
                           <div className="text-left">
                             <div className="text-xl font-medium tracking-wide">Environmental Assessment</div>
                             <div className="text-sm text-white/60">Environmental impact analysis</div>
                           </div>
                         </TabsTrigger>
-                        <TabsTrigger value="section6" className="flex items-center space-x-6 py-6 px-4 rounded-none border-none relative group">
-                          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500/20 to-purple-600/20 flex items-center justify-center text-xl font-semibold">6</div>
+                        <TabsTrigger value="section6" className="flex items-center space-x-6 py-6 px-4 rounded-2xl hover:bg-zinc-900/40 transition-colors">
+                          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500/20 to-purple-600/20 flex items-center justify-center text-xl font-semibold">6</div>
                           <div className="text-left">
                             <div className="text-xl font-medium tracking-wide">Additional Documents</div>
                             <div className="text-sm text-white/60">Supporting documentation</div>
                           </div>
                         </TabsTrigger>
                       </TabsList>
-                    </ScrollArea>
+                    </div>
 
                     <TabsContent value="section1" className="mt-6">
                       <div className="space-y-8">
