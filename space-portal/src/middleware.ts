@@ -8,7 +8,7 @@ export function middleware(request: NextRequest) {
   // Define public paths that don't require authentication
   const isPublicPath = path === '/' || 
                       path === '/company' || 
-                      path === '/demo' || 
+                      path.startsWith('/demo') || 
                       path === '/signin' || 
                       path === '/signup';
 
@@ -35,5 +35,5 @@ export function middleware(request: NextRequest) {
 
 // Configure the paths that middleware will run on
 export const config = {
-  matcher: ['/', '/company', '/demo', '/signin', '/signup', '/dashboard/:path*', '/documents/:path*', '/messages/:path*']
+  matcher: ['/', '/company', '/demo/:path*', '/signin', '/signup', '/dashboard/:path*', '/documents/:path*', '/messages/:path*']
 }; 
