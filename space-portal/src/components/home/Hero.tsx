@@ -11,12 +11,18 @@ export function Hero() {
           <Link href="/" className="text-white text-xl font-bold tracking-wider">
             SPLI
           </Link>
-          <div className="flex space-x-6">
+          <div className="flex space-x-6 items-center">
             <Link href="/" className="text-sm font-medium text-white/80 hover:text-white transition-colors">
               HOME
             </Link>
             <Link href="/company" className="text-sm font-medium text-white/80 hover:text-white transition-colors">
               COMPANY
+            </Link>
+            <Link
+              href="/signin"
+              className="ml-2 px-6 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
+            >
+              LOG IN
             </Link>
           </div>
         </div>
