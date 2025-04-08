@@ -6,6 +6,7 @@ import { Footer } from "@/components/layout/Footer";
 import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 
 export default function DashboardLayout({
   children,
@@ -15,18 +16,27 @@ export default function DashboardLayout({
   const { user, loading } = useAuth();
   const router = useRouter();
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
+    // Skip auth check for demo access
+    if (pathname.startsWith('/demo')) {
+      return;
+    }
+
     console.log('Dashboard layout effect:', { user: user?.email, loading });
     if (!loading && !user) {
       console.log('Redirecting to signin...');
       setIsRedirecting(true);
       router.replace('/signin');
     }
-  }, [user, loading, router]);
+  }, [user, loading, router, pathname]);
 
   // Get user initials from display name or email
   const getUserInitials = () => {
+    if (pathname.startsWith('/demo')) {
+      return 'D';
+    }
     if (!user) return 'A';
     if (user.displayName) {
       return user.displayName
@@ -46,6 +56,21 @@ export default function DashboardLayout({
       </div>
     </div>
   );
+
+  // Skip loading states for demo access
+  if (pathname.startsWith('/demo')) {
+    return (
+      <ApplicationProvider>
+        <div className="min-h-screen flex flex-col bg-black text-white">
+          <Navbar userInitials="D" />
+          <div className="flex-grow pt-16">
+            {children}
+          </div>
+          <Footer />
+        </div>
+      </ApplicationProvider>
+    );
+  }
 
   // Show loading state while checking auth
   if (loading) {
