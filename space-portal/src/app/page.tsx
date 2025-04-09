@@ -26,20 +26,12 @@ export default function Home() {
             We're revolutionizing the aerospace industry by streamlining the
             complex licensing process for commercial space operations.
           </p>
-          <div className="flex gap-4">
-            <Link 
-              href="/signin" 
-              className="bg-white hover:bg-white/90 text-black px-8 py-3 rounded-md font-medium"
-            >
-              GET STARTED
-            </Link>
-            <Link 
-              href="/demo" 
-              className="border border-white text-white hover:bg-white/10 px-8 py-3 rounded-md font-medium"
-            >
-              DEMO
-            </Link>
-          </div>
+          <Link 
+            href="/signin" 
+            className="bg-white hover:bg-white/90 text-black px-8 py-3 rounded-md font-medium"
+          >
+            GET STARTED
+          </Link>
         </div>
       </div>
     </main>
