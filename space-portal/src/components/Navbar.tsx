@@ -25,6 +25,12 @@ export function Navbar() {
     { name: "MESSAGES", href: "/messages" },
   ];
 
+  const publicNavigation = [
+    { name: "HOME", href: "/" },
+    { name: "COMPANY", href: "/company" },
+    { name: "DEMO", href: "/demo" },
+  ];
+
   return (
     <div className="fixed top-0 left-0 right-0 z-50 bg-black border-b border-zinc-800">
       <div className="max-w-[1400px] mx-auto px-8">
@@ -54,15 +60,15 @@ export function Navbar() {
           </div>
 
           <div className="flex items-center gap-6">
-            <Link href="/" className="text-sm font-medium text-white/80 hover:text-white">
-              HOME
-            </Link>
-            <Link href="/company" className="text-sm font-medium text-white/80 hover:text-white">
-              COMPANY
-            </Link>
-            <Link href="/demo" className="text-sm font-medium text-white/80 hover:text-white">
-              DEMO
-            </Link>
+            {publicNavigation.map((item) => (
+              <Link
+                key={item.name}
+                href={item.href}
+                className="text-sm font-medium text-white/80 hover:text-white"
+              >
+                {item.name}
+              </Link>
+            ))}
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -71,7 +77,7 @@ export function Navbar() {
                     className="h-8 w-8 rounded-full bg-zinc-800 p-0 text-white"
                   >
                     <span className="sr-only">Open user menu</span>
-                    {user?.displayName?.charAt(0) || user?.email?.charAt(0) || "JD"}
+                    {user?.displayName?.charAt(0) || user?.email?.charAt(0) || "U"}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
