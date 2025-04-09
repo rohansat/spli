@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowRight, Rocket } from "lucide-react";
 import Link from "next/link";
-import { PublicNav } from "@/components/PublicNav";
+import { PublicNav } from "@/components/layout/PublicNav";
 
 export default function DemoPage() {
   const router = useRouter();
@@ -17,16 +17,7 @@ export default function DemoPage() {
   return (
     <div className="min-h-screen bg-black">
       {/* Navigation Bar */}
-      <div className="border-b border-white/10">
-        <div className="max-w-[1400px] mx-auto px-6">
-          <div className="h-16 flex items-center justify-between">
-            <Link href="/" className="text-xl font-bold text-white">
-              SPLI
-            </Link>
-            <PublicNav />
-          </div>
-        </div>
-      </div>
+      <PublicNav />
 
       {/* Main Content */}
       <div className="flex items-center justify-center p-4 flex-1 min-h-[calc(100vh-4rem)]">
@@ -35,7 +26,7 @@ export default function DemoPage() {
             <CardHeader className="space-y-1">
               <div className="flex items-center gap-2">
                 <Rocket className="h-6 w-6 text-blue-500" />
-                <CardTitle className="text-2xl font-bold">Space Portal Demo</CardTitle>
+                <CardTitle className="text-2xl font-bold">SPLI Portal Demo</CardTitle>
               </div>
               <CardDescription className="text-zinc-400">
                 Experience our aerospace licensing platform in action
