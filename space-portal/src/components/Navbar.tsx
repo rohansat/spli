@@ -49,6 +49,18 @@ export function Navbar() {
                 </Link>
               ))}
             </nav>
+            <Link
+              href="/company"
+              className="text-sm font-medium text-white/80 hover:text-white transition-colors"
+            >
+              COMPANY
+            </Link>
+            <Link
+              href="/demo"
+              className="text-sm font-medium text-white/80 hover:text-white transition-colors"
+            >
+              DEMO
+            </Link>
           </div>
 
           <DropdownMenu>
