@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { LogOut, Settings, User } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
+import { PublicNav } from "./PublicNav";
 
 export function Navbar() {
   const pathname = usePathname();
@@ -33,7 +34,7 @@ export function Navbar() {
             <Link href="/" className="text-white font-medium">
               SPLI
             </Link>
-            {user ? (
+            {user && (
               <nav className="flex items-center gap-6">
                 {navigation.map((item) => (
                   <Link
@@ -50,20 +51,13 @@ export function Navbar() {
                   </Link>
                 ))}
               </nav>
-            ) : null}
+            )}
           </div>
 
           <div className="flex items-center gap-6">
-            <Link href="/" className="text-sm font-medium text-white/80 hover:text-white">
-              HOME
-            </Link>
-            <Link href="/company" className="text-sm font-medium text-white/80 hover:text-white">
-              COMPANY
-            </Link>
-            <Link href="/demo" className="text-sm font-medium text-white/80 hover:text-white">
-              DEMO
-            </Link>
-            {user ? (
+            {!user ? (
+              <PublicNav />
+            ) : (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -105,10 +99,6 @@ export function Navbar() {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-            ) : (
-              <Link href="/signin" className="text-sm font-medium text-white/80 hover:text-white">
-                LOG IN
-              </Link>
             )}
           </div>
         </div>
