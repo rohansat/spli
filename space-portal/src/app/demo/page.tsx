@@ -11,7 +11,7 @@ export default function DemoPage() {
   const router = useRouter();
 
   const handleNavigateToDashboard = () => {
-    router.push("/demo/dashboard");
+    window.open("https://spliaidemo.netlify.app/dashboard", "_blank");
   };
 
   return (
