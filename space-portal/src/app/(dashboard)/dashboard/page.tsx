@@ -12,6 +12,7 @@ import { Application } from "@/types";
 import { Clock, FilePlus, Rocket } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { cn } from "@/lib/utils";
+import { Footer } from "@/components/Footer";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -294,6 +295,7 @@ export default function Dashboard() {
           </Card>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

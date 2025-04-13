@@ -9,6 +9,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Mail, Search, Star, Trash2, Send, Plus, MessageSquare, AlertTriangle } from "lucide-react";
 import { messages as mockMessages } from "@/lib/mock-data";
 import { Message } from "@/types";
+import { cn } from "@/lib/utils";
+import { Footer } from "@/components/Footer";
 
 export default function MessagesPage() {
   const [messages, setMessages] = useState<Message[]>(mockMessages);
@@ -325,6 +327,7 @@ export default function MessagesPage() {
           )}
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

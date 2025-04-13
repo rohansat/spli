@@ -7,8 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Send, CheckCircle } from "lucide-react";
+import { Footer } from "@/components/Footer";
 
-export default function ContactPage() {
+export default function Contact() {
   const [formData, setFormData] = useState({
     name: "",
     company: "",
@@ -61,117 +62,88 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="space-container py-8">
-      <div className="max-w-2xl mx-auto">
-        <h1 className="text-3xl font-bold text-white mb-2">Contact Us</h1>
-        <p className="text-white/60 mb-8">
-          Have questions about our aerospace licensing platform? Get in touch with our team.
-        </p>
-
-        {showSuccess && (
-          <Alert className="mb-6 bg-green-500/20 border-green-500/30">
-            <CheckCircle className="h-4 w-4 mr-2" />
-            <AlertTitle>Message Sent</AlertTitle>
-            <AlertDescription>
-              Thank you for reaching out. We'll get back to you shortly.
-            </AlertDescription>
-          </Alert>
-        )}
-
-        <Card className="space-card">
-          <CardHeader>
-            <CardTitle>Send us a Message</CardTitle>
-            <CardDescription className="text-white/60">
-              Fill out the form below and we'll respond within 24 hours.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label htmlFor="name" className="text-sm font-medium text-white">
-                    Name
-                  </label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => handleInputChange("name", e.target.value)}
-                    required
-                    className="bg-white/10 border-white/20 text-white"
-                    placeholder="John Doe"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label htmlFor="company" className="text-sm font-medium text-white">
-                    Company
-                  </label>
-                  <Input
-                    id="company"
-                    value={formData.company}
-                    onChange={(e) => handleInputChange("company", e.target.value)}
-                    required
-                    className="bg-white/10 border-white/20 text-white"
-                    placeholder="Space Innovations Inc."
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label htmlFor="email" className="text-sm font-medium text-white">
-                    Email
-                  </label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => handleInputChange("email", e.target.value)}
-                    required
-                    className="bg-white/10 border-white/20 text-white"
-                    placeholder="john@example.com"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label htmlFor="phone" className="text-sm font-medium text-white">
-                    Phone Number
-                  </label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) => handleInputChange("phone", e.target.value)}
-                    className="bg-white/10 border-white/20 text-white"
-                    placeholder="+1 (555) 000-0000"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="message" className="text-sm font-medium text-white">
-                  Message
-                </label>
-                <Textarea
-                  id="message"
-                  value={formData.message}
-                  onChange={(e) => handleInputChange("message", e.target.value)}
-                  required
-                  className="bg-white/10 border-white/20 text-white min-h-[150px]"
-                  placeholder="Tell us about your needs..."
+    <div className="min-h-screen bg-black">
+      <div className="max-w-[1400px] mx-auto px-8 pt-24 pb-24">
+        <h1 className="text-[28px] font-medium text-white mb-8">CONTACT US</h1>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+          <div>
+            <h2 className="text-xl text-white mb-4">Get in Touch</h2>
+            <p className="text-zinc-400 mb-8">
+              Have questions about our services? We're here to help.
+              Fill out the form and we'll get back to you as soon as possible.
+            </p>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-white mb-2">Name</label>
+                <Input 
+                  placeholder="Your name"
+                  className="bg-[#161616] border-zinc-800 text-white"
                 />
               </div>
-
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="spacex-button w-full"
-              >
-                <Send className="mr-2 h-4 w-4" />
-                {isSubmitting ? "Sending..." : "Send Message"}
+              
+              <div>
+                <label className="block text-white mb-2">Email</label>
+                <Input 
+                  type="email"
+                  placeholder="your@email.com"
+                  className="bg-[#161616] border-zinc-800 text-white"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-white mb-2">Subject</label>
+                <Input 
+                  placeholder="How can we help?"
+                  className="bg-[#161616] border-zinc-800 text-white"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-white mb-2">Message</label>
+                <Textarea 
+                  placeholder="Type your message here..."
+                  className="bg-[#161616] border-zinc-800 text-white min-h-[150px]"
+                />
+              </div>
+              
+              <Button className="w-full bg-white hover:bg-white/90 text-black">
+                SEND MESSAGE
               </Button>
-            </form>
-          </CardContent>
-        </Card>
+            </div>
+          </div>
+          
+          <div>
+            <h2 className="text-xl text-white mb-4">Other Ways to Reach Us</h2>
+            
+            <div className="space-y-8">
+              <div>
+                <h3 className="text-white font-medium mb-2">Email</h3>
+                <p className="text-zinc-400">support@spli.space</p>
+              </div>
+              
+              <div>
+                <h3 className="text-white font-medium mb-2">Office</h3>
+                <p className="text-zinc-400">
+                  123 Space Avenue<br />
+                  Houston, TX 77058<br />
+                  United States
+                </p>
+              </div>
+              
+              <div>
+                <h3 className="text-white font-medium mb-2">Hours</h3>
+                <p className="text-zinc-400">
+                  Monday - Friday: 9:00 AM - 6:00 PM EST<br />
+                  Saturday - Sunday: Closed
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
+      <Footer />
     </div>
   );
 } 

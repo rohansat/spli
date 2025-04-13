@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { FileUp, FileText, Mail, File, Download, Search, Filter, Trash2, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Document } from "@/types";
+import { Footer } from "@/components/Footer";
 
 export default function DocumentManagement() {
   const { documents, applications, uploadDocument, removeDocument } = useApplication();
@@ -259,6 +260,7 @@ export default function DocumentManagement() {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }
