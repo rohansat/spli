@@ -1,43 +1,64 @@
 import { Footer } from "@/components/Footer";
+import Link from "next/link";
+import { ChevronLeft } from "lucide-react";
 
 export default function PrivacyPolicy() {
   return (
     <div className="min-h-screen bg-black">
-      <div className="max-w-[1400px] mx-auto px-8 pt-24 pb-24">
-        <h1 className="text-[28px] font-medium text-white mb-8">PRIVACY POLICY</h1>
+      <div className="max-w-[1400px] mx-auto px-8 pt-12 pb-24">
+        <Link 
+          href="/" 
+          className="inline-flex items-center text-zinc-400 hover:text-white mb-12"
+        >
+          <ChevronLeft className="h-4 w-4 mr-2" />
+          Back to Home
+        </Link>
         
-        <div className="prose prose-invert max-w-none">
-          <p className="text-zinc-400">Last updated: March 2025</p>
-          
-          <h2 className="text-white mt-8 mb-4">1. Information We Collect</h2>
-          <p className="text-zinc-400">
-            We collect information that you provide directly to us, including when you create an account,
-            submit applications, or communicate with us. This may include your name, email address,
-            company information, and any other information you choose to provide.
-          </p>
+        <h1 className="text-[32px] font-medium text-white mb-4">SPLI PRIVACY POLICY</h1>
+        <p className="text-zinc-400 mb-12">Effective Date: March 15, 2024</p>
 
-          <h2 className="text-white mt-8 mb-4">2. How We Use Your Information</h2>
-          <p className="text-zinc-400">
-            We use the information we collect to provide, maintain, and improve our services,
-            to process your applications, and to communicate with you about your account and applications.
-          </p>
+        <div className="space-y-12">
+          <section>
+            <h2 className="text-xl text-white mb-4">INTRODUCTION</h2>
+            <p className="text-zinc-400 leading-relaxed">
+              Space Portal Launch Interface ("SPLI," "we," "us," or "our") respects your privacy and is committed to protecting it through this Privacy Policy. This document explains how we collect, use, disclose, and safeguard your information when you use our platform, products, and services related to space launch licensing and applications.
+            </p>
+          </section>
 
-          <h2 className="text-white mt-8 mb-4">3. Information Sharing</h2>
-          <p className="text-zinc-400">
-            We do not share your personal information with third parties except as necessary
-            to provide our services or as required by law.
-          </p>
+          <section>
+            <h2 className="text-xl text-white mb-4">INFORMATION WE COLLECT</h2>
+            <ul className="space-y-4">
+              <li className="flex gap-3">
+                <span className="text-white font-medium">Account Information:</span>
+                <span className="text-zinc-400">Name, email address, phone number, company details, professional credentials, and space industry certifications.</span>
+              </li>
+              <li className="flex gap-3">
+                <span className="text-white font-medium">Application Content:</span>
+                <span className="text-zinc-400">Launch applications, technical documentation, safety analyses, environmental assessments, and related materials you upload.</span>
+              </li>
+              <li className="flex gap-3">
+                <span className="text-white font-medium">Payment Information:</span>
+                <span className="text-zinc-400">Processed securely through our payment processor. We do not store complete payment details.</span>
+              </li>
+              <li className="flex gap-3">
+                <span className="text-white font-medium">Usage Data:</span>
+                <span className="text-zinc-400">Log files, device information, IP address, browser type, and interactions with our platform.</span>
+              </li>
+            </ul>
+          </section>
 
-          <h2 className="text-white mt-8 mb-4">4. Data Security</h2>
-          <p className="text-zinc-400">
-            We implement appropriate technical and organizational measures to protect your
-            personal information against unauthorized access, alteration, disclosure, or destruction.
-          </p>
-
-          <h2 className="text-white mt-8 mb-4">5. Contact Us</h2>
-          <p className="text-zinc-400">
-            If you have any questions about this Privacy Policy, please contact us at privacy@spli.space
-          </p>
+          <section>
+            <h2 className="text-xl text-white mb-4">HOW WE USE YOUR INFORMATION</h2>
+            <ul className="space-y-3 text-zinc-400">
+              <li>• To provide, maintain, and improve our launch licensing services</li>
+              <li>• To process and manage space launch applications</li>
+              <li>• To verify company credentials and manage profiles</li>
+              <li>• To process payments and transactions</li>
+              <li>• To send important updates about applications and services</li>
+              <li>• To enforce platform policies and regulatory requirements</li>
+              <li>• To analyze usage patterns for platform improvement</li>
+            </ul>
+          </section>
         </div>
       </div>
       <Footer />
