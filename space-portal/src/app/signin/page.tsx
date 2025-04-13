@@ -26,6 +26,8 @@ export default function SignInPage() {
 
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!auth) return; // Early return if auth is undefined
+
     setIsLoading(true);
     setError('');
 
