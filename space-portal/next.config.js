@@ -12,7 +12,7 @@ const nextConfig = {
       },
     ],
   },
-  transpilePackages: ['undici', '@firebase/auth'],
+  transpilePackages: ['undici', '@firebase/auth', '@radix-ui/react-toast'],
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = {
