@@ -3,17 +3,19 @@
 import { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { Application, Document } from "@/types";
-import { applications as mockApplications, documents as mockDocuments } from "@/lib/mock-data";
 import { useAuth } from "@/lib/auth-context";
+import { db } from "@/lib/firebase";
+import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc, setDoc } from "firebase/firestore";
 
 interface ApplicationContextType {
   applications: Application[];
   documents: Document[];
-  createApplication: (name: string, type: Application["type"]) => Application;
+  createApplication: (name: string, type: Application["type"]) => Promise<Application>;
   getApplicationById: (id: string) => Application | undefined;
   getDocumentsByApplicationId: (applicationId: string) => Document[];
-  uploadDocument: (document: Omit<Document, "id" | "uploadedAt">) => Document;
-  removeDocument: (id: string) => void;
+  uploadDocument: (document: Omit<Document, "id" | "uploadedAt">) => Promise<Document>;
+  removeDocument: (id: string) => Promise<void>;
+  isLoading: boolean;
 }
 
 const ApplicationContext = createContext<ApplicationContextType | undefined>(undefined);
@@ -22,47 +24,117 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const [applications, setApplications] = useState<Application[]>([]);
   const [documents, setDocuments] = useState<Document[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Initialize with user-specific data or mock data
+  // Fetch user's applications and documents when they log in
   useEffect(() => {
-    if (user) {
-      // For now, we'll modify the mock data to look like it belongs to the current user
-      const userApplications = mockApplications.map(app => ({
-        ...app,
-        name: app.name + ` (${user.displayName || user.email})`,
-        userId: user.uid // Add user ID to track ownership
-      }));
-      
-      const userDocuments = mockDocuments.map(doc => ({
-        ...doc,
-        name: doc.name.replace('.pdf', ` - ${user.displayName || user.email}.pdf`),
-        userId: user.uid
-      }));
+    async function fetchUserData() {
+      if (!user) {
+        setApplications([]);
+        setDocuments([]);
+        setIsLoading(false);
+        return;
+      }
 
-      setApplications(userApplications);
-      setDocuments(userDocuments);
-    } else {
-      setApplications([]);
-      setDocuments([]);
+      setIsLoading(true);
+      try {
+        // Fetch applications
+        const applicationsQuery = query(
+          collection(db, "applications"),
+          where("userId", "==", user.uid)
+        );
+        const applicationsSnapshot = await getDocs(applicationsQuery);
+        const applicationsData = applicationsSnapshot.docs.map(doc => ({
+          ...doc.data(),
+          id: doc.id,
+        })) as Application[];
+        setApplications(applicationsData);
+
+        // Fetch documents
+        const documentsQuery = query(
+          collection(db, "documents"),
+          where("userId", "==", user.uid)
+        );
+        const documentsSnapshot = await getDocs(documentsQuery);
+        const documentsData = documentsSnapshot.docs.map(doc => ({
+          ...doc.data(),
+          id: doc.id,
+        })) as Document[];
+        setDocuments(documentsData);
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      } finally {
+        setIsLoading(false);
+      }
     }
+
+    fetchUserData();
   }, [user]);
 
-  const createApplication = (name: string, type: Application["type"]) => {
+  const createApplication = async (name: string, type: Application["type"]) => {
     if (!user) throw new Error("Must be authenticated to create applications");
     
     const now = new Date().toISOString();
-    const newApplication: Application = {
-      id: `app-${uuidv4()}`,
+    const newApplication: Omit<Application, "id"> = {
       name,
       status: "draft",
       type,
       createdAt: now,
       updatedAt: now,
-      userId: user.uid // Add user ID to new applications
+      userId: user.uid
     };
 
-    setApplications((prev) => [...prev, newApplication]);
-    return newApplication;
+    try {
+      // Add to Firestore
+      const docRef = await addDoc(collection(db, "applications"), newApplication);
+      const createdApplication = { ...newApplication, id: docRef.id } as Application;
+      
+      // Update local state
+      setApplications(prev => [...prev, createdApplication]);
+      return createdApplication;
+    } catch (error) {
+      console.error("Error creating application:", error);
+      throw error;
+    }
+  };
+
+  const uploadDocument = async (document: Omit<Document, "id" | "uploadedAt">) => {
+    if (!user) throw new Error("Must be authenticated to upload documents");
+    
+    const now = new Date().toISOString();
+    const newDocument: Omit<Document, "id"> = {
+      ...document,
+      uploadedAt: now,
+      userId: user.uid
+    };
+
+    try {
+      // Add to Firestore
+      const docRef = await addDoc(collection(db, "documents"), newDocument);
+      const createdDocument = { ...newDocument, id: docRef.id } as Document;
+      
+      // Update local state
+      setDocuments(prev => [...prev, createdDocument]);
+      return createdDocument;
+    } catch (error) {
+      console.error("Error uploading document:", error);
+      throw error;
+    }
+  };
+
+  const removeDocument = async (id: string) => {
+    if (!user) throw new Error("Must be authenticated to remove documents");
+
+    try {
+      // Remove from Firestore
+      await deleteDoc(doc(db, "documents", id));
+      
+      // Update local state
+      setDocuments(prev => prev.filter(doc => doc.id !== id));
+    } catch (error) {
+      console.error("Error removing document:", error);
+      throw error;
+    }
   };
 
   const getApplicationById = (id: string) => {
@@ -71,25 +143,6 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
 
   const getDocumentsByApplicationId = (applicationId: string) => {
     return documents.filter((doc) => doc.applicationId === applicationId && doc.userId === user?.uid);
-  };
-
-  const uploadDocument = (document: Omit<Document, "id" | "uploadedAt">) => {
-    if (!user) throw new Error("Must be authenticated to upload documents");
-    
-    const now = new Date().toISOString();
-    const newDocument: Document = {
-      ...document,
-      id: `doc-${uuidv4()}`,
-      uploadedAt: now,
-      userId: user.uid // Add user ID to new documents
-    };
-
-    setDocuments((prev) => [...prev, newDocument]);
-    return newDocument;
-  };
-
-  const removeDocument = (id: string) => {
-    setDocuments((prev) => prev.filter((doc) => doc.id !== id));
   };
 
   return (
@@ -102,6 +155,7 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
         getDocumentsByApplicationId,
         uploadDocument,
         removeDocument,
+        isLoading,
       }}
     >
       {children}
