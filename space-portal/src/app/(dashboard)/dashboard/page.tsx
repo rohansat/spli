@@ -120,7 +120,12 @@ export default function Dashboard() {
                     <div className="flex items-center gap-2">
                       <Input
                         type="file"
-                        className="bg-[#111111] border-zinc-800 text-white file:bg-zinc-800 file:text-white file:border-0 file:rounded-md file:px-4 file:py-2 file:mr-4 file:hover:bg-zinc-700 cursor-pointer"
+                        className="bg-[#1A1A1A] border-zinc-800 text-zinc-400 w-full
+                          file:mr-4 file:py-2 file:px-4
+                          file:rounded-md file:border-0
+                          file:text-white file:font-medium
+                          file:bg-[#2A2A2A] hover:file:bg-[#333333]
+                          file:cursor-pointer cursor-pointer"
                         accept=".pdf,.doc,.docx,.txt"
                       />
                     </div>
