@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useApplication } from "@/components/providers/ApplicationProvider";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Application } from "@/types";
@@ -13,6 +13,13 @@ import { Clock, FilePlus, Rocket } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { cn } from "@/lib/utils";
 import { Footer } from "@/components/Footer";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+interface ApplicationCardProps {
+  application: Application;
+  onSelect: (id: string) => void;
+}
 
 export default function Dashboard() {
   const router = useRouter();
@@ -47,24 +54,29 @@ export default function Dashboard() {
     });
   };
 
-  const getStatusBadgeClass = (status: Application["status"]) => {
+  const getStatusBadgeVariant = (status: Application["status"]) => {
     switch (status) {
       case "draft":
-        return "bg-zinc-500/20 text-zinc-300";
+        return "secondary"
       case "under_review":
-        return "bg-yellow-500/20 text-yellow-300";
+        return "outline"
       case "submitted":
-        return "bg-blue-500/20 text-blue-300";
+        return "destructive"
       case "approved":
-        return "bg-green-500/20 text-green-300";
+        return "default"
       default:
-        return "bg-zinc-500/20 text-zinc-300";
+        return "secondary"
     }
-  };
+  }
 
-  // Get active applications (not completed)
-  const activeApplications = applications.filter(app => 
-    app.status === "draft" || app.status === "under_review" || app.status === "submitted"
+  const pendingActions = applications.filter(
+    (application) => application.status === "submitted"
+  );
+  const activeApplications = applications.filter(
+    (application) => application.status === "approved"
+  );
+  const pendingApproval = applications.filter(
+    (application) => application.status === "under_review"
   );
 
   // Get launch status items
@@ -178,16 +190,13 @@ export default function Dashboard() {
                                   {app.type} • Last updated {formatDate(app.updatedAt)}
                                 </p>
                               </div>
-                              <span className={cn(
-                                "px-3 py-1 rounded-full text-[11px] font-medium",
-                                app.status === "under_review" ? "bg-[#423A19] text-[#FFB224]" :
-                                app.status === "draft" ? "bg-zinc-800 text-zinc-300" :
-                                "bg-[#4A3524] text-[#FF9351]"
-                              )}>
-                                {app.status === "under_review" ? "UNDER REVIEW" :
-                                 app.status === "draft" ? "DRAFT" :
-                                 "AWAITING ACTION"}
-                              </span>
+                              <div className="flex items-center gap-2">
+                                {app.status === "submitted" && (
+                                  <Badge variant={getStatusBadgeVariant(app.status)} className="ml-2">
+                                    {app.status}
+                                  </Badge>
+                                )}
+                              </div>
                             </div>
                           </Link>
                         ))}
@@ -267,18 +276,13 @@ export default function Dashboard() {
                               <td className="py-5 text-[15px] font-medium text-white">{app.name}</td>
                               <td className="py-5 text-[15px] text-zinc-400">{app.type}</td>
                               <td className="py-5">
-                                <span className={cn(
-                                  "px-3 py-1.5 rounded-full text-[11px] font-medium tracking-wide",
-                                  app.status === "under_review" ? "bg-[#423A19] text-[#FFB224]" :
-                                  app.status === "draft" ? "bg-zinc-800/80 text-zinc-300" :
-                                  app.status === "approved" ? "bg-[#1C3829] text-[#22C55E]" :
-                                  "bg-[#4A3524] text-[#FF9351]"
-                                )}>
-                                  {app.status === "under_review" ? "UNDER REVIEW" :
-                                   app.status === "draft" ? "DRAFT" :
-                                   app.status === "approved" ? "ACTIVE" :
-                                   "AWAITING ACTION"}
-                                </span>
+                                <div className="flex items-center gap-2">
+                                  {app.status === "submitted" && (
+                                    <Badge variant={getStatusBadgeVariant(app.status)} className="ml-2">
+                                      {app.status}
+                                    </Badge>
+                                  )}
+                                </div>
                               </td>
                               <td className="py-5 text-[15px] text-zinc-400">{formatDate(app.createdAt)}</td>
                               <td className="py-5 text-[15px] text-zinc-400">{formatDate(app.updatedAt)}</td>
