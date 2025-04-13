@@ -30,25 +30,27 @@ export function Navbar() {
     <div className="fixed top-0 left-0 right-0 z-50 bg-black border-b border-zinc-800">
       <div className="max-w-[1400px] mx-auto px-8">
         <div className="flex items-center justify-between h-16">
-          <Link href="/" className="text-white text-xl font-bold">
-            SPLI
-          </Link>
-          <nav className="flex items-center">
-            {navigation.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "text-[15px] font-medium px-6 py-5 relative",
-                  pathname === item.href 
-                    ? "text-white after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-white" 
-                    : "text-zinc-400"
-                )}
-              >
-                {item.name}
-              </Link>
-            ))}
-          </nav>
+          <div className="flex items-center">
+            <Link href="/" className="text-white text-xl font-bold mr-8">
+              SPLI
+            </Link>
+            <nav className="flex items-center">
+              {navigation.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "text-[15px] font-medium px-6 py-5 relative",
+                    pathname === item.href 
+                      ? "text-white after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-white" 
+                      : "text-zinc-400"
+                  )}
+                >
+                  {item.name}
+                </Link>
+              ))}
+            </nav>
+          </div>
           <div className="flex items-center gap-4">
             {!user ? (
               <PublicNav />
