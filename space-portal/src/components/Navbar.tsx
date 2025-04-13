@@ -29,32 +29,25 @@ export function Navbar() {
   return (
     <div className="fixed top-0 left-0 right-0 z-50 bg-black border-b border-zinc-800">
       <div className="max-w-[1400px] mx-auto px-8">
-        <div className="flex h-14 items-center justify-between">
-          <div className="flex items-center gap-8">
-            <Link href="/" className="text-white font-medium">
-              SPLI
-            </Link>
-            {user && (
-              <nav className="flex items-center gap-6">
-                {navigation.map((item) => (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    className={cn(
-                      "text-sm transition-colors",
-                      pathname === item.href
-                        ? "text-white border-b-2 border-white pb-4"
-                        : "text-zinc-400 hover:text-white"
-                    )}
-                  >
-                    {item.name}
-                  </Link>
-                ))}
-              </nav>
-            )}
-          </div>
-
-          <div className="flex items-center gap-6">
+        <div className="flex items-center justify-between h-16">
+          <Link href="/" className="text-white text-xl font-bold">
+            SPLI
+          </Link>
+          <nav className="flex items-center gap-8">
+            {navigation.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "text-[15px] font-medium",
+                  pathname === item.href ? "text-white" : "text-zinc-400"
+                )}
+              >
+                {item.name}
+              </Link>
+            ))}
+          </nav>
+          <div className="flex items-center gap-4">
             {!user ? (
               <PublicNav />
             ) : (
