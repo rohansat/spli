@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useApplication } from "@/components/providers/ApplicationProvider";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Application } from "@/types";
@@ -14,12 +14,6 @@ import { useAuth } from "@/lib/auth-context";
 import { cn } from "@/lib/utils";
 import { Footer } from "@/components/Footer";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-interface ApplicationCardProps {
-  application: Application;
-  onSelect: (id: string) => void;
-}
 
 export default function Dashboard() {
   const router = useRouter();
@@ -57,32 +51,32 @@ export default function Dashboard() {
   const getStatusBadgeVariant = (status: Application["status"]) => {
     switch (status) {
       case "draft":
-        return "secondary"
+        return "secondary";
       case "under_review":
-        return "outline"
+        return "outline";
       case "submitted":
-        return "destructive"
+        return "destructive";
       case "approved":
-        return "default"
+        return "default";
       default:
-        return "secondary"
+        return "secondary";
     }
-  }
+  };
 
-  const pendingActions = applications.filter(
-    (application) => application.status === "submitted"
-  );
-  const activeApplications = applications.filter(
-    (application) => application.status === "approved"
-  );
-  const pendingApproval = applications.filter(
-    (application) => application.status === "under_review"
-  );
-
-  // Get launch status items
-  const launchStatusItems = applications.filter(app => 
-    app.status === "approved" || app.status === "under_review"
-  );
+  const getStatusDisplay = (status: Application["status"]) => {
+    switch (status) {
+      case "draft":
+        return "Draft";
+      case "under_review":
+        return "Under Review";
+      case "submitted":
+        return "Submitted";
+      case "approved":
+        return "Approved";
+      default:
+        return status;
+    }
+  };
 
   return (
     <div className="min-h-screen bg-black px-8 pt-24">
@@ -190,13 +184,9 @@ export default function Dashboard() {
                                   {app.type} • Last updated {formatDate(app.updatedAt)}
                                 </p>
                               </div>
-                              <div className="flex items-center gap-2">
-                                {app.status === "submitted" && (
-                                  <Badge variant={getStatusBadgeVariant(app.status)} className="ml-2">
-                                    {app.status}
-                                  </Badge>
-                                )}
-                              </div>
+                              <Badge variant={getStatusBadgeVariant(app.status)} className="ml-2">
+                                {getStatusDisplay(app.status)}
+                              </Badge>
                             </div>
                           </Link>
                         ))}
@@ -276,13 +266,9 @@ export default function Dashboard() {
                               <td className="py-5 text-[15px] font-medium text-white">{app.name}</td>
                               <td className="py-5 text-[15px] text-zinc-400">{app.type}</td>
                               <td className="py-5">
-                                <div className="flex items-center gap-2">
-                                  {app.status === "submitted" && (
-                                    <Badge variant={getStatusBadgeVariant(app.status)} className="ml-2">
-                                      {app.status}
-                                    </Badge>
-                                  )}
-                                </div>
+                                <Badge variant={getStatusBadgeVariant(app.status)} className="ml-2">
+                                  {getStatusDisplay(app.status)}
+                                </Badge>
                               </td>
                               <td className="py-5 text-[15px] text-zinc-400">{formatDate(app.createdAt)}</td>
                               <td className="py-5 text-[15px] text-zinc-400">{formatDate(app.updatedAt)}</td>
