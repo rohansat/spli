@@ -113,6 +113,18 @@ export default function Dashboard() {
                       <option value="Safety Approval">Safety Approval</option>
                     </select>
                   </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-white">
+                      Upload Document
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="file"
+                        className="bg-[#111111] border-zinc-800 text-white file:bg-zinc-800 file:text-white file:border-0 file:rounded-md file:px-4 file:py-2 file:mr-4 file:hover:bg-zinc-700 cursor-pointer"
+                        accept=".pdf,.doc,.docx,.txt"
+                      />
+                    </div>
+                  </div>
                 </div>
                 <DialogFooter>
                   <Button 
