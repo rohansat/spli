@@ -1,35 +1,32 @@
 'use client';
 
-import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
-import { getAuth, Auth } from 'firebase/auth';
-import { getFirestore, Firestore } from 'firebase/firestore';
-import { Analytics } from 'firebase/analytics';
+import { initializeApp, getApps } from 'firebase/app';
+import { getAuth } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
+  apiKey: "AIzaSyCland5-oqbKocaGPxtF8GoplpvwkFTzwA",
+  authDomain: "spli-d031a.firebaseapp.com",
+  projectId: "spli-d031a",
+  storageBucket: "spli-d031a.firebasestorage.app",
+  messagingSenderId: "728625628899",
+  appId: "1:728625628899:web:0d188215d527430eb267d6",
+  measurementId: "G-WEHZ89C02W"
 };
 
-// Initialize Firebase only on client side
-let app: FirebaseApp | undefined;
-let auth: Auth | undefined;
-let db: Firestore | undefined;
-let analytics: Analytics | null = null;
+// Initialize Firebase only if it hasn't been initialized
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 
+// Initialize services
+export const auth = getAuth(app);
+export const db = getFirestore(app);
+
+// Initialize Analytics only on client side
+let analytics = null;
 if (typeof window !== 'undefined') {
-  app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
-  auth = getAuth(app);
-  db = getFirestore(app);
-
-  // Initialize Analytics
   import('firebase/analytics').then(({ getAnalytics }) => {
-    analytics = getAnalytics(app!);
+    analytics = getAnalytics(app);
   });
 }
 
-export { auth, db, analytics }; 
+export { analytics }; 
