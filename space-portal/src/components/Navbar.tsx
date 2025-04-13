@@ -33,14 +33,16 @@ export function Navbar() {
           <Link href="/" className="text-white text-xl font-bold">
             SPLI
           </Link>
-          <nav className="flex items-center gap-8">
+          <nav className="flex items-center">
             {navigation.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "text-[15px] font-medium",
-                  pathname === item.href ? "text-white" : "text-zinc-400"
+                  "text-[15px] font-medium px-6 py-5 relative",
+                  pathname === item.href 
+                    ? "text-white after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-white" 
+                    : "text-zinc-400"
                 )}
               >
                 {item.name}
