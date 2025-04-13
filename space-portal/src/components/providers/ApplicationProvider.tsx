@@ -13,6 +13,7 @@ interface ApplicationContextType {
   getApplicationById: (id: string) => Application | undefined;
   getDocumentsByApplicationId: (applicationId: string) => Document[];
   uploadDocument: (document: Omit<Document, "id" | "uploadedAt">) => Document;
+  removeDocument: (id: string) => void;
 }
 
 const ApplicationContext = createContext<ApplicationContextType | undefined>(undefined);
@@ -87,6 +88,10 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
     return newDocument;
   };
 
+  const removeDocument = (id: string) => {
+    setDocuments((prev) => prev.filter((doc) => doc.id !== id));
+  };
+
   return (
     <ApplicationContext.Provider
       value={{
@@ -96,6 +101,7 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
         getApplicationById,
         getDocumentsByApplicationId,
         uploadDocument,
+        removeDocument,
       }}
     >
       {children}

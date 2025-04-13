@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
 import type { Document } from "@/types";
 
 export default function DocumentManagement() {
-  const { documents, applications, uploadDocument } = useApplication();
+  const { documents, applications, uploadDocument, removeDocument } = useApplication();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("All Documents");
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
@@ -43,6 +43,26 @@ export default function DocumentManagement() {
     setSelectedFile(null);
     setSelectedApplication("");
     setDocumentType("attachment");
+  };
+
+  const handleDownload = (doc: Document) => {
+    // Create an anchor element
+    const link = document.createElement('a');
+    link.href = doc.url;
+    link.download = doc.name;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleDelete = (docId: string) => {
+    // Filter out the deleted document
+    const updatedDocs = documents.filter(doc => doc.id !== docId);
+    // Update the documents state through the provider
+    // This assumes you have a removeDocument function in your ApplicationProvider
+    if (window.confirm('Are you sure you want to delete this document?')) {
+      removeDocument(docId);
+    }
   };
 
   return (
@@ -213,10 +233,22 @@ export default function DocumentManagement() {
                     <div className="text-zinc-400">{doc.fileSize}</div>
                     <div className="text-zinc-400">{doc.applicationId}</div>
                     <div className="flex justify-end gap-2">
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-zinc-400 hover:text-white">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-8 w-8 text-zinc-400 hover:text-white hover:bg-zinc-800"
+                        onClick={() => handleDownload(doc)}
+                        title="Download"
+                      >
                         <Download className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-zinc-400 hover:text-white">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-8 w-8 text-zinc-400 hover:text-red-500 hover:bg-red-500/10"
+                        onClick={() => handleDelete(doc.id)}
+                        title="Delete"
+                      >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
