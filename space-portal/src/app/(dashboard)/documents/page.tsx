@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useApplication } from "@/components/providers/ApplicationProvider";
+import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -15,21 +16,23 @@ import { Footer } from "@/components/Footer";
 
 export default function DocumentManagement() {
   const { documents, applications, uploadDocument, removeDocument } = useApplication();
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("All Documents");
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [selectedApplication, setSelectedApplication] = useState<string>("");
-  const [documentType, setDocumentType] = useState<Document["type"]>("attachment");
+  const [selectedApplication, setSelectedApplication] = useState("");
+  const [documentType, setDocumentType] = useState<Document["type"]>("application");
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setSelectedFile(e.target.files[0]);
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
     }
   };
 
   const handleUpload = () => {
-    if (!selectedFile || !documentType) return;
+    if (!selectedFile || !user) return;
 
     const newDocument = {
       name: selectedFile.name,
@@ -37,13 +40,13 @@ export default function DocumentManagement() {
       applicationId: selectedApplication || undefined,
       fileSize: `${(selectedFile.size / (1024 * 1024)).toFixed(2)} MB`,
       url: URL.createObjectURL(selectedFile),
+      userId: user.uid,
     };
 
     uploadDocument(newDocument);
     setIsUploadDialogOpen(false);
     setSelectedFile(null);
     setSelectedApplication("");
-    setDocumentType("attachment");
   };
 
   const handleDownload = (doc: Document) => {
@@ -105,7 +108,7 @@ export default function DocumentManagement() {
                       type="file"
                       id="file-upload"
                       className="hidden"
-                      onChange={handleFileSelect}
+                      onChange={handleFileUpload}
                       accept=".pdf,.doc,.docx,.txt"
                     />
                     <div 
