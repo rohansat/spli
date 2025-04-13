@@ -9,96 +9,44 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { FileUp, FileText, Mail, File, Download, Search, Filter, Trash2, Upload } from "lucide-react";
-import { Document } from "@/types";
+import { cn } from "@/lib/utils";
+import type { Document } from "@/lib/demo-store";
 
 export default function DocumentManagement() {
-  const { documents, applications } = useApplication();
+  const { documents } = useApplication();
   const [searchQuery, setSearchQuery] = useState("");
-  const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [selectedApplicationId, setSelectedApplicationId] = useState("");
-  const [documentType, setDocumentType] = useState<"application" | "attachment" | "email" | "license">("attachment");
-
-  // Filter documents based on search query
-  const filteredDocuments = documents.filter((doc) =>
-    doc.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  // Group documents by type
-  const applicationDocs = filteredDocuments.filter((doc) => doc.type === "application");
-  const attachmentDocs = filteredDocuments.filter((doc) => doc.type === "attachment");
-  const emailDocs = filteredDocuments.filter((doc) => doc.type === "email");
-  const licenseDocs = filteredDocuments.filter((doc) => doc.type === "license");
-
-  // Format date
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  };
-
-  // Get document icon based on type
-  const getDocumentIcon = (type: string) => {
-    switch (type) {
-      case "application":
-        return <FileText className="h-4 w-4 text-blue-400" />;
-      case "email":
-        return <Mail className="h-4 w-4 text-purple-400" />;
-      case "attachment":
-        return <File className="h-4 w-4 text-yellow-400" />;
-      case "license":
-        return <FileText className="h-4 w-4 text-green-400" />;
-      default:
-        return <File className="h-4 w-4" />;
-    }
-  };
-
-  // Handle file selection
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setSelectedFile(e.target.files[0]);
-    }
-  };
-
-  // Handle file upload (mock)
-  const handleUpload = () => {
-    if (!selectedFile || !selectedApplicationId) return;
-
-    // Reset form
-    setIsUploadDialogOpen(false);
-    setSelectedFile(null);
-    setSelectedApplicationId("");
-    setDocumentType("attachment");
-  };
+  const [activeTab, setActiveTab] = useState("All Documents");
 
   return (
-    <div className="min-h-screen bg-black px-8">
+    <div className="min-h-screen bg-black px-8 pt-24">
       <div className="max-w-[1400px] mx-auto">
-        {/* Header */}
-        <div className="flex justify-between items-start mb-4">
+        <div className="flex justify-between items-start mb-8">
           <div>
-            <h1 className="text-2xl font-medium text-white mb-2">DOCUMENT MANAGEMENT</h1>
-            <p className="text-zinc-400 text-sm">
+            <h1 className="text-[28px] font-medium text-white mb-2">DOCUMENT MANAGEMENT</h1>
+            <p className="text-zinc-500">
               Manage all documents related to your aerospace licensing applications
             </p>
           </div>
           <Button 
-            className="bg-white hover:bg-white/90 text-black text-sm font-medium flex items-center gap-2 px-4 h-10"
+            className="bg-white hover:bg-white/90 text-black gap-2 px-4 py-2 rounded-md flex items-center"
           >
-            <Upload className="h-4 w-4" />
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="17 8 12 3 7 8" />
+              <line x1="12" y1="3" x2="12" y2="15" />
+            </svg>
             UPLOAD DOCUMENT
           </Button>
         </div>
 
-        {/* Search and Filter */}
         <div className="flex gap-3 mb-8">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-zinc-400" />
             <input
               type="text"
               placeholder="Search documents..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full h-10 bg-[#161616] border border-zinc-800 rounded-md pl-10 pr-4 text-sm text-white placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-white/20"
             />
           </div>
@@ -111,33 +59,29 @@ export default function DocumentManagement() {
           </Button>
         </div>
 
-        {/* Document Library */}
-        <div className="bg-[#161616] rounded-lg border border-zinc-800/50 overflow-hidden">
+        <div className="bg-[#111111] rounded-lg border border-zinc-800/50 overflow-hidden">
           <div className="p-6">
             <h2 className="text-lg font-medium text-white mb-1">Document Library</h2>
             <p className="text-sm text-zinc-400">View and manage your documents</p>
             
-            {/* Tabs */}
-            <div className="flex gap-6 mt-6 border-b border-zinc-800">
-              <button className="text-sm text-white pb-4 border-b-2 border-white">
-                All Documents
-              </button>
-              <button className="text-sm text-zinc-400 pb-4 hover:text-white">
-                Applications
-              </button>
-              <button className="text-sm text-zinc-400 pb-4 hover:text-white">
-                Attachments
-              </button>
-              <button className="text-sm text-zinc-400 pb-4 hover:text-white">
-                Emails
-              </button>
-              <button className="text-sm text-zinc-400 pb-4 hover:text-white">
-                Licenses
-              </button>
+            <div className="flex gap-6 mt-6 mb-6">
+              {["All Documents", "Applications", "Attachments", "Emails", "Licenses"].map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={cn(
+                    "text-sm pb-2 border-b-2",
+                    activeTab === tab
+                      ? "text-white border-white"
+                      : "text-zinc-400 border-transparent hover:text-white"
+                  )}
+                >
+                  {tab}
+                </button>
+              ))}
             </div>
 
-            {/* Table Headers */}
-            <div className="grid grid-cols-[2fr,1fr,1fr,2fr,0.5fr] gap-4 py-4 text-sm text-zinc-400">
+            <div className="grid grid-cols-[2fr,1fr,1fr,2fr,0.5fr] gap-4 py-4 text-sm text-zinc-400 border-b border-zinc-800">
               <div>Document</div>
               <div>Type</div>
               <div>Size</div>
@@ -145,20 +89,33 @@ export default function DocumentManagement() {
               <div className="text-right">Actions</div>
             </div>
 
-            {/* Empty State */}
-            <div className="py-12 text-center">
-              <p className="text-zinc-400 text-sm">No documents found</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="flex justify-between items-center py-8 text-xs text-zinc-500">
-          <div>SPLI © 2025</div>
-          <div className="flex gap-6">
-            <button className="hover:text-zinc-400">PRIVACY POLICY</button>
-            <button className="hover:text-zinc-400">TERMS OF SERVICE</button>
-            <button className="hover:text-zinc-400">CONTACT</button>
+            {documents.length === 0 ? (
+              <div className="py-12 text-center">
+                <p className="text-zinc-400 text-sm">No documents found</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-zinc-800">
+                {documents.map((doc) => (
+                  <div key={doc.id} className="grid grid-cols-[2fr,1fr,1fr,2fr,0.5fr] gap-4 py-4 text-sm items-center">
+                    <div className="flex items-center gap-2 text-white">
+                      <FileText className="h-4 w-4 text-blue-400" />
+                      {doc.name}
+                    </div>
+                    <div className="text-zinc-400">{doc.type}</div>
+                    <div className="text-zinc-400">{doc.fileSize}</div>
+                    <div className="text-zinc-400">{doc.applicationId}</div>
+                    <div className="flex justify-end gap-2">
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-zinc-400 hover:text-white">
+                        <Download className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-zinc-400 hover:text-white">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
