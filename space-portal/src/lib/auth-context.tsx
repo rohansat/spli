@@ -11,7 +11,12 @@ interface AuthContextType {
   signOut: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  loading: true,
+  signInWithGoogle: async () => {},
+  signOut: async () => {}
+});
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -19,6 +24,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Handle auth state changes
   useEffect(() => {
+    if (typeof window === 'undefined' || !auth) {
+      setLoading(false);
+      return;
+    }
+
     console.log('Setting up auth state listener');
     
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
@@ -45,12 +55,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signInWithGoogle = async () => {
+    if (!auth) return;
+
     console.log('Starting Google sign in...');
     try {
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
       console.log('Google sign in successful:', result.user.email);
-      // Don't set loading false here - let the auth state listener handle it
     } catch (error) {
       console.error('Error signing in with Google:', error);
       setLoading(false);
@@ -59,6 +70,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signOut = async () => {
+    if (!auth) return;
+
     try {
       await auth.signOut();
       // Clear any local storage or state
@@ -72,15 +85,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   console.log('Current auth state:', { user: user?.email, loading });
 
-  const value = {
-    user,
-    loading,
-    signInWithGoogle,
-    signOut
-  };
-
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={{ user, loading, signInWithGoogle, signOut }}>
       {children}
     </AuthContext.Provider>
   );
