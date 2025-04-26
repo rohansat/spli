@@ -12,6 +12,34 @@ const nextConfig = {
       },
     ],
   },
+  transpilePackages: ['undici', '@firebase/auth', '@radix-ui/react-toast'],
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+      };
+    }
+    // Ensure path aliases work correctly
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@': require('path').resolve(__dirname, './src'),
+    };
+    // Add specific handling for undici
+    config.module.rules.push({
+      test: /node_modules\/undici/,
+      use: {
+        loader: 'babel-loader',
+        options: {
+          presets: ['next/babel'],
+          plugins: ['@babel/plugin-transform-private-methods', '@babel/plugin-transform-class-properties'],
+        },
+      },
+    });
+    return config;
+  },
   env: {
     NEXT_PUBLIC_FIREBASE_API_KEY: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
     NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
