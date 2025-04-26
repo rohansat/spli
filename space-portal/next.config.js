@@ -12,7 +12,7 @@ const nextConfig = {
       },
     ],
   },
-  transpilePackages: ['undici', '@firebase/auth', '@radix-ui/react-toast'],
+  transpilePackages: ['undici', '@firebase/auth', '@firebase/app', '@firebase/firestore', '@radix-ui/react-toast'],
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = {
@@ -27,9 +27,9 @@ const nextConfig = {
       ...config.resolve.alias,
       '@': require('path').resolve(__dirname, './src'),
     };
-    // Add specific handling for undici
+    // Add specific handling for Firebase and undici
     config.module.rules.push({
-      test: /node_modules\/undici/,
+      test: /node_modules\/(@firebase|firebase|undici)/,
       use: {
         loader: 'babel-loader',
         options: {
