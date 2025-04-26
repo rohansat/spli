@@ -12,7 +12,15 @@ const nextConfig = {
       },
     ],
   },
-  transpilePackages: ['undici', '@firebase/auth', '@firebase/app', '@firebase/firestore', '@radix-ui/react-toast'],
+  transpilePackages: [
+    'undici',
+    '@firebase/auth',
+    '@firebase/app',
+    '@firebase/firestore',
+    '@radix-ui/react-toast',
+    'firebase',
+    'react-firebase-hooks'
+  ],
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = {
@@ -20,6 +28,10 @@ const nextConfig = {
         fs: false,
         net: false,
         tls: false,
+        crypto: false,
+        stream: false,
+        path: false,
+        os: false,
       };
     }
     // Ensure path aliases work correctly
@@ -29,12 +41,15 @@ const nextConfig = {
     };
     // Add specific handling for Firebase and undici
     config.module.rules.push({
-      test: /node_modules\/(@firebase|firebase|undici)/,
+      test: /node_modules\/(@firebase|firebase|undici|react-firebase-hooks)/,
       use: {
         loader: 'babel-loader',
         options: {
           presets: ['next/babel'],
-          plugins: ['@babel/plugin-transform-private-methods', '@babel/plugin-transform-class-properties'],
+          plugins: [
+            '@babel/plugin-transform-private-methods',
+            '@babel/plugin-transform-class-properties'
+          ],
         },
       },
     });
