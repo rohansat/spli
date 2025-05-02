@@ -8,7 +8,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyCland5-oqbKocaGPxtF8GopIpvwkFTzwA",
   authDomain: "spli-d031a.firebaseapp.com",
   projectId: "spli-d031a",
-  storageBucket: "spli-d031a.firebasestorage.app",
+  storageBucket: "spli-d031a.appspot.com",
   messagingSenderId: "728625628899",
   appId: "1:728625628899:web:0d188215d527430eb267d6",
   measurementId: "G-WEHZ89C02W"
