@@ -5,10 +5,10 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCland5-oqbKocaGPxtF8GopIpvwkFTzwA",
+  apiKey: "AIzaSyCland5-oqbKocaGPxtF8GoplpvwkFTzwA",
   authDomain: "spli-d031a.firebaseapp.com",
   projectId: "spli-d031a",
-  storageBucket: "spli-d031a.appspot.com",
+  storageBucket: "spli-d031a.firebasestorage.app",
   messagingSenderId: "728625628899",
   appId: "1:728625628899:web:0d188215d527430eb267d6",
   measurementId: "G-WEHZ89C02W"
