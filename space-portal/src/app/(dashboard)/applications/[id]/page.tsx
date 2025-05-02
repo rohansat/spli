@@ -23,7 +23,7 @@ interface FormField {
 export default function ApplicationPage() {
   const params = useParams();
   const router = useRouter();
-  const { getApplicationById, uploadDocument } = useApplication();
+  const { getApplicationById } = useApplication();
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [activeTab, setActiveTab] = useState("section-0");
   const [isSaving, setIsSaving] = useState(false);
@@ -73,27 +73,10 @@ export default function ApplicationPage() {
     }, 1500);
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && applicationId) {
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
       const filesArray = Array.from(e.target.files);
-      setIsUploading(true);
-      
-      try {
-        for (const file of filesArray) {
-          await uploadDocument({
-            name: file.name,
-            type: "attachment",
-            applicationId,
-            fileSize: `${(file.size / 1024).toFixed(2)} KB`,
-            url: URL.createObjectURL(file)
-          });
-        }
-        setUploadedFiles((prev) => [...prev, ...filesArray]);
-      } catch (error) {
-        console.error("Error uploading document:", error);
-      } finally {
-        setIsUploading(false);
-      }
+      setUploadedFiles((prev) => [...prev, ...filesArray]);
     }
   };
 
