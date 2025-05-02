@@ -14,6 +14,7 @@ export interface Document {
   name: string;
   type: 'application' | 'email' | 'attachment' | 'license';
   applicationId?: string;
+  applicationName?: string;
   fileSize: string;
   uploadedAt: string;
   url: string;

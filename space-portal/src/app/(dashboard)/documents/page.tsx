@@ -24,6 +24,21 @@ export default function DocumentManagement() {
   const [selectedApplication, setSelectedApplication] = useState("");
   const [documentType, setDocumentType] = useState<Document["type"]>("application");
 
+  // Filter documents based on active tab
+  const filteredDocuments = documents.filter(doc => {
+    if (activeTab === "All Documents") return true;
+    if (activeTab === "Applications") return doc.type === "application";
+    if (activeTab === "Attachments") return doc.type === "attachment";
+    if (activeTab === "Emails") return doc.type === "email";
+    if (activeTab === "Licenses") return doc.type === "license";
+    return true;
+  });
+
+  // Further filter by search query if present
+  const searchFilteredDocuments = filteredDocuments.filter(doc => 
+    searchQuery ? doc.name.toLowerCase().includes(searchQuery.toLowerCase()) : true
+  );
+
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -221,13 +236,13 @@ export default function DocumentManagement() {
               <div className="text-right">Actions</div>
             </div>
 
-            {documents.length === 0 ? (
+            {searchFilteredDocuments.length === 0 ? (
               <div className="py-12 text-center">
                 <p className="text-zinc-400 text-sm">No documents found</p>
               </div>
             ) : (
               <div className="divide-y divide-zinc-800">
-                {documents.map((doc) => (
+                {searchFilteredDocuments.map((doc) => (
                   <div key={doc.id} className="grid grid-cols-[2fr,1fr,1fr,2fr,0.5fr] gap-4 py-4 text-sm items-center">
                     <div className="flex items-center gap-2 text-white">
                       <FileText className="h-4 w-4 text-blue-400" />
@@ -248,8 +263,8 @@ export default function DocumentManagement() {
                       </Button>
                       <Button 
                         variant="ghost" 
-                        size="icon" 
-                        className="h-8 w-8 text-zinc-400 hover:text-red-500 hover:bg-red-500/10"
+                        size="icon"
+                        className="h-8 w-8 text-zinc-400 hover:text-white hover:bg-zinc-800"
                         onClick={() => handleDelete(doc.id)}
                         title="Delete"
                       >

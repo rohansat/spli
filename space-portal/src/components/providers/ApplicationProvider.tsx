@@ -84,6 +84,21 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
 
     setApplications(prev => [...prev, newApplication]);
 
+    // Add document entry for the application
+    const applicationDocument: Document = {
+      id: uuidv4(),
+      name: `${name} Application`,
+      type: "application",
+      applicationId: newApplication.id,
+      applicationName: name,
+      fileSize: "0 MB",
+      url: "",
+      uploadedAt: now,
+      userId: user?.uid || ""
+    };
+
+    setDocuments(prev => [...prev, applicationDocument]);
+
     if (user) {
       try {
         await addDoc(collection(db, "applications"), newApplication);
