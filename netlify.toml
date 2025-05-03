@@ -1,0 +1,14 @@
+[build]
+  command = "npm run build"
+  functions = "functions"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+[build.environment]
+  NEXT_PUBLIC_FIREBASE_API_KEY = "AIzaSyDqXqXqXqXqXqXqXqXqXqXqXqXqXqXqXqXq"
+  NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN = "spli-ai.firebaseapp.com"
+  NEXT_PUBLIC_FIREBASE_PROJECT_ID = "spli-ai"
+  NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET = "spli-ai.appspot.com"
+  NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID = "1234567890"
+  NEXT_PUBLIC_FIREBASE_APP_ID = "1:1234567890:web:abcdef1234567890" 
