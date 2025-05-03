@@ -77,37 +77,37 @@ export default function Contact() {
             <div className="space-y-4">
               <div>
                 <label className="block text-white mb-2">Name</label>
-                <Input 
+                  <Input
                   placeholder="Your name"
                   className="bg-[#161616] border-zinc-800 text-white"
-                />
+                  />
               </div>
-              
+
               <div>
                 <label className="block text-white mb-2">Email</label>
-                <Input 
-                  type="email"
+                  <Input
+                    type="email"
                   placeholder="your@email.com"
                   className="bg-[#161616] border-zinc-800 text-white"
-                />
-              </div>
+                  />
+                </div>
               
               <div>
                 <label className="block text-white mb-2">Subject</label>
-                <Input 
+                  <Input
                   placeholder="How can we help?"
                   className="bg-[#161616] border-zinc-800 text-white"
-                />
+                  />
               </div>
-              
+
               <div>
                 <label className="block text-white mb-2">Message</label>
-                <Textarea 
+                <Textarea
                   placeholder="Type your message here..."
                   className="bg-[#161616] border-zinc-800 text-white min-h-[150px]"
                 />
               </div>
-              
+
               <Button className="w-full bg-white hover:bg-white/90 text-black">
                 SEND MESSAGE
               </Button>

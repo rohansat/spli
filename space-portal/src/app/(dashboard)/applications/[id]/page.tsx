@@ -265,7 +265,7 @@ export default function ApplicationPage() {
                       data-[state=active]:bg-gradient-to-r from-blue-500 to-purple-500"
                       data-state={activeTab === `section-${index}` ? 'active' : ''}>
                       <span className="text-sm font-medium">{index + 1}</span>
-                    </div>
+                      </div>
                     <div className="flex flex-col">
                       <span className="font-medium">{section.title}</span>
                       <span className="text-sm text-white/50">Section {index + 1} of {part450FormTemplate.sections.length}</span>
