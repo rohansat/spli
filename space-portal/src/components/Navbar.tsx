@@ -75,13 +75,17 @@ export function Navbar() {
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator className="bg-zinc-800" />
-                  <DropdownMenuItem className="flex items-center gap-2 text-zinc-400 focus:bg-[#111111] focus:text-white cursor-pointer">
-                    <User className="h-4 w-4" />
-                    Profile
+                  <DropdownMenuItem asChild className="flex items-center gap-2 text-zinc-400 focus:bg-[#111111] focus:text-white cursor-pointer">
+                    <Link href="/profile" className="flex items-center gap-2 w-full">
+                      <User className="h-4 w-4" />
+                      Profile
+                    </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="flex items-center gap-2 text-zinc-400 focus:bg-[#111111] focus:text-white cursor-pointer">
-                    <Settings className="h-4 w-4" />
-                    Settings
+                  <DropdownMenuItem asChild className="flex items-center gap-2 text-zinc-400 focus:bg-[#111111] focus:text-white cursor-pointer">
+                    <Link href="/settings" className="flex items-center gap-2 w-full">
+                      <Settings className="h-4 w-4" />
+                      Settings
+                    </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator className="bg-zinc-800" />
                   <DropdownMenuItem 

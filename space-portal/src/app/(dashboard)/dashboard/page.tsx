@@ -18,11 +18,12 @@ import { Badge } from "@/components/ui/badge";
 export default function Dashboard() {
   const router = useRouter();
   const { user } = useAuth();
-  const { applications, createApplication, isLoading } = useApplication();
+  const { applications, createApplication, uploadDocument, isLoading } = useApplication();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newApplicationName, setNewApplicationName] = useState("");
   const [newApplicationType, setNewApplicationType] = useState<Application["type"]>("Part 450");
   const [isCreating, setIsCreating] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
 
   const handleCreateApplication = async () => {
     if (newApplicationName.trim() === "") return;
@@ -30,8 +31,20 @@ export default function Dashboard() {
     try {
       setIsCreating(true);
       const newApp = await createApplication(newApplicationName, newApplicationType);
+      if (uploadedFile) {
+        await uploadDocument({
+          name: uploadedFile.name,
+          type: "attachment",
+          applicationId: newApp.id,
+          applicationName: newApp.name,
+          fileSize: `${(uploadedFile.size / (1024 * 1024)).toFixed(2)} MB`,
+          url: URL.createObjectURL(uploadedFile),
+          userId: user?.uid || ""
+        });
+      }
       setIsDialogOpen(false);
       setNewApplicationName("");
+      setUploadedFile(null);
       router.push(`/applications/${newApp.id}`);
     } catch (error) {
       console.error("Error creating application:", error);
@@ -136,6 +149,27 @@ export default function Dashboard() {
                             <option value="License Amendment">License Amendment</option>
                             <option value="Safety Approval">Safety Approval</option>
                           </select>
+                        </div>
+                        <div className="space-y-2 pt-2">
+                          <label className="text-sm font-medium text-white block mb-1">
+                            Upload Document
+                          </label>
+                          <input
+                            type="file"
+                            id="application-upload"
+                            className="hidden"
+                            onChange={e => setUploadedFile(e.target.files?.[0] || null)}
+                          />
+                          <label htmlFor="application-upload" className="block cursor-pointer">
+                            <div className="bg-[#111111] border border-zinc-800 text-white rounded-md px-4 py-2.5 w-full transition-colors hover:border-zinc-600 flex items-center gap-2">
+                              <FilePlus className="h-4 w-4 text-zinc-400" />
+                              {uploadedFile ? (
+                                <span className="truncate text-sm">{uploadedFile.name}</span>
+                              ) : (
+                                <span className="text-zinc-400 text-sm">Click to upload document</span>
+                              )}
+                            </div>
+                          </label>
                         </div>
                       </div>
                       <DialogFooter>
