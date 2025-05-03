@@ -79,7 +79,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-black px-8 pt-24">
+    <div className="min-h-screen h-auto overflow-y-auto bg-black px-8 pt-24">
       <div className="max-w-[1400px] mx-auto">
         {isLoading ? (
           <div className="flex items-center justify-center h-64">

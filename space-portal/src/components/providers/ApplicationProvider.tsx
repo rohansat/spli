@@ -133,13 +133,25 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
   };
 
   const removeDocument = (id: string) => {
+    // Find the document to be deleted
+    const docToDelete = documents.find(doc => doc.id === id);
+
     setDocuments(prev => prev.filter(doc => doc.id !== id));
+
+    // If the document is an application, remove the corresponding application
+    if (docToDelete && docToDelete.type === "application" && docToDelete.applicationId) {
+      setApplications(prev => prev.filter(app => app.id !== docToDelete.applicationId));
+    }
 
     if (user) {
       try {
         deleteDoc(doc(db, "documents", id));
+        // Also try to delete the application from Firestore if it's an application document
+        if (docToDelete && docToDelete.type === "application" && docToDelete.applicationId) {
+          deleteDoc(doc(db, "applications", docToDelete.applicationId));
+        }
       } catch (error) {
-        console.error("Error removing document from Firestore:", error);
+        console.error("Error removing document or application from Firestore:", error);
       }
     }
   };
