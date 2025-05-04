@@ -1,6 +1,6 @@
 [build]
   # Triggering new deployment
-  command = "nvm install 18.19.1 && nvm use 18.19.1 && npm run build"
+  command = "npm run build"
   publish = "out"
   base = "space-portal"
 
