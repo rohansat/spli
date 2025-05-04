@@ -1,4 +1,5 @@
 [build]
+  # Triggering new deployment
   command = "mise settings add idiomatic_version_file_enable_tools node && npm run build"
   publish = "out"
   base = "space-portal"
