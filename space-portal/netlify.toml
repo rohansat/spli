@@ -1,7 +1,6 @@
 [build]
   # Triggering new deployment
   command = "npm run build"
-  publish = "out"
   base = "space-portal"
 
 [build.environment]
