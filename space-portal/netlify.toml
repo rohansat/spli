@@ -5,8 +5,8 @@
   base = "space-portal"
 
 [build.environment]
-  NODE_VERSION = "18.19.1"
-  NPM_VERSION = "9.9.2"
+  NODE_VERSION = "18.17.0"
+  NPM_VERSION = "9.6.7"
   NEXT_PUBLIC_FIREBASE_API_KEY = ""
   NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN = ""
   NEXT_PUBLIC_FIREBASE_PROJECT_ID = ""
