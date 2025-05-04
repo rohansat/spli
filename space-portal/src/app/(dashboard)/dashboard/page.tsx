@@ -117,43 +117,37 @@ export default function Dashboard() {
                         NEW APPLICATION
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="bg-[#1A1A1A] border border-zinc-800">
+                    <DialogContent className="bg-black border border-[#222] rounded-xl p-8 max-w-md w-full text-white font-sans">
                       <DialogHeader>
-                        <DialogTitle className="text-white text-lg">Create New Application</DialogTitle>
-                        <DialogDescription className="text-zinc-400">
+                        <DialogTitle className="text-white text-2xl font-bold tracking-tight mb-1">CREATE NEW APPLICATION</DialogTitle>
+                        <DialogDescription className="text-zinc-400 text-base mb-6">
                           Fill in the details to start a new license application.
                         </DialogDescription>
                       </DialogHeader>
-                      <div className="space-y-4 py-4">
+                      <div className="space-y-6">
                         <div className="space-y-2">
-                          <label className="text-sm font-medium text-white">
-                            Application Name
-                          </label>
+                          <label className="text-base font-semibold text-white">Application Name</label>
                           <Input
                             value={newApplicationName}
                             onChange={(e) => setNewApplicationName(e.target.value)}
-                            placeholder="Enter application name"
-                            className="bg-[#111111] border-zinc-800 text-white"
+                            placeholder="e.g., Mars Lander Launch Vehicle"
+                            className="bg-[#181818] border border-[#444] text-white text-base px-4 py-3 rounded-md placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#444]"
                           />
                         </div>
                         <div className="space-y-2">
-                          <label className="text-sm font-medium text-white">
-                            Application Type
-                          </label>
+                          <label className="text-base font-semibold text-white">Application Type</label>
                           <select
                             value={newApplicationType}
                             onChange={(e) => setNewApplicationType(e.target.value as Application["type"])}
-                            className="w-full bg-[#111111] border-zinc-800 rounded-md p-2 text-white"
+                            className="w-full bg-[#181818] border border-[#444] rounded-md px-4 py-3 text-base text-white appearance-none focus:outline-none focus:ring-2 focus:ring-[#444]"
                           >
                             <option value="Part 450">Part 450</option>
                             <option value="License Amendment">License Amendment</option>
                             <option value="Safety Approval">Safety Approval</option>
                           </select>
                         </div>
-                        <div className="space-y-2 pt-2">
-                          <label className="text-sm font-medium text-white block mb-1">
-                            Upload Document
-                          </label>
+                        <div className="space-y-2">
+                          <label className="text-base font-semibold text-white">Upload Document</label>
                           <input
                             type="file"
                             id="application-upload"
@@ -161,30 +155,39 @@ export default function Dashboard() {
                             onChange={e => setUploadedFile(e.target.files?.[0] || null)}
                           />
                           <label htmlFor="application-upload" className="block cursor-pointer">
-                            <div className="bg-[#111111] border border-zinc-800 text-white rounded-md px-4 py-2.5 w-full transition-colors hover:border-zinc-600 flex items-center gap-2">
-                              <FilePlus className="h-4 w-4 text-zinc-400" />
+                            <div className="bg-[#181818] border border-[#444] text-white rounded-md px-4 py-3 w-full flex items-center gap-2 placeholder-zinc-400">
                               {uploadedFile ? (
-                                <span className="truncate text-sm">{uploadedFile.name}</span>
+                                <span className="truncate text-base">{uploadedFile.name}</span>
                               ) : (
-                                <span className="text-zinc-400 text-sm">Click to upload document</span>
+                                <span className="text-zinc-400 text-base">e.g., Relevant Documents</span>
                               )}
+                              <svg className="ml-auto" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" /></svg>
                             </div>
                           </label>
                         </div>
                       </div>
-                      <DialogFooter>
-                        <Button 
-                          onClick={handleCreateApplication} 
-                          className="bg-zinc-800 hover:bg-zinc-700 text-white border-0"
+                      <DialogFooter className="flex justify-end gap-2 mt-8">
+                        <Button
+                          variant="ghost"
+                          onClick={() => setIsDialogOpen(false)}
+                          className="bg-transparent border border-[#444] text-white px-8 py-2 rounded-md hover:bg-[#222]"
+                          type="button"
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          onClick={handleCreateApplication}
+                          className="bg-white text-black font-semibold px-8 py-2 rounded-md hover:bg-zinc-200"
                           disabled={isCreating}
+                          type="button"
                         >
                           {isCreating ? (
                             <>
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-black mr-2"></div>
                               Creating...
                             </>
                           ) : (
-                            "Create Application"
+                            "CREATE"
                           )}
                         </Button>
                       </DialogFooter>
