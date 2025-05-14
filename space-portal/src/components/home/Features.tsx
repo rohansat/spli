@@ -42,7 +42,7 @@ const features = [
 
 export function Features() {
   return (
-    <div className="py-20 bg-black">
+    <div className="py-20 bg-gradient-to-b from-zinc-900/90 via-black/95 to-black">
       <div className="space-container">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white">
@@ -57,11 +57,11 @@ export function Features() {
           {features.map((feature, index) => (
             <div
               key={index}
-              className="p-6 border border-white/10 bg-white/5 flex flex-col items-center text-center hover:bg-white/10 transition-colors"
+              className="p-8 border border-white/10 bg-white/10 rounded-2xl shadow-lg flex flex-col items-center text-center hover:bg-white/20 transition-colors backdrop-blur-sm"
             >
               {feature.icon}
-              <h3 className="text-xl font-bold mb-2 text-white">{feature.title}</h3>
-              <p className="text-gray-400">{feature.description}</p>
+              <h3 className="text-xl font-bold mb-2 text-white drop-shadow-lg">{feature.title}</h3>
+              <p className="text-gray-200/90 drop-shadow">{feature.description}</p>
             </div>
           ))}
         </div>
