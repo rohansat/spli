@@ -42,7 +42,7 @@ const features = [
 
 export function Features() {
   return (
-    <div className="py-20 bg-gradient-to-b from-zinc-900/90 via-black/95 to-black">
+    <div className="py-20 bg-gradient-to-b from-black/0 via-zinc-900/90 to-black">
       <div className="space-container">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white">
