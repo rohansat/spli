@@ -149,9 +149,9 @@ export default function SignInPage() {
           <CardFooter className="flex justify-center">
             <p className="text-white/60 text-sm">
               Don't have an account?{' '}
-              <Link href="/signup" className="text-white hover:underline">
-                Sign up
-              </Link>
+              <a href="https://calendly.com" target="_blank" rel="noopener noreferrer" className="text-white hover:underline font-semibold">
+                Get Started
+              </a>
             </p>
           </CardFooter>
         </Card>
