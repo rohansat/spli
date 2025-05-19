@@ -11,14 +11,17 @@ export default function CompanyPage() {
 
       {/* Hero Section - Full Height */}
       <div className="min-h-screen flex items-center relative">
-        <div
-          className="absolute inset-0 bg-cover bg-center opacity-40 z-0"
-          style={{
-            backgroundImage: "url('https://ext.same-assets.com/2953234437/3242080397.jpeg')",
-          }}
-        >
-          <div className="absolute inset-0 bg-gradient-to-b from-black via-black/80 to-black"></div>
-        </div>
+        {/* Video background */}
+        <video
+          src="/satelliteorbit.mp4"
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover z-0"
+          style={{ filter: 'saturate(1.2) blur(0px)' }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black via-black/80 to-black z-0" />
 
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center max-w-3xl mx-auto">
