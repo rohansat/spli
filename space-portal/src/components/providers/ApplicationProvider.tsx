@@ -30,8 +30,8 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     async function fetchUserData() {
       if (!user) {
-        setApplications([]);
-        setDocuments([]);
+      setApplications([]);
+      setDocuments([]);
         return;
       }
 

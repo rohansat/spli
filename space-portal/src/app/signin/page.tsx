@@ -149,7 +149,7 @@ export default function SignInPage() {
           <CardFooter className="flex justify-center">
             <p className="text-white/60 text-sm">
               Don't have an account?{' '}
-              <a href="https://calendly.com" target="_blank" rel="noopener noreferrer" className="text-white hover:underline font-semibold">
+              <a href="https://calendly.com/harikesh-tambareni/spli-ai-demo" target="_blank" rel="noopener noreferrer" className="text-white hover:underline font-semibold">
                 Get Started
               </a>
             </p>

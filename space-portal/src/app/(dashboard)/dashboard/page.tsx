@@ -42,10 +42,10 @@ export default function Dashboard() {
           userId: user?.uid || ""
         });
       }
-      setIsDialogOpen(false);
-      setNewApplicationName("");
+    setIsDialogOpen(false);
+    setNewApplicationName("");
       setUploadedFile(null);
-      router.push(`/applications/${newApp.id}`);
+    router.push(`/applications/${newApp.id}`);
     } catch (error) {
       console.error("Error creating application:", error);
     } finally {
@@ -101,51 +101,51 @@ export default function Dashboard() {
             </div>
           ) : (
             <>
-              <div className="flex flex-col gap-8">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h1 className="text-[28px] font-medium text-white mb-1">MISSION CONTROL</h1>
-                    <p className="text-zinc-500">
-                      Welcome back, {user?.displayName || user?.email?.split('@')[0] || 'John Doe'}. Manage your aerospace licensing applications.
-                    </p>
-                  </div>
+        <div className="flex flex-col gap-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-[28px] font-medium text-white mb-1">MISSION CONTROL</h1>
+              <p className="text-zinc-500">
+                Welcome back, {user?.displayName || user?.email?.split('@')[0] || 'John Doe'}. Manage your aerospace licensing applications.
+              </p>
+            </div>
 
-                  <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button className="bg-zinc-800 hover:bg-zinc-700 text-white border-0 gap-2 h-10 px-4">
-                        <Clock className="h-4 w-4" />
-                        NEW APPLICATION
-                      </Button>
-                    </DialogTrigger>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="bg-zinc-800 hover:bg-zinc-700 text-white border-0 gap-2 h-10 px-4">
+                  <Clock className="h-4 w-4" />
+                  NEW APPLICATION
+                </Button>
+              </DialogTrigger>
                     <DialogContent className="bg-black border border-[#222] rounded-xl p-8 max-w-md w-full text-white font-sans">
-                      <DialogHeader>
+                <DialogHeader>
                         <DialogTitle className="text-white text-2xl font-bold tracking-tight mb-1">CREATE NEW APPLICATION</DialogTitle>
                         <DialogDescription className="text-zinc-400 text-base mb-6">
-                          Fill in the details to start a new license application.
-                        </DialogDescription>
-                      </DialogHeader>
+                    Fill in the details to start a new license application.
+                  </DialogDescription>
+                </DialogHeader>
                       <div className="space-y-6">
-                        <div className="space-y-2">
+                  <div className="space-y-2">
                           <label className="text-base font-semibold text-white">Application Name</label>
-                          <Input
-                            value={newApplicationName}
-                            onChange={(e) => setNewApplicationName(e.target.value)}
+                    <Input
+                      value={newApplicationName}
+                      onChange={(e) => setNewApplicationName(e.target.value)}
                             placeholder="e.g., Mars Lander Launch Vehicle"
                             className="bg-[#181818] border border-[#444] text-white text-base px-4 py-3 rounded-md placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#444]"
-                          />
-                        </div>
-                        <div className="space-y-2">
+                    />
+                  </div>
+                  <div className="space-y-2">
                           <label className="text-base font-semibold text-white">Application Type</label>
-                          <select
-                            value={newApplicationType}
-                            onChange={(e) => setNewApplicationType(e.target.value as Application["type"])}
+                    <select
+                      value={newApplicationType}
+                      onChange={(e) => setNewApplicationType(e.target.value as Application["type"])}
                             className="w-full bg-[#181818] border border-[#444] rounded-md px-4 py-3 text-base text-white appearance-none focus:outline-none focus:ring-2 focus:ring-[#444]"
-                          >
-                            <option value="Part 450">Part 450</option>
-                            <option value="License Amendment">License Amendment</option>
-                            <option value="Safety Approval">Safety Approval</option>
-                          </select>
-                        </div>
+                    >
+                      <option value="Part 450">Part 450</option>
+                      <option value="License Amendment">License Amendment</option>
+                      <option value="Safety Approval">Safety Approval</option>
+                    </select>
+                  </div>
                         <div className="space-y-2">
                           <label className="text-base font-semibold text-white">Upload Document</label>
                           <input
@@ -165,7 +165,7 @@ export default function Dashboard() {
                             </div>
                           </label>
                         </div>
-                      </div>
+                </div>
                       <DialogFooter className="flex justify-end gap-2 mt-8">
                         <Button
                           variant="ghost"
@@ -175,8 +175,8 @@ export default function Dashboard() {
                         >
                           Cancel
                         </Button>
-                        <Button
-                          onClick={handleCreateApplication}
+                  <Button 
+                    onClick={handleCreateApplication} 
                           className="bg-white text-black font-semibold px-8 py-2 rounded-md hover:bg-zinc-200"
                           disabled={isCreating}
                           type="button"
@@ -189,139 +189,139 @@ export default function Dashboard() {
                           ) : (
                             "CREATE"
                           )}
-                        </Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-                </div>
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
 
-                <div className="grid grid-cols-2 gap-6 mb-6">
-                  <Card className="bg-[#1A1A1A] border-zinc-800/50 rounded-xl overflow-hidden">
-                    <div className="p-6">
-                      <h2 className="text-base font-medium text-white mb-1">Pending Actions</h2>
-                      <p className="text-sm text-zinc-500 mb-6">Applications that require your attention</p>
-                      
-                      {applications.length === 0 ? (
-                        <div className="text-center py-12">
-                          <FilePlus className="mx-auto h-8 w-8 text-zinc-700 mb-3" />
-                          <p className="text-zinc-400">No active applications</p>
-                          <p className="text-zinc-600 text-sm">Create your first application to get started</p>
-                        </div>
-                      ) : (
-                        <div className="space-y-2">
-                          {applications.map((app) => (
-                            <Link
-                              key={app.id}
-                              href={`/applications/${app.id}`}
-                              className="block p-4 rounded-lg bg-[#111111] hover:bg-[#161616] transition-colors"
-                            >
-                              <div className="flex justify-between items-start">
-                                <div>
-                                  <h3 className="font-medium text-white text-sm mb-1">{app.name}</h3>
-                                  <p className="text-xs text-zinc-500">
-                                    {app.type} • Last updated {formatDate(app.updatedAt)}
-                                  </p>
-                                </div>
+          <div className="grid grid-cols-2 gap-6 mb-6">
+            <Card className="bg-[#1A1A1A] border-zinc-800/50 rounded-xl overflow-hidden">
+              <div className="p-6">
+                <h2 className="text-base font-medium text-white mb-1">Pending Actions</h2>
+                <p className="text-sm text-zinc-500 mb-6">Applications that require your attention</p>
+                
+                {applications.length === 0 ? (
+                  <div className="text-center py-12">
+                    <FilePlus className="mx-auto h-8 w-8 text-zinc-700 mb-3" />
+                    <p className="text-zinc-400">No active applications</p>
+                    <p className="text-zinc-600 text-sm">Create your first application to get started</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {applications.map((app) => (
+                      <Link
+                        key={app.id}
+                        href={`/applications/${app.id}`}
+                        className="block p-4 rounded-lg bg-[#111111] hover:bg-[#161616] transition-colors"
+                      >
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h3 className="font-medium text-white text-sm mb-1">{app.name}</h3>
+                            <p className="text-xs text-zinc-500">
+                              {app.type} • Last updated {formatDate(app.updatedAt)}
+                            </p>
+                          </div>
                                 <Badge variant={getStatusBadgeVariant(app.status)} className="ml-2">
                                   {getStatusDisplay(app.status)}
                                 </Badge>
-                              </div>
-                            </Link>
-                          ))}
                         </div>
-                      )}
-                    </div>
-                  </Card>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </Card>
 
-                  <Card className="bg-[#1A1A1A] border-zinc-800/50 rounded-xl overflow-hidden">
-                    <div className="p-6">
-                      <h2 className="text-base font-medium text-white mb-1">Launch Status</h2>
-                      <p className="text-sm text-zinc-500 mb-6">Recent and upcoming launches</p>
-                      
-                      {applications.length === 0 ? (
-                        <div className="text-center py-12">
-                          <Rocket className="mx-auto h-8 w-8 text-zinc-700 mb-3" />
-                          <p className="text-zinc-400">No launches yet</p>
-                          <p className="text-zinc-600 text-sm">Your approved launches will appear here</p>
+            <Card className="bg-[#1A1A1A] border-zinc-800/50 rounded-xl overflow-hidden">
+              <div className="p-6">
+                <h2 className="text-base font-medium text-white mb-1">Launch Status</h2>
+                <p className="text-sm text-zinc-500 mb-6">Recent and upcoming launches</p>
+                
+                {applications.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Rocket className="mx-auto h-8 w-8 text-zinc-700 mb-3" />
+                    <p className="text-zinc-400">No launches yet</p>
+                    <p className="text-zinc-600 text-sm">Your approved launches will appear here</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {applications
+                      .filter(app => app.status === "approved" || app.status === "under_review")
+                      .map((app) => (
+                        <div key={app.id} className="p-4 rounded-lg bg-[#111111]">
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className={cn(
+                              "h-1.5 w-1.5 rounded-full",
+                              app.status === "approved" ? "bg-[#22C55E]" : "bg-[#FFB224]"
+                            )} />
+                            <h3 className="font-medium text-white text-xs">
+                              {app.status === "approved" ? "ACTIVE LICENSE" : "PENDING APPROVAL"}
+                            </h3>
+                          </div>
+                          <p className="text-sm text-zinc-500 mb-1">{app.name}</p>
+                          <p className="text-[11px] text-zinc-600">
+                            {app.status === "approved" ? "May 15, 2025 - June 30, 2025" : `Submitted on ${formatDate(app.updatedAt)}`}
+                          </p>
                         </div>
-                      ) : (
-                        <div className="space-y-3">
-                          {applications
-                            .filter(app => app.status === "approved" || app.status === "under_review")
-                            .map((app) => (
-                              <div key={app.id} className="p-4 rounded-lg bg-[#111111]">
-                                <div className="flex items-center gap-2 mb-2">
-                                  <div className={cn(
-                                    "h-1.5 w-1.5 rounded-full",
-                                    app.status === "approved" ? "bg-[#22C55E]" : "bg-[#FFB224]"
-                                  )} />
-                                  <h3 className="font-medium text-white text-xs">
-                                    {app.status === "approved" ? "ACTIVE LICENSE" : "PENDING APPROVAL"}
-                                  </h3>
-                                </div>
-                                <p className="text-sm text-zinc-500 mb-1">{app.name}</p>
-                                <p className="text-[11px] text-zinc-600">
-                                  {app.status === "approved" ? "May 15, 2025 - June 30, 2025" : `Submitted on ${formatDate(app.updatedAt)}`}
-                                </p>
-                              </div>
-                            ))}
-                        </div>
-                      )}
-                    </div>
-                  </Card>
+                      ))}
+                  </div>
+                )}
+              </div>
+            </Card>
+          </div>
+
+          <Card className="bg-[#1A1A1A] border-zinc-800/50 rounded-xl overflow-hidden">
+            <div className="p-6">
+              <h2 className="text-lg font-medium text-white mb-1">All Applications</h2>
+              <p className="text-sm text-zinc-500 mb-8">Complete history of your license applications</p>
+              
+              {applications.length === 0 ? (
+                <div className="text-center py-12">
+                  <FilePlus className="mx-auto h-8 w-8 text-zinc-700 mb-3" />
+                  <p className="text-zinc-400">No applications yet</p>
+                  <p className="text-zinc-600 text-sm">Create your first application to get started</p>
                 </div>
-
-                <Card className="bg-[#1A1A1A] border-zinc-800/50 rounded-xl overflow-hidden">
-                  <div className="p-6">
-                    <h2 className="text-lg font-medium text-white mb-1">All Applications</h2>
-                    <p className="text-sm text-zinc-500 mb-8">Complete history of your license applications</p>
-                    
-                    {applications.length === 0 ? (
-                      <div className="text-center py-12">
-                        <FilePlus className="mx-auto h-8 w-8 text-zinc-700 mb-3" />
-                        <p className="text-zinc-400">No applications yet</p>
-                        <p className="text-zinc-600 text-sm">Create your first application to get started</p>
-                      </div>
-                    ) : (
-                      <div className="overflow-x-auto">
-                        <table className="w-full">
-                          <thead>
-                            <tr className="text-left border-b border-zinc-800/50">
-                              <th className="pb-4 text-sm font-medium text-white">Name</th>
-                              <th className="pb-4 text-sm font-medium text-white">Type</th>
-                              <th className="pb-4 text-sm font-medium text-white">Status</th>
-                              <th className="pb-4 text-sm font-medium text-white">Created</th>
-                              <th className="pb-4 text-sm font-medium text-white">Last Update</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {applications.map((app) => (
-                              <tr
-                                key={app.id}
-                                className="border-b border-zinc-800/50 hover:bg-[#111111] cursor-pointer transition-colors"
-                                onClick={() => router.push(`/applications/${app.id}`)}
-                              >
-                                <td className="py-5 text-[15px] font-medium text-white">{app.name}</td>
-                                <td className="py-5 text-[15px] text-zinc-400">{app.type}</td>
-                                <td className="py-5">
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="text-left border-b border-zinc-800/50">
+                        <th className="pb-4 text-sm font-medium text-white">Name</th>
+                        <th className="pb-4 text-sm font-medium text-white">Type</th>
+                        <th className="pb-4 text-sm font-medium text-white">Status</th>
+                        <th className="pb-4 text-sm font-medium text-white">Created</th>
+                        <th className="pb-4 text-sm font-medium text-white">Last Update</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {applications.map((app) => (
+                        <tr
+                          key={app.id}
+                          className="border-b border-zinc-800/50 hover:bg-[#111111] cursor-pointer transition-colors"
+                          onClick={() => router.push(`/applications/${app.id}`)}
+                        >
+                          <td className="py-5 text-[15px] font-medium text-white">{app.name}</td>
+                          <td className="py-5 text-[15px] text-zinc-400">{app.type}</td>
+                          <td className="py-5">
                                   <Badge variant={getStatusBadgeVariant(app.status)} className="ml-2">
                                     {getStatusDisplay(app.status)}
                                   </Badge>
-                                </td>
-                                <td className="py-5 text-[15px] text-zinc-400">{formatDate(app.createdAt)}</td>
-                                <td className="py-5 text-[15px] text-zinc-400">{formatDate(app.updatedAt)}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
-                  </div>
-                </Card>
-              </div>
+                          </td>
+                          <td className="py-5 text-[15px] text-zinc-400">{formatDate(app.createdAt)}</td>
+                          <td className="py-5 text-[15px] text-zinc-400">{formatDate(app.updatedAt)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </Card>
+        </div>
             </>
           )}
-        </div>
+      </div>
       </main>
       <Footer />
     </div>

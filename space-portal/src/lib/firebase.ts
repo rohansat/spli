@@ -25,7 +25,7 @@ export const db = getFirestore(app);
 let analytics = null;
 if (typeof window !== 'undefined') {
   import('firebase/analytics').then(({ getAnalytics }) => {
-    analytics = getAnalytics(app);
+  analytics = getAnalytics(app);
   });
 }
 

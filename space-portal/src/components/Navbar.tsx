@@ -35,21 +35,21 @@ export function Navbar() {
               SPLI
             </Link>
             <nav className="flex items-center">
-              {navigation.map((item) => (
-                <Link
+                {navigation.map((item) => (
+                  <Link
                   key={item.href}
-                  href={item.href}
-                  className={cn(
+                    href={item.href}
+                    className={cn(
                     "text-[15px] font-medium px-6 py-5 relative",
-                    pathname === item.href 
+                      pathname === item.href
                       ? "text-white after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-white" 
                       : "text-zinc-400"
-                  )}
-                >
-                  {item.name}
-                </Link>
-              ))}
-            </nav>
+                    )}
+                  >
+                    {item.name}
+                  </Link>
+                ))}
+              </nav>
           </div>
           <div className="flex items-center gap-4">
             {!user ? (
@@ -77,14 +77,14 @@ export function Navbar() {
                   <DropdownMenuSeparator className="bg-zinc-800" />
                   <DropdownMenuItem asChild className="flex items-center gap-2 text-zinc-400 focus:bg-[#111111] focus:text-white cursor-pointer">
                     <Link href="/profile" className="flex items-center gap-2 w-full">
-                      <User className="h-4 w-4" />
-                      Profile
+                    <User className="h-4 w-4" />
+                    Profile
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild className="flex items-center gap-2 text-zinc-400 focus:bg-[#111111] focus:text-white cursor-pointer">
                     <Link href="/settings" className="flex items-center gap-2 w-full">
-                      <Settings className="h-4 w-4" />
-                      Settings
+                    <Settings className="h-4 w-4" />
+                    Settings
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator className="bg-zinc-800" />

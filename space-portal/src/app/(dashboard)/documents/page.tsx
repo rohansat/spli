@@ -87,17 +87,17 @@ export default function DocumentManagement() {
   return (
     <div className="min-h-screen flex flex-col bg-black">
       <main className="flex-1 px-8 pt-24">
-        <div className="max-w-[1400px] mx-auto">
+      <div className="max-w-[1400px] mx-auto">
           <div className="flex justify-between items-start mb-8">
-            <div>
+          <div>
               <h1 className="text-[28px] font-medium text-white mb-2">DOCUMENT MANAGEMENT</h1>
               <p className="text-zinc-500">
-                Manage all documents related to your aerospace licensing applications
-              </p>
-            </div>
+              Manage all documents related to your aerospace licensing applications
+            </p>
+          </div>
             <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
               <DialogTrigger asChild>
-                <Button 
+          <Button 
                   className="bg-white hover:bg-white/90 text-black gap-2 px-4 py-2 rounded-md flex items-center"
                 >
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -105,8 +105,8 @@ export default function DocumentManagement() {
                     <polyline points="17 8 12 3 7 8" />
                     <line x1="12" y1="3" x2="12" y2="15" />
                   </svg>
-                  UPLOAD DOCUMENT
-                </Button>
+            UPLOAD DOCUMENT
+          </Button>
               </DialogTrigger>
               <DialogContent className="bg-black border border-zinc-800 text-white">
                 <DialogHeader>
@@ -185,33 +185,33 @@ export default function DocumentManagement() {
                 </DialogFooter>
               </DialogContent>
             </Dialog>
-          </div>
+        </div>
 
-          <div className="flex gap-3 mb-8">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-zinc-400" />
-              <input
-                type="text"
-                placeholder="Search documents..."
+        <div className="flex gap-3 mb-8">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-zinc-400" />
+            <input
+              type="text"
+              placeholder="Search documents..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-10 bg-[#161616] border border-zinc-800 rounded-md pl-10 pr-4 text-sm text-white placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-white/20"
-              />
-            </div>
-            <Button 
-              variant="outline" 
-              className="border-zinc-800 hover:bg-[#161616] text-white gap-2 px-4 h-10"
-            >
-              <Filter className="h-4 w-4" />
-              Filter
-            </Button>
+              className="w-full h-10 bg-[#161616] border border-zinc-800 rounded-md pl-10 pr-4 text-sm text-white placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-white/20"
+            />
           </div>
+          <Button 
+            variant="outline" 
+            className="border-zinc-800 hover:bg-[#161616] text-white gap-2 px-4 h-10"
+          >
+            <Filter className="h-4 w-4" />
+            Filter
+          </Button>
+        </div>
 
           <div className="bg-[#111111] rounded-lg border border-zinc-800/50 overflow-hidden">
-            <div className="p-6">
-              <h2 className="text-lg font-medium text-white mb-1">Document Library</h2>
-              <p className="text-sm text-zinc-400">View and manage your documents</p>
-              
+          <div className="p-6">
+            <h2 className="text-lg font-medium text-white mb-1">Document Library</h2>
+            <p className="text-sm text-zinc-400">View and manage your documents</p>
+            
               <div className="flex gap-6 mt-6 mb-6">
                 {["All Documents", "Applications", "Attachments", "Emails", "Licenses"].map((tab) => (
                   <button
@@ -225,22 +225,22 @@ export default function DocumentManagement() {
                     )}
                   >
                     {tab}
-                  </button>
+              </button>
                 ))}
-              </div>
+            </div>
 
               <div className="grid grid-cols-[2fr,1fr,1fr,2fr,0.5fr] gap-4 py-4 text-sm text-zinc-400 border-b border-zinc-800">
-                <div>Document</div>
-                <div>Type</div>
-                <div>Size</div>
-                <div>Associated Application</div>
-                <div className="text-right">Actions</div>
-              </div>
+              <div>Document</div>
+              <div>Type</div>
+              <div>Size</div>
+              <div>Associated Application</div>
+              <div className="text-right">Actions</div>
+            </div>
 
               {searchFilteredDocuments.length === 0 ? (
-                <div className="py-12 text-center">
-                  <p className="text-zinc-400 text-sm">No documents found</p>
-                </div>
+            <div className="py-12 text-center">
+              <p className="text-zinc-400 text-sm">No documents found</p>
+            </div>
               ) : (
                 <div className="divide-y divide-zinc-800">
                   {searchFilteredDocuments.map((doc) => (
@@ -271,8 +271,8 @@ export default function DocumentManagement() {
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
-                      </div>
-                    </div>
+          </div>
+        </div>
                   ))}
                 </div>
               )}
