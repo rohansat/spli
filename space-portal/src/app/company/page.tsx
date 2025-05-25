@@ -30,7 +30,9 @@ export default function CompanyPage() {
               Building the future of space exploration through innovative licensing solutions and regulatory excellence. Join us on our journey to transform the industry.
             </p>
             <Link 
-              href="/signin" 
+              href="https://calendly.com/harikesh-tambareni/spli-ai-demo?month=2025-05"
+              target="_blank"
+              rel="noopener noreferrer"
               className="bg-white hover:bg-white/90 text-black px-8 py-3 rounded-md font-medium"
             >
               GET STARTED
