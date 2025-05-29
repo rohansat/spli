@@ -247,8 +247,8 @@ export default function ApplicationPage() {
           <p className="text-white/60 mt-2">Complete all sections of the form to submit your application</p>
         </div>
         
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex gap-10 mt-8">
-          <div className="w-[300px]">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex gap-10 mt-8 items-start">
+          <div className="w-[300px] mt-20">
             <TabsList className="flex flex-col w-full min-h-[500px] gap-4 bg-black">
               {part450FormTemplate.sections.map((section, index) => (
                 <TabsTrigger
@@ -267,7 +267,21 @@ export default function ApplicationPage() {
                       <span className="text-sm font-medium">{index + 1}</span>
                       </div>
                     <div className="flex flex-col">
-                      <span className="font-medium">{section.title}</span>
+                      <span className="font-medium">
+                        {section.title === "Preliminary Risk or Safety Considerations"
+                          ? (<>
+                              Preliminary Risk or Safety<br />Considerations
+                            </>)
+                        : section.title === "Planned Launch/Reentry Location(s)"
+                          ? (<>
+                              Planned Launch/Reentry<br />Location(s)
+                            </>)
+                        : section.title === "Concept of Operations (CONOPS)"
+                          ? (<>
+                              Concept of Operations<br />(CONOPS)
+                            </>)
+                        : section.title}
+                      </span>
                       <span className="text-sm text-white/50">Section {index + 1} of {part450FormTemplate.sections.length}</span>
                     </div>
                   </div>
@@ -285,7 +299,19 @@ export default function ApplicationPage() {
               >
                 <div className="space-y-3">
                   <h2 className="text-3xl font-bold text-white bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
-                    {section.title}
+                    {section.title === "Preliminary Risk or Safety Considerations"
+                      ? (<>
+                          Preliminary Risk or Safety<br />Considerations
+                        </>)
+                      : section.title === "Planned Launch/Reentry Location(s)"
+                        ? (<>
+                            Planned Launch/Reentry<br />Location(s)
+                          </>)
+                        : section.title === "Concept of Operations (CONOPS)"
+                          ? (<>
+                              Concept of Operations<br />(CONOPS)
+                            </>)
+                          : section.title}
                   </h2>
                   <p className="text-white/60 text-lg">
                     Complete the {section.title.toLowerCase()} details

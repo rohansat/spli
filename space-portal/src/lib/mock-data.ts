@@ -23,22 +23,32 @@ export const messages: Message[] = [];
 export const part450FormTemplate = {
   sections: [
     {
-      title: "Applicant Information",
+      title: "Concept of Operations (CONOPS)",
       fields: [
-        { name: "applicantName", label: "Applicant Name", type: "text" },
-        { name: "applicantAddress", label: "Applicant Address", type: "text" },
-        { name: "pointOfContact", label: "Point of Contact", type: "text" },
-        { name: "telephone", label: "Telephone", type: "text" },
-        { name: "email", label: "Email", type: "email" },
+        { name: "missionObjective", label: "Mission Objective", type: "textarea" },
+        { name: "vehicleDescription", label: "Vehicle Description", type: "textarea" },
+        { name: "launchReentrySequence", label: "Launch/Reentry Sequence", type: "textarea" },
+        { name: "trajectoryOverview", label: "Trajectory Overview", type: "textarea" },
+        { name: "safetyConsiderations", label: "Safety Considerations", type: "textarea" },
+        { name: "groundOperations", label: "Ground Operations", type: "textarea" },
       ],
     },
     {
-      title: "Vehicle Information",
+      title: "Vehicle Overview",
       fields: [
-        { name: "vehicleName", label: "Vehicle Name", type: "text" },
-        { name: "vehicleType", label: "Vehicle Type", type: "select", options: ["Expendable Launch Vehicle", "Reusable Launch Vehicle", "Reentry Vehicle"] },
-        { name: "vehicleDescription", label: "Vehicle Description", type: "textarea" },
-        { name: "propellantType", label: "Propellant Type", type: "text" },
+        { name: "technicalSummary", label: "Technical Summary or Data Sheet", type: "textarea" },
+        { name: "dimensionsMassStages", label: "Dimensions, Mass, Stages", type: "textarea" },
+        { name: "propulsionTypes", label: "Propulsion Type(s)", type: "textarea" },
+        { name: "recoverySystems", label: "Recovery Systems (if any)", type: "textarea" },
+        { name: "groundSupportEquipment", label: "Ground Support Equipment", type: "textarea" },
+      ],
+    },
+    {
+      title: "Planned Launch/Reentry Location(s)",
+      fields: [
+        { name: "siteNamesCoordinates", label: "Site Names and Coordinates", type: "textarea" },
+        { name: "siteOperator", label: "Site Operator (if 3rd party)", type: "textarea" },
+        { name: "airspaceMaritimeNotes", label: "Airspace/Maritime Notes (if applicable)", type: "textarea" },
       ],
     },
     {
@@ -51,28 +61,26 @@ export const part450FormTemplate = {
       ],
     },
     {
-      title: "Safety Analysis",
+      title: "Preliminary Risk or Safety Considerations",
       fields: [
-        { name: "safetySystemDescription", label: "Safety System Description", type: "textarea" },
-        { name: "flightTerminationSystem", label: "Flight Termination System", type: "textarea" },
-        { name: "hazardAnalysis", label: "Hazard Analysis Summary", type: "textarea" },
-        { name: "debrisAnalysis", label: "Debris Analysis", type: "textarea" },
+        { name: "earlyRiskAssessments", label: "Any Early Risk Assessments", type: "textarea" },
+        { name: "publicSafetyChallenges", label: "Known Public Safety Challenges", type: "textarea" },
+        { name: "plannedSafetyTools", label: "Any Planned Use of Safety Tools (DEBRIS, SARA, etc.)", type: "textarea" },
       ],
     },
     {
-      title: "Environmental Assessment",
+      title: "Timeline & Intent",
       fields: [
-        { name: "environmentalImpact", label: "Environmental Impact Assessment", type: "textarea" },
-        { name: "noiseLevels", label: "Expected Noise Levels", type: "text" },
-        { name: "mitigationMeasures", label: "Mitigation Measures", type: "textarea" },
+        { name: "fullApplicationTimeline", label: "When You Plan to Submit a Full Application", type: "textarea" },
+        { name: "intendedWindow", label: "Intended Launch/Reentry Window", type: "textarea" },
+        { name: "licenseTypeIntent", label: "Whether You Seek a Vehicle/Operator License or Mission-Specific License", type: "textarea" },
       ],
     },
     {
-      title: "Financial Responsibility",
+      title: "List of Questions for FAA",
       fields: [
-        { name: "insuranceProvider", label: "Insurance Provider", type: "text" },
-        { name: "coverageAmount", label: "Coverage Amount", type: "text" },
-        { name: "policyNumber", label: "Policy Number", type: "text" },
+        { name: "clarifyPart450", label: "Clarify Points About Part 450 Requirements", type: "textarea" },
+        { name: "uniqueTechInternational", label: "Any Unique Tech or International Aspects", type: "textarea" },
       ],
     },
   ],
