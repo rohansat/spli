@@ -211,10 +211,10 @@ export default function ApplicationPage() {
       )}
 
       {application.status === "draft" && (
-        <Alert className="mb-6 bg-blue-500/20 border-blue-500/30">
-          <AlertTriangle className="h-4 w-4 mr-2" />
-          <AlertTitle>Draft Mode</AlertTitle>
-          <AlertDescription>
+        <Alert className="mb-6 bg-blue-500/20 border-blue-500/30 text-white">
+          <AlertTriangle className="h-4 w-4 mr-2" stroke="white" />
+          <AlertTitle className="text-white">Draft Mode</AlertTitle>
+          <AlertDescription className="text-white">
             This application is in draft mode. Complete all required fields before submitting.
           </AlertDescription>
         </Alert>
@@ -244,7 +244,7 @@ export default function ApplicationPage() {
       <div>
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-white">Part 450 License Application Form</h1>
-          <p className="text-white/60 mt-2">Complete all sections of the form to submit your application</p>
+          <p className="text-white/60 mt-2">Complete all sections of the pre application form to schedule your consultation with the FAA</p>
         </div>
         
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex gap-10 mt-8 items-start">
