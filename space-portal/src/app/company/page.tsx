@@ -25,7 +25,7 @@ export default function CompanyPage() {
 
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center max-w-3xl mx-auto">
-            <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">OUR MISSION & VISION</h1>
+            <h1 className="text-4xl md:text-6xl text-white mb-6">OUR MISSION & VISION</h1>
             <p className="text-xl text-gray-300 mb-8">
               Building the future of space exploration through innovative licensing solutions and regulatory excellence. Join us on our journey to transform the industry.
             </p>
@@ -45,7 +45,7 @@ export default function CompanyPage() {
       <div className="min-h-screen flex items-center bg-zinc-950">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-24">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-white mb-4">ABOUT SPLI</h2>
+            <h2 className="text-3xl text-white mb-4">ABOUT SPLI</h2>
             <div className="h-1 w-20 bg-white/20 mx-auto"></div>
           </div>
 
@@ -65,25 +65,25 @@ export default function CompanyPage() {
             <div className="grid grid-cols-2 gap-6">
               <div className="p-6 bg-black/50 border border-white/10 text-center">
                 <Rocket className="h-12 w-12 text-blue-400 mx-auto mb-4" />
-                <h3 className="text-xl font-bold text-white mb-2">MISSION</h3>
+                <h3 className="text-xl text-white mb-2">MISSION</h3>
                 <p className="text-white/70">To accelerate humanity's journey to the stars</p>
               </div>
 
               <div className="p-6 bg-black/50 border border-white/10 text-center">
                 <Globe className="h-12 w-12 text-green-400 mx-auto mb-4" />
-                <h3 className="text-xl font-bold text-white mb-2">VISION</h3>
+                <h3 className="text-xl text-white mb-2">VISION</h3>
                 <p className="text-white/70">A multiplanetary future with simplified space access</p>
               </div>
 
               <div className="p-6 bg-black/50 border border-white/10 text-center">
                 <Award className="h-12 w-12 text-yellow-400 mx-auto mb-4" />
-                <h3 className="text-xl font-bold text-white mb-2">EXCELLENCE</h3>
+                <h3 className="text-xl text-white mb-2">EXCELLENCE</h3>
                 <p className="text-white/70">Setting the gold standard in aerospace compliance</p>
               </div>
 
               <div className="p-6 bg-black/50 border border-white/10 text-center">
                 <ShieldCheck className="h-12 w-12 text-red-400 mx-auto mb-4" />
-                <h3 className="text-xl font-bold text-white mb-2">SAFETY</h3>
+                <h3 className="text-xl text-white mb-2">SAFETY</h3>
                 <p className="text-white/70">Ensuring safe operations through rigorous protocols</p>
               </div>
             </div>
@@ -95,7 +95,7 @@ export default function CompanyPage() {
       <div className="min-h-screen flex items-center bg-black">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-24">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-white mb-4">MEET OUR TEAM</h2>
+            <h2 className="text-3xl text-white mb-4">MEET OUR TEAM</h2>
             <div className="h-1 w-20 bg-white/20 mx-auto mb-6"></div>
             <p className="text-white/70 max-w-2xl mx-auto">
               Our leadership team combines expertise in aerospace engineering, regulatory compliance, and cutting-edge technology to revolutionize the space licensing process.
@@ -109,10 +109,15 @@ export default function CompanyPage() {
               rel="noopener noreferrer"
               className="bg-zinc-900 border border-white/10 p-8 transition-transform hover:-translate-y-2 duration-300"
             >
-              <div className="h-64 bg-gradient-to-br from-blue-900 to-indigo-900 mb-6 flex items-center justify-center">
-                <div className="text-6xl font-bold text-white/30">HT</div>
+              <div className="h-64 mb-6 flex items-center justify-center overflow-hidden rounded-md bg-gradient-to-br from-blue-900 to-indigo-900">
+                <img
+                  src="/htam.jpeg"
+                  alt="Harikesh Tambareni"
+                  className="object-cover w-full h-full"
+                  style={{ maxHeight: '100%', maxWidth: '100%' }}
+                />
               </div>
-              <h3 className="text-2xl font-bold text-white mb-2">HARIKESH TAMBARENI</h3>
+              <h3 className="text-2xl text-white mb-2">HARIKESH TAMBARENI</h3>
               <p className="text-blue-400 mb-4">Co-Founder / CEO</p>
               <p className="text-white/70">
                 With a background in aerospace engineering and regulatory policy, Harikesh leads the company's vision to streamline licensing processes for the industry's innovators.
@@ -125,10 +130,15 @@ export default function CompanyPage() {
               rel="noopener noreferrer"
               className="bg-zinc-900 border border-white/10 p-8 transition-transform hover:-translate-y-2 duration-300"
             >
-              <div className="h-64 bg-gradient-to-br from-purple-900 to-indigo-900 mb-6 flex items-center justify-center">
-                <div className="text-6xl font-bold text-white/30">RS</div>
+              <div className="h-64 mb-6 flex items-center justify-center overflow-hidden rounded-md bg-gradient-to-br from-purple-900 to-indigo-900">
+                <img
+                  src="/rohan.jpg"
+                  alt="Rohan Sathisha"
+                  className="object-cover w-full h-full"
+                  style={{ maxHeight: '100%', maxWidth: '100%' }}
+                />
               </div>
-              <h3 className="text-2xl font-bold text-white mb-2">ROHAN SATHISHA</h3>
+              <h3 className="text-2xl text-white mb-2">ROHAN SATHISHA</h3>
               <p className="text-blue-400 mb-4">Co-Founder / CTO</p>
               <p className="text-white/70">
                 A technology visionary with expertise in secure systems and regulatory compliance software, Rohan architects the platform that is revolutionizing aerospace licensing.
