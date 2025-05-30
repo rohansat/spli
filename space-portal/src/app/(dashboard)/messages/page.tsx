@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -22,6 +22,43 @@ export default function MessagesPage() {
     subject: "",
     body: "",
   });
+
+  // Fetch Outlook emails from Microsoft Graph API
+  useEffect(() => {
+    const fetchEmails = async () => {
+      const accessToken = localStorage.getItem('ms_access_token');
+      if (!accessToken) return;
+      try {
+        const res = await fetch('https://graph.microsoft.com/v1.0/me/messages?$top=20', {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+        if (!res.ok) {
+          // Log the actual error response from Microsoft
+          const errorText = await res.text();
+          console.error('Graph API error:', errorText);
+          throw new Error('Failed to fetch emails');
+        }
+        const data = await res.json();
+        const emails: Message[] = data.value.map((msg: any) => ({
+          id: msg.id,
+          sender: msg.from?.emailAddress?.address || '',
+          recipient: msg.toRecipients?.map((r: any) => r.emailAddress.address).join(', ') || '',
+          subject: msg.subject || '',
+          body: msg.body?.content || '',
+          createdAt: msg.receivedDateTime,
+          isRead: msg.isRead,
+          isAutomated: false,
+          applicationId: undefined,
+        }));
+        setMessages(emails);
+      } catch (err) {
+        console.error('Error fetching Outlook emails:', err);
+      }
+    };
+    fetchEmails();
+  }, []);
 
   // Filter messages based on search
   const filteredMessages = messages.filter(
@@ -58,16 +95,40 @@ export default function MessagesPage() {
   };
 
   // Handle compose submission
-  const handleSendMessage = () => {
-    // Reset form
-    setIsComposeOpen(false);
-    setNewMessage({
-      recipient: "",
-      subject: "",
-      body: "",
-    });
-
-    // Display success alert or something similar
+  const handleSendMessage = async () => {
+    const accessToken = localStorage.getItem('ms_access_token');
+    if (!accessToken) return;
+    try {
+      const res = await fetch('https://graph.microsoft.com/v1.0/me/sendMail', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: {
+            subject: newMessage.subject,
+            body: {
+              contentType: 'Text',
+              content: newMessage.body,
+            },
+            toRecipients: [
+              {
+                emailAddress: {
+                  address: newMessage.recipient,
+                },
+              },
+            ],
+          },
+        }),
+      });
+      if (!res.ok) throw new Error('Failed to send email');
+      // Optionally, refresh emails after sending
+      setIsComposeOpen(false);
+      setNewMessage({ recipient: '', subject: '', body: '' });
+    } catch (err) {
+      console.error('Error sending Outlook email:', err);
+    }
   };
 
   return (
