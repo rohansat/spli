@@ -2,30 +2,16 @@
 
 import { ApplicationProvider } from "@/components/providers/ApplicationProvider";
 import { Navbar } from "@/components/Navbar";
-import { useAuth } from "@/lib/auth-context";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useSession } from 'next-auth/react';
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const router = useRouter();
-  const { user, loading } = useAuth();
+  const { data: session, status } = useSession();
 
-  useEffect(() => {
-    if (!loading && !user) {
-      console.log('No user found, redirecting to signin');
-      router.replace('/signin');
-    } else if (user && window.location.pathname === '/') {
-      console.log('User found, redirecting to dashboard');
-      router.replace('/dashboard');
-    }
-  }, [user, loading, router]);
-
-  // Show loading spinner while checking auth
-  if (loading) {
+  if (status === 'loading') {
     return (
       <div className="flex items-center justify-center min-h-screen bg-black">
         <div className="space-y-4 text-center">
@@ -36,12 +22,13 @@ export default function DashboardLayout({
     );
   }
 
-  // If no user, render nothing (redirect will happen)
-  if (!user) {
+  if (!session) {
+    if (typeof window !== 'undefined') {
+      window.location.href = '/signin';
+    }
     return null;
   }
 
-  // User is authenticated, render dashboard layout
   return (
     <ApplicationProvider>
       <Navbar />

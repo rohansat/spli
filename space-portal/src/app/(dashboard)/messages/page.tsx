@@ -11,8 +11,11 @@ import { messages as mockMessages } from "@/lib/mock-data";
 import { Message } from "@/types";
 import { cn } from "@/lib/utils";
 import { Footer } from "@/components/Footer";
+import { useSession } from 'next-auth/react';
 
 export default function MessagesPage() {
+  const { data: session } = useSession();
+  const accessToken = session?.accessToken;
   const [messages, setMessages] = useState<Message[]>(mockMessages);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
@@ -25,9 +28,8 @@ export default function MessagesPage() {
 
   // Fetch Outlook emails from Microsoft Graph API
   useEffect(() => {
+    if (!accessToken) return;
     const fetchEmails = async () => {
-      const accessToken = localStorage.getItem('ms_access_token');
-      if (!accessToken) return;
       try {
         const res = await fetch('https://graph.microsoft.com/v1.0/me/messages?$top=20', {
           headers: {
@@ -35,7 +37,6 @@ export default function MessagesPage() {
           },
         });
         if (!res.ok) {
-          // Log the actual error response from Microsoft
           const errorText = await res.text();
           console.error('Graph API error:', errorText);
           throw new Error('Failed to fetch emails');
@@ -53,12 +54,12 @@ export default function MessagesPage() {
           applicationId: undefined,
         }));
         setMessages(emails);
-      } catch (err) {
-        console.error('Error fetching Outlook emails:', err);
+      } catch (error) {
+        console.error('Error fetching Outlook emails:', error);
       }
     };
     fetchEmails();
-  }, []);
+  }, [accessToken]);
 
   // Filter messages based on search
   const filteredMessages = messages.filter(
@@ -96,7 +97,6 @@ export default function MessagesPage() {
 
   // Handle compose submission
   const handleSendMessage = async () => {
-    const accessToken = localStorage.getItem('ms_access_token');
     if (!accessToken) return;
     try {
       const res = await fetch('https://graph.microsoft.com/v1.0/me/sendMail', {
