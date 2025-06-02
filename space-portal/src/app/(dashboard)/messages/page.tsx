@@ -363,11 +363,7 @@ export default function MessagesPage() {
                 )}
               </CardHeader>
               <CardContent>
-                <div className="prose prose-invert max-w-none">
-                  <p className="text-white/80 whitespace-pre-line">
-                    {selectedMessage.body}
-                  </p>
-                </div>
+                <div className="prose prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: selectedMessage.body }} />
 
                 <div className="mt-8 border-t border-white/10 pt-6">
                   <p className="text-sm font-medium mb-3">Reply</p>
