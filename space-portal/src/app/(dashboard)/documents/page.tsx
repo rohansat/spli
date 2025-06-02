@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useApplication } from "@/components/providers/ApplicationProvider";
-import { useAuth } from "@/lib/auth-context";
+import { useSession } from 'next-auth/react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -16,7 +16,8 @@ import { Footer } from "@/components/Footer";
 
 export default function DocumentManagement() {
   const { documents, applications, uploadDocument, removeDocument } = useApplication();
-  const { user } = useAuth();
+  const { data: session } = useSession();
+  const user = session?.user;
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("All Documents");
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
@@ -55,7 +56,7 @@ export default function DocumentManagement() {
       applicationId: selectedApplication || undefined,
       fileSize: `${(selectedFile.size / (1024 * 1024)).toFixed(2)} MB`,
       url: URL.createObjectURL(selectedFile),
-      userId: user.uid,
+      userId: user?.email || "",
     };
 
     uploadDocument(newDocument);
