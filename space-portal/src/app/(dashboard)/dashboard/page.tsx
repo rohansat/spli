@@ -10,14 +10,15 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Application } from "@/types";
 import { Clock, FilePlus, Rocket } from "lucide-react";
-import { useAuth } from "@/lib/auth-context";
+import { useSession } from 'next-auth/react';
 import { cn } from "@/lib/utils";
 import { Footer } from "@/components/Footer";
 import { Badge } from "@/components/ui/badge";
 
 export default function Dashboard() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { data: session } = useSession();
+  const user = session?.user;
   const { applications, createApplication, uploadDocument, isLoading } = useApplication();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newApplicationName, setNewApplicationName] = useState("");
@@ -39,7 +40,7 @@ export default function Dashboard() {
           applicationName: newApp.name,
           fileSize: `${(uploadedFile.size / (1024 * 1024)).toFixed(2)} MB`,
           url: URL.createObjectURL(uploadedFile),
-          userId: user?.uid || ""
+          userId: user?.email || ""
         });
       }
     setIsDialogOpen(false);
@@ -106,7 +107,7 @@ export default function Dashboard() {
             <div>
               <h1 className="text-[28px] font-medium text-white mb-1">MISSION CONTROL</h1>
               <p className="text-zinc-500">
-                Welcome back, {user?.displayName || user?.email?.split('@')[0] || 'John Doe'}. Manage your aerospace licensing applications.
+                Welcome back, {user?.name || user?.email?.split('@')[0] || 'John Doe'}. Manage your aerospace licensing applications.
               </p>
             </div>
 
