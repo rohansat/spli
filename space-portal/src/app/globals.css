@@ -110,7 +110,8 @@
   }
 
   .space-card {
-    @apply rounded-none border border-border/20 bg-card p-6;
+    @apply rounded-none border border-border/20 p-6;
+    background: #000 !important;
   }
 
   .animated-arrow {
