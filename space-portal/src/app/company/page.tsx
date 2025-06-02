@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Footer } from '@/components/layout/Footer';
 import { Rocket, Award, Globe, ShieldCheck } from 'lucide-react';
 import { Navbar } from '@/components/layout/Navbar';
+import Image from 'next/image';
 
 export default function CompanyPage() {
   return (
@@ -110,11 +111,13 @@ export default function CompanyPage() {
               className="bg-zinc-900 border border-white/10 p-8 transition-transform hover:-translate-y-2 duration-300"
             >
               <div className="h-64 mb-6 flex items-center justify-center overflow-hidden rounded-md bg-gradient-to-br from-blue-900 to-indigo-900">
-                <img
+                <Image
                   src="/htam.jpeg"
                   alt="Harikesh Tambareni"
                   className="object-cover w-full h-full"
                   style={{ maxHeight: '100%', maxWidth: '100%' }}
+                  width={256}
+                  height={256}
                 />
               </div>
               <h3 className="text-2xl text-white mb-2">HARIKESH TAMBARENI</h3>
@@ -131,11 +134,13 @@ export default function CompanyPage() {
               className="bg-zinc-900 border border-white/10 p-8 transition-transform hover:-translate-y-2 duration-300"
             >
               <div className="h-64 mb-6 flex items-center justify-center overflow-hidden rounded-md bg-gradient-to-br from-purple-900 to-indigo-900">
-                <img
+                <Image
                   src="/rohan.jpg"
                   alt="Rohan Sathisha"
                   className="object-cover w-full h-full"
                   style={{ maxHeight: '100%', maxWidth: '100%' }}
+                  width={256}
+                  height={256}
                 />
               </div>
               <h3 className="text-2xl text-white mb-2">ROHAN SATHISHA</h3>

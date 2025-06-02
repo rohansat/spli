@@ -233,7 +233,6 @@ export const ClutterBackground: React.FC = () => {
         height: '100vh',
         zIndex: 1,
         pointerEvents: 'none', // Let UI elements be clickable
-        mixBlendMode: 'lighter' as any,
       }}
       aria-hidden="true"
     />

@@ -42,17 +42,28 @@ export default function MessagesPage() {
           throw new Error('Failed to fetch emails');
         }
         const data = await res.json();
-        const emails: Message[] = data.value.map((msg: any) => ({
-          id: msg.id,
-          sender: msg.from?.emailAddress?.address || '',
-          recipient: msg.toRecipients?.map((r: any) => r.emailAddress.address).join(', ') || '',
-          subject: msg.subject || '',
-          body: msg.body?.content || '',
-          createdAt: msg.receivedDateTime,
-          isRead: msg.isRead,
-          isAutomated: false,
-          applicationId: undefined,
-        }));
+        const emails: Message[] = data.value.map((msg: unknown) => {
+          const m = msg as {
+            id: string;
+            from?: { emailAddress?: { address?: string } };
+            toRecipients?: { emailAddress: { address: string } }[];
+            subject?: string;
+            body?: { content?: string };
+            receivedDateTime?: string;
+            isRead?: boolean;
+          };
+          return {
+            id: m.id,
+            sender: m.from?.emailAddress?.address || '',
+            recipient: m.toRecipients?.map((r) => r.emailAddress.address).join(', ') || '',
+            subject: m.subject || '',
+            body: m.body?.content || '',
+            createdAt: m.receivedDateTime,
+            isRead: m.isRead,
+            isAutomated: false,
+            applicationId: undefined,
+          };
+        });
         setMessages(emails);
       } catch (error) {
         console.error('Error fetching Outlook emails:', error);
