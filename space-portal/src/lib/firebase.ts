@@ -1,7 +1,6 @@
 'use client';
 
 import { getApps, initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
@@ -18,14 +17,13 @@ const firebaseConfig = {
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApps()[0];
 
 // Initialize services
-export const auth = getAuth(app);
 export const db = getFirestore(app);
 
 // Initialize Analytics only on client side
 let analytics = null;
 if (typeof window !== 'undefined') {
   import('firebase/analytics').then(({ getAnalytics }) => {
-  analytics = getAnalytics(app);
+    analytics = getAnalytics(app);
   });
 }
 

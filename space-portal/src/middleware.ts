@@ -1,26 +1,12 @@
+// If you want to protect routes, use NextAuth middleware or rely on client-side session checks.
+// This file is now a placeholder after migration from Firebase Auth.
+
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-export function middleware(request: NextRequest) {
-  const path = request.nextUrl.pathname;
-  const token = request.cookies.get('token')?.value;
-
-  const isPublicPath = path === '/' || 
-    path === '/signin' || 
-    path === '/signup' || 
-    path === '/company' || 
-    path === '/contact' || 
-    path === '/privacy';
-
-  if (!isPublicPath && !token) {
-    return NextResponse.redirect(new URL('/signin', request.url));
-  }
-
-  if ((path === '/signin' || path === '/signup') && token) {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
-  }
-
-  return NextResponse.next();
+export default function middleware() {
+  // No-op
+  return;
 }
 
 // Configure which routes to run middleware on

@@ -3,7 +3,7 @@
 import { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { Application, Document } from "@/types";
-import { useAuth } from "@/lib/auth-context";
+import { useSession } from 'next-auth/react';
 import { db } from "@/lib/firebase";
 import { collection, addDoc, query, where, getDocs, deleteDoc, doc } from "firebase/firestore";
 
@@ -21,7 +21,8 @@ interface ApplicationContextType {
 const ApplicationContext = createContext<ApplicationContextType | undefined>(undefined);
 
 export function ApplicationProvider({ children }: { children: ReactNode }) {
-  const { user } = useAuth();
+  const { data: session } = useSession();
+  const user = session?.user;
   const [applications, setApplications] = useState<Application[]>([]);
   const [documents, setDocuments] = useState<Document[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -30,8 +31,8 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     async function fetchUserData() {
       if (!user) {
-      setApplications([]);
-      setDocuments([]);
+        setApplications([]);
+        setDocuments([]);
         return;
       }
 
@@ -40,7 +41,7 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
         // Fetch applications
         const applicationsQuery = query(
           collection(db, "applications"),
-          where("userId", "==", user.uid)
+          where("userId", "==", user.email)
         );
         const applicationsSnapshot = await getDocs(applicationsQuery);
         const applicationsData = applicationsSnapshot.docs.map(doc => ({
@@ -52,7 +53,7 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
         // Fetch documents
         const documentsQuery = query(
           collection(db, "documents"),
-          where("userId", "==", user.uid)
+          where("userId", "==", user.email)
         );
         const documentsSnapshot = await getDocs(documentsQuery);
         const documentsData = documentsSnapshot.docs.map(doc => ({
@@ -79,7 +80,7 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
       type,
       createdAt: now,
       updatedAt: now,
-      userId: user?.uid || ""
+      userId: user?.email || ""
     };
 
     setApplications(prev => [...prev, newApplication]);
@@ -94,7 +95,7 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
       fileSize: "0 MB",
       url: "",
       uploadedAt: now,
-      userId: user?.uid || ""
+      userId: user?.email || ""
     };
 
     setDocuments(prev => [...prev, applicationDocument]);
@@ -116,7 +117,7 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
       id: uuidv4(),
       ...document,
       uploadedAt: now,
-      userId: user?.uid || ""
+      userId: user?.email || ""
     };
 
     setDocuments(prev => [...prev, newDocument]);
