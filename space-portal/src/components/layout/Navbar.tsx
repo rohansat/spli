@@ -15,11 +15,6 @@ interface NavbarProps {
 export function Navbar({ userInitials = 'U', userImage }: NavbarProps) {
   const pathname = usePathname();
 
-  // Hide navigation on sign in/up pages
-  if (pathname === '/signin' || pathname === '/signup') {
-    return null;
-  }
-
   // Check if we're on a public page
   const isPublicPage = pathname === '/' || pathname === '/company';
 
