@@ -1,7 +1,7 @@
 'use client';
 
 import { signIn } from 'next-auth/react';
-import { Navbar } from '@/components/layout/Navbar';
+import { PublicNav } from '@/components/layout/PublicNav';
 import { Footer } from '@/components/layout/Footer';
 import Link from 'next/link';
 import { useState } from 'react';
@@ -23,7 +23,7 @@ export default function SignInPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-black">
-      <Navbar />
+      <PublicNav />
       <main className="flex-1 flex items-center justify-center">
         <div className="w-full max-w-md p-8 bg-black/80 rounded-lg shadow-lg border border-white/20 mt-24 mb-12">
           <h2 className="text-3xl font-bold text-white text-center mb-2 tracking-wide">SIGN IN</h2>
