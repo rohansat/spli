@@ -13,6 +13,12 @@ import { cn } from "@/lib/utils";
 import { Footer } from "@/components/Footer";
 import { useSession } from 'next-auth/react';
 
+// Utility to strip HTML tags for preview
+function stripHtml(html: string) {
+  if (!html) return '';
+  return html.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+}
+
 export default function MessagesPage() {
   const { data: session } = useSession();
   const accessToken = session?.accessToken;
@@ -297,8 +303,8 @@ export default function MessagesPage() {
                           {message.subject}
                         </p>
                         <p className="text-xs text-white/50 truncate">
-                          {message.body.slice(0, 60)}
-                          {message.body.length > 60 ? "..." : ""}
+                          {stripHtml(message.body).slice(0, 60)}
+                          {stripHtml(message.body).length > 60 ? "..." : ""}
                         </p>
                       </div>
                     </div>
