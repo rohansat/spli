@@ -1,8 +1,6 @@
 [build]
   # Triggering new deployment
   command = "npm run build"
-  base = "space-portal"
-  functions = "functions"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
