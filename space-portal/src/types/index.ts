@@ -27,6 +27,7 @@ export interface Message {
   recipient: string;
   subject: string;
   body: string;
+  bodyContentType?: string;
   isRead: boolean;
   isAutomated: boolean;
   createdAt: string;

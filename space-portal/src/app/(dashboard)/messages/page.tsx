@@ -31,6 +31,7 @@ export default function MessagesPage() {
     subject: "",
     body: "",
   });
+  const [mailbox, setMailbox] = useState<'inbox' | 'sent'>('inbox');
 
   // Fetch Outlook emails from Microsoft Graph API
   useEffect(() => {
@@ -54,7 +55,7 @@ export default function MessagesPage() {
             from?: { emailAddress?: { address?: string } };
             toRecipients?: { emailAddress: { address: string } }[];
             subject?: string;
-            body?: { content?: string };
+            body?: { content?: string; contentType?: string };
             receivedDateTime?: string;
             isRead?: boolean;
           };
@@ -64,6 +65,7 @@ export default function MessagesPage() {
             recipient: m.toRecipients?.map((r) => r.emailAddress.address).join(', ') || '',
             subject: m.subject || '',
             body: m.body?.content || '',
+            bodyContentType: m.body?.contentType || 'text',
             createdAt: m.receivedDateTime,
             isRead: m.isRead,
             isAutomated: false,
@@ -78,8 +80,15 @@ export default function MessagesPage() {
     fetchEmails();
   }, [accessToken]);
 
-  // Filter messages based on search
-  const filteredMessages = messages.filter(
+  // Filter messages based on mailbox
+  const userEmail = session?.user?.email || '';
+  const filteredMessages = messages.filter((msg) => {
+    if (mailbox === 'inbox') {
+      return msg.recipient.toLowerCase().includes(userEmail.toLowerCase());
+    } else {
+      return msg.sender.toLowerCase().includes(userEmail.toLowerCase());
+    }
+  }).filter(
     (msg) =>
       msg.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
       msg.body.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -158,6 +167,20 @@ export default function MessagesPage() {
           <p className="text-white/60">
             Communicate with FAA officials and receive automated notifications
           </p>
+        </div>
+        <div className="flex items-center space-x-4 mt-4 md:mt-0">
+          <button
+            className={`px-4 py-2 rounded-md font-semibold border transition-colors ${mailbox === 'inbox' ? 'bg-white text-black border-white' : 'bg-black text-white border-white/40 hover:bg-white/10'}`}
+            onClick={() => setMailbox('inbox')}
+          >
+            Inbox
+          </button>
+          <button
+            className={`px-4 py-2 rounded-md font-semibold border transition-colors ${mailbox === 'sent' ? 'bg-white text-black border-white' : 'bg-black text-white border-white/40 hover:bg-white/10'}`}
+            onClick={() => setMailbox('sent')}
+          >
+            Sent
+          </button>
         </div>
         <Dialog open={isComposeOpen} onOpenChange={setIsComposeOpen}>
           <DialogTrigger asChild>
@@ -303,8 +326,12 @@ export default function MessagesPage() {
                           {message.subject}
                         </p>
                         <p className="text-xs text-white/50 truncate">
-                          {stripHtml(message.body).slice(0, 60)}
-                          {stripHtml(message.body).length > 60 ? "..." : ""}
+                          {message.bodyContentType === 'html'
+                            ? stripHtml(message.body).slice(0, 60)
+                            : message.body.slice(0, 60)}
+                          {(message.bodyContentType === 'html'
+                            ? stripHtml(message.body).length
+                            : message.body.length) > 60 ? "..." : ""}
                         </p>
                       </div>
                     </div>

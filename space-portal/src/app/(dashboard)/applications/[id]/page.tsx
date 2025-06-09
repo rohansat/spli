@@ -12,6 +12,9 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { part450FormTemplate } from "@/lib/mock-data";
 import { ChevronLeft, Save, Send, AlertTriangle, Upload, X } from "lucide-react";
 import Link from "next/link";
+import { db } from "@/lib/firebase";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { useSession } from 'next-auth/react';
 
 interface FormField {
   name: string;
@@ -31,6 +34,8 @@ export default function ApplicationPage() {
   const [saveMessage, setSaveMessage] = useState("");
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const { data: session } = useSession();
+  const user = session?.user;
 
   const applicationId = params?.id as string;
   const application = applicationId ? getApplicationById(applicationId) : undefined;
@@ -40,6 +45,26 @@ export default function ApplicationPage() {
       router.push("/dashboard");
     }
   }, [application, applicationId, router]);
+
+  useEffect(() => {
+    if (!application || !user?.email) return;
+    const fetchFormData = async () => {
+      try {
+        const ref = doc(db, "applicationForms", `${user.email}_${applicationId}`);
+        const snap = await getDoc(ref);
+        if (snap.exists()) {
+          const data = snap.data();
+          if (data && data.formData) {
+            setFormData(data.formData);
+          }
+        }
+      } catch (err) {
+        console.error("Error loading saved form data:", err);
+      }
+    };
+    fetchFormData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [applicationId, user?.email]);
 
   if (!application) {
     return null;
@@ -52,16 +77,27 @@ export default function ApplicationPage() {
     }));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setIsSaving(true);
-    // Simulate API call to save form data
-    setTimeout(() => {
-      setIsSaving(false);
+    try {
+      if (user?.email && applicationId) {
+        await setDoc(
+          doc(db, "applicationForms", `${user.email}_${applicationId}`),
+          { formData, userEmail: user.email, applicationId },
+          { merge: true }
+        );
+      }
       setSaveMessage("Application saved successfully");
       setTimeout(() => {
         setSaveMessage("");
       }, 3000);
-    }, 1000);
+    } catch (err) {
+      setSaveMessage("Failed to save application");
+      setTimeout(() => setSaveMessage(""), 3000);
+      console.error("Error saving form data:", err);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleSubmit = () => {
