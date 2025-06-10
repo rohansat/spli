@@ -15,6 +15,7 @@ interface ApplicationContextType {
   getDocumentsByApplicationId: (applicationId: string) => Document[];
   uploadDocument: (document: Omit<Document, "id" | "uploadedAt">) => Promise<Document>;
   removeDocument: (id: string) => void;
+  removeApplication: (appId: string) => void;
   isLoading: boolean;
 }
 
@@ -167,6 +168,31 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
     return documents.filter((doc) => doc.applicationId === applicationId);
   };
 
+  const removeApplication = async (appId: string) => {
+    // Remove from local state
+    setApplications(prev => prev.filter(app => app.id !== appId));
+    setDocuments(prev => prev.filter(doc => doc.applicationId !== appId));
+
+    if (user) {
+      try {
+        // Delete the application from Firestore
+        const appQuery = query(collection(db, "applications"), where("userId", "==", user.email), where("id", "==", appId));
+        const appSnapshot = await getDocs(appQuery);
+        appSnapshot.forEach(async (docSnap) => {
+          await deleteDoc(doc(db, "applications", docSnap.id));
+        });
+        // Delete all associated documents from Firestore
+        const docsQuery = query(collection(db, "documents"), where("userId", "==", user.email), where("applicationId", "==", appId));
+        const docsSnapshot = await getDocs(docsQuery);
+        docsSnapshot.forEach(async (docSnap) => {
+          await deleteDoc(doc(db, "documents", docSnap.id));
+        });
+      } catch (error) {
+        console.error("Error removing application and documents from Firestore:", error);
+      }
+    }
+  };
+
   return (
     <ApplicationContext.Provider
       value={{
@@ -177,6 +203,7 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
         getDocumentsByApplicationId,
         uploadDocument,
         removeDocument,
+        removeApplication,
         isLoading,
       }}
     >

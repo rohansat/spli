@@ -19,7 +19,7 @@ export default function Dashboard() {
   const router = useRouter();
   const { data: session } = useSession();
   const user = session?.user;
-  const { applications, createApplication, uploadDocument, isLoading, removeDocument, documents } = useApplication();
+  const { applications, createApplication, uploadDocument, isLoading, removeApplication } = useApplication();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newApplicationName, setNewApplicationName] = useState("");
   const [newApplicationType, setNewApplicationType] = useState<Application["type"]>("Part 450");
@@ -94,12 +94,7 @@ export default function Dashboard() {
 
   const handleDeleteApplication = async (appId: string) => {
     if (window.confirm("Are you sure you want to delete this application? This action cannot be undone.")) {
-      const appDoc = documents.find(
-        (doc) => doc.applicationId === appId && doc.type === "application"
-      );
-      if (appDoc) {
-        await removeDocument(appDoc.id);
-      }
+      await removeApplication(appId);
     }
   };
 
