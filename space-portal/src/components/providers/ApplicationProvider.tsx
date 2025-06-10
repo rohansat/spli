@@ -103,6 +103,8 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
     if (user) {
       try {
         await addDoc(collection(db, "applications"), newApplication);
+        // Add the application document to Firestore as well
+        await addDoc(collection(db, "documents"), applicationDocument);
       } catch (error) {
         console.error("Error saving application to Firestore:", error);
       }
