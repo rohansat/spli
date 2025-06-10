@@ -9,7 +9,7 @@ import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Application } from "@/types";
-import { Clock, FilePlus, Rocket } from "lucide-react";
+import { Clock, FilePlus, Rocket, Trash2 } from "lucide-react";
 import { useSession } from 'next-auth/react';
 import { cn } from "@/lib/utils";
 import { Footer } from "@/components/Footer";
@@ -19,7 +19,7 @@ export default function Dashboard() {
   const router = useRouter();
   const { data: session } = useSession();
   const user = session?.user;
-  const { applications, createApplication, uploadDocument, isLoading } = useApplication();
+  const { applications, createApplication, uploadDocument, isLoading, removeDocument, documents } = useApplication();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newApplicationName, setNewApplicationName] = useState("");
   const [newApplicationType, setNewApplicationType] = useState<Application["type"]>("Part 450");
@@ -89,6 +89,17 @@ export default function Dashboard() {
         return "Approved";
       default:
         return status;
+    }
+  };
+
+  const handleDeleteApplication = async (appId: string) => {
+    if (window.confirm("Are you sure you want to delete this application? This action cannot be undone.")) {
+      const appDoc = documents.find(
+        (doc) => doc.applicationId === appId && doc.type === "application"
+      );
+      if (appDoc) {
+        await removeDocument(appDoc.id);
+      }
     }
   };
 
@@ -310,7 +321,18 @@ export default function Dashboard() {
                                   </Badge>
                           </td>
                           <td className="py-5 text-[15px] text-zinc-400">{formatDate(app.createdAt)}</td>
-                          <td className="py-5 text-[15px] text-zinc-400">{formatDate(app.updatedAt)}</td>
+                          <td className="py-5 text-[15px] text-zinc-400">{formatDate(app.updatedAt)}
+                            <button
+                              className="ml-4 inline-flex items-center justify-center text-zinc-400 hover:text-red-500"
+                              onClick={e => {
+                                e.stopPropagation();
+                                handleDeleteApplication(app.id);
+                              }}
+                              title="Delete Application"
+                            >
+                              <Trash2 className="h-5 w-5" />
+                            </button>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
