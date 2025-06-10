@@ -316,17 +316,20 @@ export default function Dashboard() {
                                   </Badge>
                           </td>
                           <td className="py-5 text-[15px] text-zinc-400">{formatDate(app.createdAt)}</td>
-                          <td className="py-5 text-[15px] text-zinc-400">{formatDate(app.updatedAt)}
-                            <button
-                              className="ml-4 inline-flex items-center justify-center text-zinc-400 hover:text-red-500"
-                              onClick={e => {
-                                e.stopPropagation();
-                                handleDeleteApplication(app.id);
-                              }}
-                              title="Delete Application"
-                            >
-                              <Trash2 className="h-5 w-5" />
-                            </button>
+                          <td className="py-5 text-[15px] text-zinc-400">
+                            <div className="flex items-center justify-between w-full">
+                              <span>{formatDate(app.updatedAt)}</span>
+                              <button
+                                className="ml-8 inline-flex items-center justify-center text-zinc-400 hover:text-red-500"
+                                onClick={e => {
+                                  e.stopPropagation();
+                                  handleDeleteApplication(app.id);
+                                }}
+                                title="Delete Application"
+                              >
+                                <Trash2 className="h-5 w-5" />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))}
