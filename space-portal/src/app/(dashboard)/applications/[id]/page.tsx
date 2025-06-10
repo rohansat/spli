@@ -31,7 +31,8 @@ export default function ApplicationPage() {
   const [activeTab, setActiveTab] = useState("section-0");
   const [isSaving, setIsSaving] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [saveMessage, setSaveMessage] = useState("");
+  const [saveMessage, setSaveMessage] = useState<string>("");
+  const [saveMessageType, setSaveMessageType] = useState<"success" | "error" | "">("");
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const { data: session } = useSession();
@@ -88,12 +89,18 @@ export default function ApplicationPage() {
         );
       }
       setSaveMessage("Application saved successfully");
+      setSaveMessageType("success");
       setTimeout(() => {
         setSaveMessage("");
+        setSaveMessageType("");
       }, 3000);
     } catch (err) {
       setSaveMessage("Failed to save application");
-      setTimeout(() => setSaveMessage(""), 3000);
+      setSaveMessageType("error");
+      setTimeout(() => {
+        setSaveMessage("");
+        setSaveMessageType("");
+      }, 3000);
       console.error("Error saving form data:", err);
     } finally {
       setIsSaving(false);
@@ -240,8 +247,14 @@ export default function ApplicationPage() {
       </div>
 
       {saveMessage && (
-        <Alert className="mb-6 bg-green-500/20 border-green-500/30">
-          <AlertTitle>Success</AlertTitle>
+        <Alert
+          className={
+            saveMessageType === "success"
+              ? "mb-6 bg-green-500/20 border-green-500/30"
+              : "mb-6 bg-red-500/20 border-red-500/30"
+          }
+        >
+          <AlertTitle>{saveMessageType === "success" ? "Success" : "Error"}</AlertTitle>
           <AlertDescription>{saveMessage}</AlertDescription>
         </Alert>
       )}
