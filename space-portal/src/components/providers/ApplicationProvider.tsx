@@ -169,27 +169,25 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
   };
 
   const removeApplication = async (appId: string) => {
-    // Remove from local state
-    setApplications(prev => prev.filter(app => app.id !== appId));
-    setDocuments(prev => prev.filter(doc => doc.applicationId !== appId));
-
-    if (user) {
-      try {
-        // Delete the application from Firestore
-        const appQuery = query(collection(db, "applications"), where("userId", "==", user.email), where("id", "==", appId));
-        const appSnapshot = await getDocs(appQuery);
-        appSnapshot.forEach(async (docSnap) => {
-          await deleteDoc(doc(db, "applications", docSnap.id));
-        });
-        // Delete all associated documents from Firestore
-        const docsQuery = query(collection(db, "documents"), where("userId", "==", user.email), where("applicationId", "==", appId));
-        const docsSnapshot = await getDocs(docsQuery);
-        docsSnapshot.forEach(async (docSnap) => {
-          await deleteDoc(doc(db, "documents", docSnap.id));
-        });
-      } catch (error) {
-        console.error("Error removing application and documents from Firestore:", error);
+    if (!user) return;
+    try {
+      // Delete the application from Firestore
+      const appQuery = query(collection(db, "applications"), where("userId", "==", user.email), where("id", "==", appId));
+      const appSnapshot = await getDocs(appQuery);
+      for (const docSnap of appSnapshot.docs) {
+        await deleteDoc(doc(db, "applications", docSnap.id));
       }
+      // Delete all associated documents from Firestore
+      const docsQuery = query(collection(db, "documents"), where("userId", "==", user.email), where("applicationId", "==", appId));
+      const docsSnapshot = await getDocs(docsQuery);
+      for (const docSnap of docsSnapshot.docs) {
+        await deleteDoc(doc(db, "documents", docSnap.id));
+      }
+      // Now update local state
+      setApplications(prev => prev.filter(app => app.id !== appId));
+      setDocuments(prev => prev.filter(doc => doc.applicationId !== appId));
+    } catch (error) {
+      console.error("Error removing application and documents from Firestore:", error);
     }
   };
 
