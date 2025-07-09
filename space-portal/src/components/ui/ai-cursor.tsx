@@ -33,6 +33,18 @@ export function AICursor({ onFillForm, formFields, isVisible, onClose }: AICurso
   const [showSuggestions, setShowSuggestions] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  // Prevent background scroll when modal is open
+  useEffect(() => {
+    if (isVisible) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isVisible]);
+
   // Process user input with AI service
   const processWithAI = async (input: string) => {
     setIsProcessing(true);
