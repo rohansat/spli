@@ -81,7 +81,7 @@ export function AICursor({ onFillForm, formFields, isVisible, onClose }: AICurso
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <Card className="w-full max-w-2xl bg-zinc-900 border-zinc-800 text-white">
+      <Card className="w-full max-w-2xl max-h-[90vh] flex flex-col bg-zinc-900 border-zinc-800 text-white">
         <CardHeader className="border-b border-zinc-800">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -104,7 +104,7 @@ export function AICursor({ onFillForm, formFields, isVisible, onClose }: AICurso
           </div>
         </CardHeader>
         
-        <CardContent className="p-6 space-y-6">
+        <CardContent className="flex-1 flex flex-col p-6">
           {!showSuggestions ? (
             <>
               <div className="space-y-4">
@@ -157,12 +157,7 @@ export function AICursor({ onFillForm, formFields, isVisible, onClose }: AICurso
             </>
           ) : (
             <>
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 text-sm text-green-400">
-                  <Check className="h-4 w-4" />
-                  <span>AI Analysis Complete</span>
-                </div>
-                
+              <div className="flex-1 overflow-y-auto pr-2 space-y-4">
                 <div className="space-y-3">
                   {suggestions.map((suggestion, index) => (
                     <div
@@ -188,8 +183,7 @@ export function AICursor({ onFillForm, formFields, isVisible, onClose }: AICurso
                   ))}
                 </div>
               </div>
-              
-              <div className="flex gap-3">
+              <div className="flex gap-3 pt-4 border-t border-zinc-800 bg-zinc-900">
                 <Button
                   onClick={acceptSuggestions}
                   className="flex-1 bg-green-600 hover:bg-green-700"
