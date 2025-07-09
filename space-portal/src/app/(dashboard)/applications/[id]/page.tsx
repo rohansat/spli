@@ -15,6 +15,8 @@ import Link from "next/link";
 import { db } from "@/lib/firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { useSession } from 'next-auth/react';
+import { AICursor } from "@/components/ui/ai-cursor";
+import { AICursorButton } from "@/components/ui/ai-cursor-button";
 
 interface FormField {
   name: string;
@@ -35,6 +37,7 @@ export default function ApplicationPage() {
   const [saveMessageType, setSaveMessageType] = useState<"success" | "error" | "">("");
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [showAICursor, setShowAICursor] = useState(false);
   const { data: session } = useSession();
   const user = session?.user;
 
@@ -125,6 +128,24 @@ export default function ApplicationPage() {
 
   const removeFile = (index: number) => {
     setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleAIFillForm = (suggestions: Record<string, string>) => {
+    setFormData((prev) => ({
+      ...prev,
+      ...suggestions,
+    }));
+  };
+
+  // Get all form fields from the template
+  const getAllFormFields = () => {
+    return part450FormTemplate.sections.flatMap(section => 
+      section.fields.map(field => ({
+        name: field.name,
+        label: field.label,
+        type: field.type
+      }))
+    );
   };
 
   const renderField = (field: FormField) => {
@@ -408,6 +429,17 @@ export default function ApplicationPage() {
           </div>
         </Tabs>
       </div>
+
+      {/* AI Cursor Button */}
+      <AICursorButton onClick={() => setShowAICursor(true)} />
+
+      {/* AI Cursor Modal */}
+      <AICursor
+        isVisible={showAICursor}
+        onClose={() => setShowAICursor(false)}
+        onFillForm={handleAIFillForm}
+        formFields={getAllFormFields()}
+      />
     </div>
   );
 }

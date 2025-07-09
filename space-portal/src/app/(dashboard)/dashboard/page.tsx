@@ -14,6 +14,8 @@ import { useSession } from 'next-auth/react';
 import { cn } from "@/lib/utils";
 import { Footer } from "@/components/Footer";
 import { Badge } from "@/components/ui/badge";
+import { AICursor } from "@/components/ui/ai-cursor";
+import { AICursorButton } from "@/components/ui/ai-cursor-button";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -25,6 +27,7 @@ export default function Dashboard() {
   const [newApplicationType, setNewApplicationType] = useState<Application["type"]>("Part 450");
   const [isCreating, setIsCreating] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [showAICursor, setShowAICursor] = useState(false);
 
   const handleCreateApplication = async () => {
     if (newApplicationName.trim() === "") return;
@@ -97,6 +100,20 @@ export default function Dashboard() {
       await removeApplication(appId);
     }
   };
+
+  const handleAIFillForm = (suggestions: Record<string, string>) => {
+    // For dashboard, we'll use the suggestions to pre-fill the application name
+    if (suggestions.missionObjective) {
+      setNewApplicationName(suggestions.missionObjective);
+    }
+  };
+
+  // Dashboard form fields for AI
+  const dashboardFormFields = [
+    { name: 'missionObjective', label: 'Mission Objective', type: 'textarea' },
+    { name: 'applicationName', label: 'Application Name', type: 'text' },
+    { name: 'applicationType', label: 'Application Type', type: 'select' }
+  ];
 
   return (
     <div className="min-h-screen flex flex-col bg-black">
@@ -345,6 +362,17 @@ export default function Dashboard() {
       </div>
       </main>
       <Footer />
+
+      {/* AI Cursor Button */}
+      <AICursorButton onClick={() => setShowAICursor(true)} />
+
+      {/* AI Cursor Modal */}
+      <AICursor
+        isVisible={showAICursor}
+        onClose={() => setShowAICursor(false)}
+        onFillForm={handleAIFillForm}
+        formFields={dashboardFormFields}
+      />
     </div>
   );
 }
