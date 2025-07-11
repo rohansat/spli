@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef, useState, useImperativeHandle, forwardRef } from "react";
-import { Paperclip, Send, UploadCloud } from "lucide-react";
+import { Paperclip, Send, UploadCloud, User, Bot } from "lucide-react";
 import { Button } from "./button";
 import dayjs from "dayjs";
 
@@ -84,25 +84,36 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
           <span className="text-lg font-semibold text-white">AI Assistant</span>
         </div>
         {/* Message List */}
-        <div className="flex-1 overflow-y-auto space-y-3 pr-1 pb-2">
+        <div className="flex-1 overflow-y-auto space-y-3 pr-1 pb-2 bg-gradient-to-br from-zinc-900 via-zinc-950 to-zinc-900 rounded-2xl shadow-xl border border-zinc-800">
           {messages.length === 0 ? (
             <div className="text-zinc-500 text-center mt-10">How can I help you with your application?</div>
           ) : (
             messages.map((msg) => (
               <div
                 key={msg.id}
-                className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
+                className={`flex items-end gap-2 ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
               >
+                {msg.sender === "ai" && (
+                  <div className="flex-shrink-0 mb-1">
+                    <Bot className="h-6 w-6 text-purple-400 bg-zinc-800 rounded-full p-1 shadow" />
+                  </div>
+                )}
                 <div
-                  className={`rounded-lg px-4 py-2 max-w-[80%] text-sm shadow-md flex flex-col gap-1 ${
+                  className={`px-5 py-3 max-w-[75%] text-sm flex flex-col gap-1 shadow-lg border transition-all duration-200 ${
                     msg.sender === "user"
-                      ? "bg-blue-600 text-white self-end rounded-br-none"
-                      : "bg-zinc-800 text-zinc-100 border border-zinc-700 self-start rounded-bl-none"
+                      ? "bg-gradient-to-br from-blue-500 to-purple-600 text-white rounded-3xl rounded-br-md border-blue-400/30"
+                      : "bg-gradient-to-br from-zinc-800 to-zinc-900 text-zinc-100 rounded-3xl rounded-bl-md border-purple-400/20"
                   }`}
+                  style={{ boxShadow: msg.sender === "user" ? "0 2px 12px 0 rgba(80,80,255,0.10)" : "0 2px 12px 0 rgba(120,80,255,0.10)" }}
                 >
                   <span>{msg.content}</span>
-                  <span className={`text-xs mt-1 ${msg.sender === "user" ? "text-blue-200/80" : "text-zinc-400"}`}>{dayjs(msg.timestamp).format("HH:mm")}</span>
+                  <span className={`text-xs mt-1 ${msg.sender === "user" ? "text-blue-100/80" : "text-purple-200/80"}`}>{dayjs(msg.timestamp).format("HH:mm")}</span>
                 </div>
+                {msg.sender === "user" && (
+                  <div className="flex-shrink-0 mb-1">
+                    <User className="h-6 w-6 text-blue-400 bg-zinc-800 rounded-full p-1 shadow" />
+                  </div>
+                )}
               </div>
             ))
           )}
@@ -113,7 +124,7 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
           className={`sticky bottom-0 left-0 right-0 z-10 bg-zinc-900 pt-2 pb-2 px-0 border-t border-zinc-800`}
         >
           <div
-            className={`relative p-2 rounded-lg border border-dashed transition-colors ${
+            className={`relative p-2 rounded-2xl border-2 border-dashed transition-colors shadow-lg ${
               isDragging ? "border-blue-400 bg-blue-950/30" : "border-zinc-700 bg-zinc-900"
             }`}
             onDrop={handleDrop}
@@ -130,7 +141,7 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                className="text-zinc-400 hover:text-blue-400"
+                className="text-zinc-400 hover:text-blue-400 transition-transform hover:scale-110"
                 onClick={() => fileInputRef.current?.click()}
                 title="Attach files"
               >
@@ -142,11 +153,11 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSend()}
                 placeholder="Type a command, request, or drop a file..."
-                className="flex-1 bg-transparent outline-none text-white placeholder-zinc-500 px-2 py-1"
+                className="flex-1 bg-zinc-800/60 outline-none text-white placeholder:text-zinc-400 px-3 py-2 rounded-xl border border-zinc-700 focus:border-blue-400 transition-all"
               />
               <Button
                 size="icon"
-                className="bg-blue-600 hover:bg-blue-700 text-white"
+                className="bg-gradient-to-br from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-md transition-transform hover:scale-110"
                 onClick={handleSend}
                 title="Send"
               >
