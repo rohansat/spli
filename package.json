@@ -1,5 +1,6 @@
 {
   "dependencies": {
-    "dayjs": "^1.11.13"
+    "dayjs": "^1.11.13",
+    "react-rnd": "^10.5.2"
   }
 }
