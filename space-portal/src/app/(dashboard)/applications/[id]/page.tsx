@@ -452,15 +452,19 @@ export default function ApplicationPage() {
           formFields={getAllFormFields()}
         />
       </div>
-      {/* Floating Chat Button */}
-      {!showFloatingChat && (
-        <button
-          className="fixed bottom-8 right-8 z-50 bg-gradient-to-br from-blue-500 to-purple-600 text-white rounded-full w-16 h-16 flex items-center justify-center shadow-xl hover:scale-110 transition-all"
-          onClick={() => setShowFloatingChat(true)}
-          title="Open AI Chat"
-        >
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M8 15h8M9 9h.01M15 9h.01" /></svg>
-        </button>
+      {/* Floating Chat Button below Draft Mode alert */}
+      {application?.status === "draft" && (
+        <div className="flex justify-end mt-4">
+          {!showFloatingChat && (
+            <button
+              className="bg-gradient-to-br from-blue-500 to-purple-600 text-white rounded-full w-16 h-16 flex items-center justify-center shadow-xl hover:scale-110 transition-all border-4 border-zinc-900"
+              onClick={() => setShowFloatingChat(true)}
+              title="Open AI Chat"
+            >
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M8 15h8M9 9h.01M15 9h.01" /></svg>
+            </button>
+          )}
+        </div>
       )}
       {/* Floating, Resizable, Draggable Chat */}
       {showFloatingChat && (

@@ -43,7 +43,8 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
 
-    const handleSend = () => {
+    const handleSend = (e?: React.FormEvent | React.KeyboardEvent | React.MouseEvent) => {
+      if (e) e.preventDefault();
       if (!input.trim()) return;
       setMessages((msgs) => [
         ...msgs,
@@ -151,7 +152,9 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSend()}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleSend(e);
+                }}
                 placeholder="Type a command, request, or drop a file..."
                 className="flex-1 bg-zinc-800/60 outline-none text-white placeholder:text-zinc-400 px-3 py-2 rounded-xl border border-zinc-700 focus:border-blue-400 transition-all"
               />
@@ -160,6 +163,7 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
                 className="bg-gradient-to-br from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-md transition-transform hover:scale-110"
                 onClick={handleSend}
                 title="Send"
+                type="button"
               >
                 <Send className="h-5 w-5" />
               </Button>
