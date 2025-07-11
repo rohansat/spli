@@ -44,7 +44,7 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
     }, [messages]);
 
     const handleSend = (e?: React.FormEvent | React.KeyboardEvent | React.MouseEvent) => {
-      if (e) e.preventDefault();
+      if (e && typeof e.preventDefault === 'function') e.preventDefault();
       if (!input.trim()) return;
       setMessages((msgs) => [
         ...msgs,
@@ -139,7 +139,7 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
               className="hidden"
               onChange={handleFileInputChange}
             />
-            <div className="flex items-center gap-2">
+            <form className="flex items-center gap-2" onSubmit={handleSend} autoComplete="off">
               <button
                 type="button"
                 className="text-zinc-400 hover:text-blue-400 transition-transform hover:scale-110"
@@ -163,11 +163,11 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
                 className="bg-gradient-to-br from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-md transition-transform hover:scale-110"
                 onClick={handleSend}
                 title="Send"
-                type="button"
+                type="submit"
               >
                 <Send className="h-5 w-5" />
               </Button>
-            </div>
+            </form>
             {isDragging && (
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <div className="bg-blue-500/80 text-white px-4 py-2 rounded-lg shadow-lg animate-pulse">
