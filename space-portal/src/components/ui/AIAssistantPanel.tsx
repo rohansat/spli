@@ -165,4 +165,7 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
       </div>
     );
   }
-); 
+);
+
+// Add display name for forwardRef component
+AIAssistantPanel.displayName = "AIAssistantPanel"; 
