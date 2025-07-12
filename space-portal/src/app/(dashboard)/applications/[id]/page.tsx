@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { part450FormTemplate } from "@/lib/mock-data";
-import { ChevronLeft, Save, Send, AlertTriangle, Upload, X } from "lucide-react";
+import { ChevronLeft, Save, Send, AlertTriangle, Upload, X, Brain } from "lucide-react";
 import Link from "next/link";
 import { db } from "@/lib/firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
@@ -238,7 +238,19 @@ export default function ApplicationPage() {
             </div>
           </div>
 
+          {/* Button Row: AI Mode, Upload Documents, Save Draft, Submit Application */}
           <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4 mt-4 md:mt-0">
+            {/* AI Mode Button */}
+            <Button
+              variant="outline"
+              onClick={() => setShowAICursor(true)}
+              className="border-white/40 text-white px-6 h-10 text-base flex items-center justify-center"
+            >
+              <Brain className="mr-2 h-4 w-4" />
+              AI Mode
+            </Button>
+
+            {/* Upload Documents Button */}
             <div className="relative">
               <input
                 type="file"
@@ -250,27 +262,29 @@ export default function ApplicationPage() {
               />
               <label
                 htmlFor="file-upload"
-                className="cursor-pointer inline-flex items-center justify-center px-6 py-2 border border-white/40 rounded-md text-white hover:bg-white/5 transition-colors h-10 text-base"
+                className="cursor-pointer inline-flex items-center justify-center px-6 h-10 border border-white/40 rounded-md text-white hover:bg-white/5 transition-colors text-base"
               >
                 <Upload className="mr-2 h-4 w-4" />
                 Upload Documents
               </label>
             </div>
 
+            {/* Save Draft Button */}
             <Button
               variant="outline"
               onClick={handleSave}
               disabled={isSaving || application.status === "approved"}
-              className="border-white/40 text-white px-6"
+              className="border-white/40 text-white px-6 h-10 text-base flex items-center justify-center"
             >
               <Save className="mr-2 h-4 w-4" />
               {isSaving ? "Saving..." : "Save Draft"}
             </Button>
 
+            {/* Submit Application Button (unchanged) */}
             <Button
               onClick={handleSubmit}
               disabled={isSubmitting || application.status === "approved"}
-              className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6"
+              className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 h-10 text-base flex items-center justify-center"
             >
               <Send className="mr-2 h-4 w-4" />
               {isSubmitting ? "Submitting..." : "Submit Application"}
@@ -440,9 +454,6 @@ export default function ApplicationPage() {
             </div>
           </Tabs>
         </div>
-
-        {/* AI Cursor Button */}
-        <AICursorButton onClick={() => setShowAICursor(true)} />
 
         {/* AI Cursor Modal */}
         <AICursor

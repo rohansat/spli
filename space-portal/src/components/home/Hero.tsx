@@ -12,17 +12,8 @@ export function Hero() {
         </h1>
       </div>
 
-      {/* Video background with lighter gradient overlay */}
-      <video
-        src="/earthy.mp4"
-        autoPlay
-        loop
-        muted
-        playsInline
-        className="absolute inset-0 w-full h-full object-cover z-0"
-        style={{ filter: 'saturate(1.2) blur(0px)' }}
-      />
-      <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/10 to-black/30 z-0" />
+      {/* Black background */}
+      <div className="absolute inset-0 bg-black z-0" />
     </div>
   );
 }
