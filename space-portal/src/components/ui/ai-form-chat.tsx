@@ -122,14 +122,15 @@ export function AIFormChat({ onFillForm, formFields, onClose, aiAnalyze }: AIFor
         ))}
         <div ref={chatEndRef} />
       </div>
-      <div className="border-t border-zinc-800 p-3 bg-zinc-900 flex items-center gap-2">
+      <div className="border-t border-zinc-800 p-3 bg-zinc-900 flex items-center gap-2 mt-0">
         <textarea
           value={userInput}
           onChange={e => setUserInput(e.target.value)}
           placeholder="Describe your mission, vehicle, or operations..."
-          className="flex-1 min-h-[40px] max-h-[120px] bg-zinc-800 border border-zinc-700 text-white placeholder-zinc-400 rounded p-2 resize-none"
+          className="flex-1 min-h-[60px] max-h-[180px] bg-zinc-800 border border-zinc-700 text-white placeholder-zinc-400 rounded p-3 resize-none"
           disabled={isProcessing}
-          rows={1}
+          rows={3}
+          style={{ lineHeight: '1.5' }}
         />
         <button
           onClick={handleSend}
