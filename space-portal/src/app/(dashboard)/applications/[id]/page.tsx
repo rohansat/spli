@@ -22,6 +22,8 @@ import React, { useRef } from "react";
 import type { Document } from "@/types";
 import { Rnd } from "react-rnd";
 import type { DraggableData, DraggableEvent } from 'react-draggable';
+import { AIFormChat } from '@/components/ui/ai-form-chat';
+import { mockAIAnalysis } from '@/lib/ai-service';
 
 interface FormField {
   name: string;
@@ -582,11 +584,11 @@ export default function ApplicationPage() {
                     hideTabs={true}
                   />
                 ) : (
-                  <AICursor
-                    isVisible={true}
-                    onClose={() => setShowFloatingChat(false)}
+                  <AIFormChat
                     onFillForm={handleAIFillForm}
                     formFields={getAllFormFields()}
+                    onClose={() => setShowFloatingChat(false)}
+                    aiAnalyze={mockAIAnalysis}
                   />
                 )}
               </div>
