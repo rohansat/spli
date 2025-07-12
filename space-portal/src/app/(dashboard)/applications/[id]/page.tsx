@@ -204,6 +204,9 @@ export default function ApplicationPage() {
     }
   };
 
+  // Add a helper for compact button style
+  const buttonSizeClass = showFloatingChat ? 'h-8 px-3 text-sm' : 'h-10 px-6 text-base';
+
   return (
     <div className="relative max-w-[1400px] mx-auto bg-black py-8 min-h-[80vh] flex flex-row gap-6">
       {/* Form area expands when chat is closed, shrinks when open */}
@@ -246,7 +249,7 @@ export default function ApplicationPage() {
             <Button
               variant="outline"
               onClick={() => setShowFloatingChat(true)}
-              className="border-white/40 text-white px-6 h-10 text-base flex items-center justify-center"
+              className={`border-white/40 text-white flex items-center justify-center ${buttonSizeClass}`}
             >
               <Brain className="mr-2 h-4 w-4" />
               AI Mode
@@ -264,7 +267,7 @@ export default function ApplicationPage() {
               />
               <label
                 htmlFor="file-upload"
-                className="cursor-pointer inline-flex items-center justify-center px-6 h-10 border border-white/40 rounded-md text-white hover:bg-white/5 transition-colors text-base"
+                className={`cursor-pointer inline-flex items-center justify-center border border-white/40 rounded-md text-white hover:bg-white/5 transition-colors ${buttonSizeClass}`}
               >
                 <Upload className="mr-2 h-4 w-4" />
                 Upload Documents
@@ -276,7 +279,7 @@ export default function ApplicationPage() {
               variant="outline"
               onClick={handleSave}
               disabled={isSaving || application.status === "approved"}
-              className="border-white/40 text-white px-6 h-10 text-base flex items-center justify-center"
+              className={`border-white/40 text-white flex items-center justify-center ${buttonSizeClass}`}
             >
               <Save className="mr-2 h-4 w-4" />
               {isSaving ? "Saving..." : "Save Draft"}
@@ -286,7 +289,7 @@ export default function ApplicationPage() {
             <Button
               onClick={handleSubmit}
               disabled={isSubmitting || application.status === "approved"}
-              className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 h-10 text-base flex items-center justify-center"
+              className={`bg-gradient-to-r from-blue-500 to-purple-500 text-white flex items-center justify-center ${buttonSizeClass}`}
             >
               <Send className="mr-2 h-4 w-4" />
               {isSubmitting ? "Submitting..." : "Submit Application"}
@@ -507,84 +510,86 @@ export default function ApplicationPage() {
                 ×
               </button>
             </div>
-            {/* Toggle between AI Assistant and AI Form Assistant */}
+            {/* Always show the toggle at the top */}
             <Tabs value={aiChatTab} onValueChange={v => setAiChatTab(v as 'assistant' | 'form')} className="w-full">
               <TabsList className="flex w-full">
                 <TabsTrigger value="assistant" className="flex-1">AI Assistant</TabsTrigger>
                 <TabsTrigger value="form" className="flex-1">AI Form Assistant</TabsTrigger>
               </TabsList>
-              <TabsContent value="assistant" className="h-full">
-                <AIAssistantPanel
-                  ref={aiPanelRef}
-                  onCommand={async (cmd) => {
-                    const lower = cmd.trim().toLowerCase();
-                    if (lower === "save draft") {
-                      if (application?.status === "approved") {
-                        aiPanelRef.current?.addAIMsg("This application is already approved and cannot be edited.");
-                        return;
-                      }
-                      await handleSave();
-                      aiPanelRef.current?.addAIMsg("Draft saved successfully.");
-                      return;
-                    }
-                    if (lower === "submit application") {
-                      if (application?.status === "approved") {
-                        aiPanelRef.current?.addAIMsg("This application is already approved and cannot be submitted again.");
-                        return;
-                      }
-                      handleSubmit();
-                      aiPanelRef.current?.addAIMsg("Application submitted. Redirecting to dashboard...");
-                      return;
-                    }
-                    // Fill section command: e.g., fill section 2 with Launch details
-                    const fillMatch = lower.match(/^fill section (\d+) with (.+)$/);
-                    if (fillMatch) {
-                      const sectionIdx = parseInt(fillMatch[1], 10) - 1;
-                      const fillText = fillMatch[2];
-                      const section = part450FormTemplate.sections[sectionIdx];
-                      if (!section) {
-                        aiPanelRef.current?.addAIMsg(`Section ${fillMatch[1]} does not exist.`);
-                        return;
-                      }
-                      // Fill all text/textarea fields in the section with the provided text
-                      const updates: Record<string, string> = {};
-                      section.fields.forEach((field: any) => {
-                        if (["text", "textarea"].includes(field.type)) {
-                          updates[field.name] = fillText;
+              <div className="h-full">
+                {aiChatTab === 'assistant' ? (
+                  <AIAssistantPanel
+                    ref={aiPanelRef}
+                    onCommand={async (cmd) => {
+                      const lower = cmd.trim().toLowerCase();
+                      if (lower === "save draft") {
+                        if (application?.status === "approved") {
+                          aiPanelRef.current?.addAIMsg("This application is already approved and cannot be edited.");
+                          return;
                         }
-                      });
-                      setFormData((prev) => ({ ...prev, ...updates }));
-                      aiPanelRef.current?.addAIMsg(`Section ${fillMatch[1]} filled with: \"${fillText}\"`);
-                      return;
-                    }
-                    aiPanelRef.current?.addAIMsg("Sorry, I didn't understand that command. Try 'save draft', 'submit application', or 'fill section X with ...'.");
-                  }}
-                  onFileDrop={async (files) => {
-                    if (!user) return;
-                    for (const file of files) {
-                      const newDocument: Omit<Document, "id" | "uploadedAt"> = {
-                        name: file.name,
-                        type: "attachment",
-                        applicationId: applicationId || undefined,
-                        applicationName: application?.name || undefined,
-                        fileSize: `${(file.size / (1024 * 1024)).toFixed(2)} MB`,
-                        url: URL.createObjectURL(file),
-                        userId: user.email || "",
-                      };
-                      await uploadDocument(newDocument);
-                      aiPanelRef.current?.addAIMsg(`Document \"${file.name}\" uploaded successfully and added to Document Management.`);
-                    }
-                  }}
-                />
-              </TabsContent>
-              <TabsContent value="form" className="h-full">
-                <AICursor
-                  isVisible={true}
-                  onClose={() => setShowFloatingChat(false)}
-                  onFillForm={handleAIFillForm}
-                  formFields={getAllFormFields()}
-                />
-              </TabsContent>
+                        await handleSave();
+                        aiPanelRef.current?.addAIMsg("Draft saved successfully.");
+                        return;
+                      }
+                      if (lower === "submit application") {
+                        if (application?.status === "approved") {
+                          aiPanelRef.current?.addAIMsg("This application is already approved and cannot be submitted again.");
+                          return;
+                        }
+                        handleSubmit();
+                        aiPanelRef.current?.addAIMsg("Application submitted. Redirecting to dashboard...");
+                        return;
+                      }
+                      // Fill section command: e.g., fill section 2 with Launch details
+                      const fillMatch = lower.match(/^fill section (\d+) with (.+)$/);
+                      if (fillMatch) {
+                        const sectionIdx = parseInt(fillMatch[1], 10) - 1;
+                        const fillText = fillMatch[2];
+                        const section = part450FormTemplate.sections[sectionIdx];
+                        if (!section) {
+                          aiPanelRef.current?.addAIMsg(`Section ${fillMatch[1]} does not exist.`);
+                          return;
+                        }
+                        // Fill all text/textarea fields in the section with the provided text
+                        const updates: Record<string, string> = {};
+                        section.fields.forEach((field: any) => {
+                          if (["text", "textarea"].includes(field.type)) {
+                            updates[field.name] = fillText;
+                          }
+                        });
+                        setFormData((prev) => ({ ...prev, ...updates }));
+                        aiPanelRef.current?.addAIMsg(`Section ${fillMatch[1]} filled with: \"${fillText}\"`);
+                        return;
+                      }
+                      aiPanelRef.current?.addAIMsg("Sorry, I didn't understand that command. Try 'save draft', 'submit application', or 'fill section X with ...'.");
+                    }}
+                    onFileDrop={async (files) => {
+                      if (!user) return;
+                      for (const file of files) {
+                        const newDocument: Omit<Document, "id" | "uploadedAt"> = {
+                          name: file.name,
+                          type: "attachment",
+                          applicationId: applicationId || undefined,
+                          applicationName: application?.name || undefined,
+                          fileSize: `${(file.size / (1024 * 1024)).toFixed(2)} MB`,
+                          url: URL.createObjectURL(file),
+                          userId: user.email || "",
+                        };
+                        await uploadDocument(newDocument);
+                        aiPanelRef.current?.addAIMsg(`Document \"${file.name}\" uploaded successfully and added to Document Management.`);
+                      }
+                    }}
+                    hideTabs={true}
+                  />
+                ) : (
+                  <AICursor
+                    isVisible={true}
+                    onClose={() => setShowFloatingChat(false)}
+                    onFillForm={handleAIFillForm}
+                    formFields={getAllFormFields()}
+                  />
+                )}
+              </div>
             </Tabs>
           </div>
         </Rnd>

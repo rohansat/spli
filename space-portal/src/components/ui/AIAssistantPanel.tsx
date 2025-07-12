@@ -19,10 +19,11 @@ export interface AIAssistantPanelHandle {
 interface AIAssistantPanelProps {
   onCommand?: (command: string) => void;
   onFileDrop?: (files: FileList | File[]) => void;
+  hideTabs?: boolean;
 }
 
 export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPanelProps>(
-  ({ onCommand, onFileDrop }, ref) => {
+  ({ onCommand, onFileDrop, hideTabs }, ref) => {
     const [messages, setMessages] = useState<Message[]>([]);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const [input, setInput] = useState("");
