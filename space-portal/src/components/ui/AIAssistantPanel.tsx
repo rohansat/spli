@@ -80,11 +80,6 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
 
     return (
       <div className="flex flex-col h-full min-h-0">
-        {/* Header */}
-        <div className="flex items-center gap-2 border-b border-zinc-800 pb-3 mb-3">
-          <span style={{fontSize: '1.5rem', lineHeight: 1}}>🚀</span>
-          <span className="text-lg font-semibold text-white">SPLI Chat</span>
-        </div>
         {/* Message List */}
         <div className="flex-1 min-h-0 overflow-y-auto space-y-3 pr-1 pb-2 bg-gradient-to-br from-zinc-900 via-zinc-950 to-zinc-900 rounded-2xl shadow-xl border border-zinc-800">
           {messages.length === 0 ? (
