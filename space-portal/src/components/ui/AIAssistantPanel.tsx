@@ -79,14 +79,14 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
     };
 
     return (
-      <div className="flex flex-col h-full">
+      <div className="flex flex-col h-full min-h-0">
         {/* Header */}
         <div className="flex items-center gap-2 border-b border-zinc-800 pb-3 mb-3">
           <UploadCloud className="h-6 w-6 text-blue-400" />
           <span className="text-lg font-semibold text-white">AI Assistant</span>
         </div>
         {/* Message List */}
-        <div className="flex-1 overflow-y-auto space-y-3 pr-1 pb-2 bg-gradient-to-br from-zinc-900 via-zinc-950 to-zinc-900 rounded-2xl shadow-xl border border-zinc-800">
+        <div className="flex-1 overflow-y-auto space-y-3 pr-1 pb-2 bg-gradient-to-br from-zinc-900 via-zinc-950 to-zinc-900 rounded-2xl shadow-xl border border-zinc-800 min-h-0">
           {messages.length === 0 ? (
             <div className="text-zinc-500 text-center mt-10">How can I help you with your application?</div>
           ) : (
@@ -122,11 +122,9 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
           <div ref={messagesEndRef} />
         </div>
         {/* Input & Drag-and-Drop */}
-        <div
-          className={`sticky bottom-0 left-0 right-0 z-10 bg-zinc-900 pt-2 pb-2 px-0 border-t border-zinc-800`}
-        >
+        <div className="border-t border-zinc-800 p-0 bg-zinc-900 flex items-center gap-2 mt-0 mb-0">
           <div
-            className={`relative p-2 rounded-2xl border-2 border-dashed transition-colors shadow-lg ${
+            className={`relative p-2 rounded-2xl border-2 border-dashed transition-colors shadow-lg w-full ${
               isDragging ? "border-blue-400 bg-blue-950/30" : "border-zinc-700 bg-zinc-900"
             }`}
             onDrop={handleDrop}
