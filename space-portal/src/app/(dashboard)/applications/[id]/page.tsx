@@ -512,13 +512,12 @@ export default function ApplicationPage() {
                 ×
               </button>
             </div>
-            {/* Always show the toggle at the top */}
-            <Tabs value={aiChatTab} onValueChange={v => setAiChatTab(v as 'assistant' | 'form')} className="w-full">
-              <TabsList className="flex w-full">
+            <Tabs value={aiChatTab} onValueChange={v => setAiChatTab(v as 'assistant' | 'form')} className="w-full h-full flex flex-col">
+              <TabsList className="flex w-full flex-shrink-0">
                 <TabsTrigger value="assistant" className="flex-1">AI Assistant</TabsTrigger>
                 <TabsTrigger value="form" className="flex-1">AI Form Assistant</TabsTrigger>
               </TabsList>
-              <div className="h-full">
+              <div className="flex-1 min-h-0 flex flex-col">
                 {aiChatTab === 'assistant' ? (
                   <AIAssistantPanel
                     ref={aiPanelRef}

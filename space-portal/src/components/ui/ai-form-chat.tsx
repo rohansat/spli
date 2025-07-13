@@ -66,61 +66,123 @@ export function AIFormChat({ onFillForm, formFields, onClose, aiAnalyze }: AIFor
 
   return (
     <div className="flex flex-col h-full min-h-0">
-      <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4">
-        {messages.map((msg, idx) => (
-          <div key={idx} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[80%] rounded-lg px-4 py-2 text-sm shadow ${
-              msg.sender === 'user'
-                ? 'bg-blue-600 text-white self-end'
-                : msg.sender === 'ai'
-                ? 'bg-zinc-800 text-white self-start'
-                : 'bg-zinc-700 text-zinc-100 self-start'
-            }`}>
-              {msg.sender === 'user' && (
-                <div className="flex items-center gap-2 mb-1">
-                  <User className="h-4 w-4" />
-                  <span className="font-semibold">You</span>
-                </div>
-              )}
-              {msg.sender === 'ai' && (
-                <div className="flex items-center gap-2 mb-1">
-                  <Brain className="h-4 w-4 text-purple-400" />
-                  <span className="font-semibold">AI Form Assistant</span>
-                </div>
-              )}
-              {msg.sender === 'system' && (
-                <div className="flex items-center gap-2 mb-1">
-                  <Sparkles className="h-4 w-4 text-blue-400" />
-                  <span className="font-semibold">System</span>
-                </div>
-              )}
-              <div>{msg.content}</div>
-              {msg.suggestions && (
-                <div className="mt-3 space-y-2">
-                  {msg.suggestions.map((s, i) => (
-                    <div key={i} className="p-2 bg-zinc-900 rounded border border-zinc-700">
-                      <div className="flex justify-between items-center">
-                        <span className="font-medium text-white">{formFields.find(f => f.name === s.field)?.label || s.field}</span>
-                        <span className="text-xs bg-zinc-700 rounded px-2 py-1">{Math.round(s.confidence * 100)}% confidence</span>
-                      </div>
-                      <div className="text-sm text-zinc-300 mb-1">{s.value}</div>
-                      <div className="text-xs text-zinc-500 italic">"{s.reasoning}"</div>
+      <div className="flex-1 min-h-0 flex flex-col">
+        {/* Message area or suggestions area */}
+        {messages.length === 0 || !messages[messages.length - 1].suggestions ? (
+          <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4">
+            {messages.map((msg, idx) => (
+              <div key={idx} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+                <div className={`max-w-[80%] rounded-lg px-4 py-2 text-sm shadow ${
+                  msg.sender === 'user'
+                    ? 'bg-blue-600 text-white self-end'
+                    : msg.sender === 'ai'
+                    ? 'bg-zinc-800 text-white self-start'
+                    : 'bg-zinc-700 text-zinc-100 self-start'
+                }`}>
+                  {msg.sender === 'user' && (
+                    <div className="flex items-center gap-2 mb-1">
+                      <User className="h-4 w-4" />
+                      <span className="font-semibold">You</span>
                     </div>
-                  ))}
-                  <div className="flex gap-2 mt-2">
-                    <button
-                      onClick={() => handleAccept(msg.suggestions)}
-                      className="flex-1 bg-green-600 hover:bg-green-700 text-white rounded px-4 py-2 font-semibold"
-                    >
-                      Accept All Suggestions
-                    </button>
-                  </div>
+                  )}
+                  {msg.sender === 'ai' && (
+                    <div className="flex items-center gap-2 mb-1">
+                      <Brain className="h-4 w-4 text-purple-400" />
+                      <span className="font-semibold">AI Form Assistant</span>
+                    </div>
+                  )}
+                  {msg.sender === 'system' && (
+                    <div className="flex items-center gap-2 mb-1">
+                      <Sparkles className="h-4 w-4 text-blue-400" />
+                      <span className="font-semibold">System</span>
+                    </div>
+                  )}
+                  <div>{msg.content}</div>
+                  {msg.suggestions && (
+                    <div className="mt-3 space-y-2">
+                      {msg.suggestions.map((s, i) => (
+                        <div key={i} className="p-2 bg-zinc-900 rounded border border-zinc-700">
+                          <div className="flex justify-between items-center">
+                            <span className="font-medium text-white">{formFields.find(f => f.name === s.field)?.label || s.field}</span>
+                            <span className="text-xs bg-zinc-700 rounded px-2 py-1">{Math.round(s.confidence * 100)}% confidence</span>
+                          </div>
+                          <div className="text-sm text-zinc-300 mb-1">{s.value}</div>
+                          <div className="text-xs text-zinc-500 italic">"{s.reasoning}"</div>
+                        </div>
+                      ))}
+                      <div className="flex gap-2 mt-2">
+                        <button
+                          onClick={() => handleAccept(msg.suggestions)}
+                          className="flex-1 bg-green-600 hover:bg-green-700 text-white rounded px-4 py-2 font-semibold"
+                        >
+                          Accept All Suggestions
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
+              </div>
+            ))}
+            <div ref={chatEndRef} />
           </div>
-        ))}
-        <div ref={chatEndRef} />
+        ) : (
+          <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 max-h-[calc(100vh-200px)]">
+            {messages.map((msg, idx) => (
+              <div key={idx} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+                <div className={`max-w-[80%] rounded-lg px-4 py-2 text-sm shadow ${
+                  msg.sender === 'user'
+                    ? 'bg-blue-600 text-white self-end'
+                    : msg.sender === 'ai'
+                    ? 'bg-zinc-800 text-white self-start'
+                    : 'bg-zinc-700 text-zinc-100 self-start'
+                }`}>
+                  {msg.sender === 'user' && (
+                    <div className="flex items-center gap-2 mb-1">
+                      <User className="h-4 w-4" />
+                      <span className="font-semibold">You</span>
+                    </div>
+                  )}
+                  {msg.sender === 'ai' && (
+                    <div className="flex items-center gap-2 mb-1">
+                      <Brain className="h-4 w-4 text-purple-400" />
+                      <span className="font-semibold">AI Form Assistant</span>
+                    </div>
+                  )}
+                  {msg.sender === 'system' && (
+                    <div className="flex items-center gap-2 mb-1">
+                      <Sparkles className="h-4 w-4 text-blue-400" />
+                      <span className="font-semibold">System</span>
+                    </div>
+                  )}
+                  <div>{msg.content}</div>
+                  {msg.suggestions && (
+                    <div className="mt-3 space-y-2">
+                      {msg.suggestions.map((s, i) => (
+                        <div key={i} className="p-2 bg-zinc-900 rounded border border-zinc-700">
+                          <div className="flex justify-between items-center">
+                            <span className="font-medium text-white">{formFields.find(f => f.name === s.field)?.label || s.field}</span>
+                            <span className="text-xs bg-zinc-700 rounded px-2 py-1">{Math.round(s.confidence * 100)}% confidence</span>
+                          </div>
+                          <div className="text-sm text-zinc-300 mb-1">{s.value}</div>
+                          <div className="text-xs text-zinc-500 italic">"{s.reasoning}"</div>
+                        </div>
+                      ))}
+                      <div className="flex gap-2 mt-2">
+                        <button
+                          onClick={() => handleAccept(msg.suggestions)}
+                          className="flex-1 bg-green-600 hover:bg-green-700 text-white rounded px-4 py-2 font-semibold"
+                        >
+                          Accept All Suggestions
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+            <div ref={chatEndRef} />
+          </div>
+        )}
       </div>
       <div className="border-t border-zinc-800 p-3 bg-zinc-900 flex items-center gap-2 mt-0 mb-0" style={{ marginTop: 'auto' }}>
         <textarea
