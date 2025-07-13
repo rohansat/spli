@@ -86,7 +86,7 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
           <span className="text-lg font-semibold text-white">AI Assistant</span>
         </div>
         {/* Message List */}
-        <div className="flex-1 overflow-y-auto space-y-3 pr-1 pb-2 bg-gradient-to-br from-zinc-900 via-zinc-950 to-zinc-900 rounded-2xl shadow-xl border border-zinc-800 min-h-0">
+        <div className="flex-1 min-h-0 overflow-y-auto space-y-3 pr-1 pb-2 bg-gradient-to-br from-zinc-900 via-zinc-950 to-zinc-900 rounded-2xl shadow-xl border border-zinc-800">
           {messages.length === 0 ? (
             <div className="text-zinc-500 text-center mt-10">How can I help you with your application?</div>
           ) : (
@@ -122,7 +122,7 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
           <div ref={messagesEndRef} />
         </div>
         {/* Input & Drag-and-Drop */}
-        <div className="border-t border-zinc-800 p-0 bg-zinc-900 flex items-center gap-2 mt-0 mb-0">
+        <div className="border-t border-zinc-800 p-0 bg-zinc-900 flex items-center gap-2 mt-0 mb-0" style={{ marginTop: 'auto' }}>
           <div
             className={`relative p-2 rounded-2xl border-2 border-dashed transition-colors shadow-lg w-full ${
               isDragging ? "border-blue-400 bg-blue-950/30" : "border-zinc-700 bg-zinc-900"
