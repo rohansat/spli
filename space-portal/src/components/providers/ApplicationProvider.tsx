@@ -74,8 +74,7 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
 
   const createApplication = async (name: string, type: Application["type"]) => {
     const now = new Date().toISOString();
-    const newApplication: Application = {
-      id: uuidv4(),
+    const newApplication: Omit<Application, "id"> = {
       name,
       status: "draft",
       type,
@@ -84,34 +83,34 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
       userId: user?.email || ""
     };
 
-    setApplications(prev => [...prev, newApplication]);
-
-    // Add document entry for the application
-    const applicationDocument: Document = {
-      id: uuidv4(),
-      name: `${name} Application`,
-      type: "application",
-      applicationId: newApplication.id,
-      applicationName: name,
-      fileSize: "0 MB",
-      url: "",
-      uploadedAt: now,
-      userId: user?.email || ""
-    };
-
-    setDocuments(prev => [...prev, applicationDocument]);
-
     if (user) {
       try {
-        await addDoc(collection(db, "applications"), newApplication);
+        const appRef = await addDoc(collection(db, "applications"), newApplication);
+        const appWithId: Application = { ...newApplication, id: appRef.id };
+        setApplications(prev => [...prev, appWithId]);
         // Add the application document to Firestore as well
-        await addDoc(collection(db, "documents"), applicationDocument);
+        const applicationDocument: Omit<Document, "id"> = {
+          name: `${name} Application`,
+          type: "application",
+          applicationId: appWithId.id,
+          applicationName: name,
+          fileSize: "0 MB",
+          url: "",
+          uploadedAt: now,
+          userId: user?.email || ""
+        };
+        const docRef = await addDoc(collection(db, "documents"), applicationDocument);
+        setDocuments(prev => [...prev, { ...applicationDocument, id: docRef.id }]);
+        return appWithId;
       } catch (error) {
         console.error("Error saving application to Firestore:", error);
       }
     }
-
-    return newApplication;
+    // fallback for local only
+    const fallbackId = uuidv4();
+    const fallbackApp: Application = { ...newApplication, id: fallbackId };
+    setApplications(prev => [...prev, fallbackApp]);
+    return fallbackApp;
   };
 
   const uploadDocument = async (document: Omit<Document, "id" | "uploadedAt">) => {
@@ -171,12 +170,8 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
   const removeApplication = async (appId: string) => {
     if (!user) return;
     try {
-      // Delete the application from Firestore
-      const appQuery = query(collection(db, "applications"), where("userId", "==", user.email), where("id", "==", appId));
-      const appSnapshot = await getDocs(appQuery);
-      for (const docSnap of appSnapshot.docs) {
-        await deleteDoc(doc(db, "applications", docSnap.id));
-      }
+      // Delete the application from Firestore by document ID
+      await deleteDoc(doc(db, "applications", appId));
       // Delete all associated documents from Firestore
       const docsQuery = query(collection(db, "documents"), where("userId", "==", user.email), where("applicationId", "==", appId));
       const docsSnapshot = await getDocs(docsQuery);
