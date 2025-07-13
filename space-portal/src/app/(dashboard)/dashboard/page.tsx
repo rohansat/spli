@@ -28,6 +28,8 @@ export default function Dashboard() {
   const [isCreating, setIsCreating] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [showAICursor, setShowAICursor] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [appIdToDelete, setAppIdToDelete] = useState<string | null>(null);
 
   const handleCreateApplication = async () => {
     if (newApplicationName.trim() === "") return;
@@ -95,10 +97,22 @@ export default function Dashboard() {
     }
   };
 
-  const handleDeleteApplication = async (appId: string) => {
-    if (window.confirm("Are you sure you want to delete this application? This action cannot be undone.")) {
-      await removeApplication(appId);
+  const handleDeleteApplication = (appId: string) => {
+    setAppIdToDelete(appId);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDeleteApplication = async () => {
+    if (appIdToDelete) {
+      await removeApplication(appIdToDelete);
+      setAppIdToDelete(null);
+      setDeleteDialogOpen(false);
     }
+  };
+
+  const cancelDeleteApplication = () => {
+    setAppIdToDelete(null);
+    setDeleteDialogOpen(false);
   };
 
   const handleAIFillForm = (suggestions: Record<string, string>) => {
@@ -370,9 +384,61 @@ export default function Dashboard() {
       <AICursor
         isVisible={showAICursor}
         onClose={() => setShowAICursor(false)}
-        onFillForm={handleAIFillForm}
+        onFillForm={async (suggestions) => {
+          // Detect delete command in user input (simple regex for 'delete application ...')
+          const deleteRegex = /delete application (.+)/i;
+          const userInput = suggestions?.__userInput || '';
+          let matchedApp = null;
+          if (deleteRegex.test(userInput)) {
+            const match = userInput.match(deleteRegex);
+            const appName = match && match[1] ? match[1].trim().toLowerCase() : '';
+            matchedApp = applications.find(app => app.name.toLowerCase() === appName);
+            if (matchedApp) {
+              setAppIdToDelete(matchedApp.id);
+              setDeleteDialogOpen(true);
+              return;
+            }
+          }
+          // Fallback: if user says 'delete my application' and only one exists
+          if (/delete my application/i.test(userInput) && applications.length === 1) {
+            setAppIdToDelete(applications[0].id);
+            setDeleteDialogOpen(true);
+            return;
+          }
+          // Otherwise, normal fill form
+          handleAIFillForm(suggestions);
+        }}
         formFields={dashboardFormFields}
       />
+
+      {/* Delete Application Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="bg-black border border-[#222] rounded-xl p-8 max-w-md w-full text-white font-sans">
+          <DialogHeader>
+            <DialogTitle className="text-white text-2xl font-bold tracking-tight mb-1">Delete Application?</DialogTitle>
+            <DialogDescription className="text-zinc-400 text-base mb-6">
+              Are you sure you want to delete this application? This action cannot be undone and will remove all associated documents.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex justify-end gap-2 mt-8">
+            <Button
+              variant="ghost"
+              onClick={cancelDeleteApplication}
+              className="bg-transparent border border-[#444] text-white px-8 py-2 rounded-md hover:bg-[#222]"
+              type="button"
+            >
+              Keep Application
+            </Button>
+            <Button
+              onClick={confirmDeleteApplication}
+              className="bg-red-600 text-white font-semibold px-8 py-2 rounded-md hover:bg-red-700"
+              type="button"
+            >
+              Delete Application
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
