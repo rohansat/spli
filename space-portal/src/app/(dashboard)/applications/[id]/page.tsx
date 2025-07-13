@@ -471,34 +471,12 @@ export default function ApplicationPage() {
         />
       </div>
       {showFloatingChat && (
-        // @ts-ignore
-        <Rnd
-          size={{ width: chatWidth, height: chatHeight }}
-          minWidth={340}
-          minHeight={400}
-          maxWidth={600}
-          maxHeight={typeof window !== 'undefined' ? window.innerHeight - 40 : 800}
-          default={{ x: typeof window !== 'undefined' ? window.innerWidth - chatWidth - 40 : 100, y: typeof window !== 'undefined' ? window.innerHeight / 2 - chatHeight / 2 : 100 }}
-          bounds="window"
-          onResizeStop={(
-            e: MouseEvent | TouchEvent,
-            direction: any,
-            ref: HTMLDivElement,
-            delta: { width: number; height: number },
-            position: { x: number; y: number }
-          ) => {
-            setChatWidth(ref.offsetWidth);
-            setChatHeight(ref.offsetHeight);
-          }}
-          onDragStop={(
-            e: MouseEvent | TouchEvent,
-            d: { x: number; y: number }
-          ) => {
-            // Optionally, persist position
-          }}
-          className="fixed z-50"
+        <div
+          className="fixed top-24 right-10 z-50 w-[420px] max-w-full h-[600px] max-h-[80vh] flex flex-col shadow-2xl rounded-2xl bg-zinc-900 border border-zinc-800"
+          style={{ borderRadius: '1rem', overflow: 'hidden' }}
         >
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl flex flex-col h-full w-full overflow-hidden">
+          {/* Chat content goes here (header, toggle, chat area, input) */}
+          <div className="w-full h-full flex flex-col overflow-hidden">
             <div className="flex items-center justify-between p-3 border-b border-zinc-800 bg-zinc-900 rounded-t-2xl cursor-move">
               <span className="font-semibold text-white text-lg flex items-center gap-2">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M8 15h8M9 9h.01M15 9h.01" /></svg>
@@ -512,6 +490,7 @@ export default function ApplicationPage() {
                 ×
               </button>
             </div>
+            {/* Toggle and chat content (Tabs) */}
             <Tabs value={aiChatTab} onValueChange={v => setAiChatTab(v as 'assistant' | 'form')} className="w-full h-full flex flex-col">
               <TabsList className="flex w-full flex-shrink-0">
                 <TabsTrigger value="assistant" className="flex-1">AI Assistant</TabsTrigger>
@@ -593,7 +572,7 @@ export default function ApplicationPage() {
               </div>
             </Tabs>
           </div>
-        </Rnd>
+        </div>
       )}
     </div>
   );
