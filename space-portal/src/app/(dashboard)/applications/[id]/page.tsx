@@ -479,8 +479,8 @@ export default function ApplicationPage() {
           <div className="w-full h-full flex flex-col overflow-hidden">
             <div className="flex items-center justify-between p-3 border-b border-zinc-800 bg-zinc-900 rounded-t-2xl cursor-move">
               <span className="font-semibold text-white text-lg flex items-center gap-2">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M8 15h8M9 9h.01M15 9h.01" /></svg>
-                AI Chat
+                <span style={{fontSize: '1.5rem', lineHeight: 1}}>🚀</span>
+                SPLI Chat
               </span>
               <button
                 className="text-zinc-400 hover:text-white text-xl px-2 py-1 rounded"
@@ -490,7 +490,7 @@ export default function ApplicationPage() {
                 ×
               </button>
             </div>
-            {/* Toggle and chat content (Tabs) */}
+            {/* Restore tabs for toggling between AI Assistant and AI Form Assistant */}
             <Tabs value={aiChatTab} onValueChange={v => setAiChatTab(v as 'assistant' | 'form')} className="w-full h-full flex flex-col">
               <TabsList className="flex w-full flex-shrink-0">
                 <TabsTrigger value="assistant" className="flex-1">AI Assistant</TabsTrigger>
