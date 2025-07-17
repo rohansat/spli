@@ -83,9 +83,15 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
         if (onCommand) onCommand(userMessage);
       } catch (error) {
         console.error('AI API Error:', error);
+        let errorMessage = "Sorry, I'm having trouble connecting to the AI service. Please try again.";
+        
+        if (error instanceof Error) {
+          errorMessage = `Error: ${error.message}`;
+        }
+        
         setMessages((msgs) => [
           ...msgs,
-          { id: Date.now(), sender: "ai", content: "Sorry, I'm having trouble connecting to the AI service. Please try again.", timestamp: Date.now() }
+          { id: Date.now(), sender: "ai", content: errorMessage, timestamp: Date.now() }
         ]);
       }
     };

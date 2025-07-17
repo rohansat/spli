@@ -63,8 +63,10 @@ When analyzing user input, extract relevant information and provide structured s
 
   } catch (error) {
     console.error('AI API Error:', error);
+    console.error('API Key present:', !!process.env.ANTHROPIC_API_KEY);
+    console.error('API Key length:', process.env.ANTHROPIC_API_KEY?.length);
     return NextResponse.json(
-      { error: 'Failed to process request' },
+      { error: 'Failed to process request', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }
