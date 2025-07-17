@@ -6,8 +6,13 @@ const anthropic = new Anthropic({
 });
 
 export async function POST(request: NextRequest) {
+  console.log('API route called');
+  console.log('API Key present:', !!process.env.ANTHROPIC_API_KEY);
+  console.log('API Key length:', process.env.ANTHROPIC_API_KEY?.length);
+  
   try {
     const { userInput, context, mode } = await request.json();
+    console.log('Request data:', { userInput, mode });
 
     // Create system prompt based on mode
     let systemPrompt = '';
@@ -63,6 +68,8 @@ When analyzing user input, extract relevant information and provide structured s
 
   } catch (error) {
     console.error('AI API Error:', error);
+    console.error('Error type:', typeof error);
+    console.error('Error message:', error instanceof Error ? error.message : 'Not an Error object');
     console.error('API Key present:', !!process.env.ANTHROPIC_API_KEY);
     console.error('API Key length:', process.env.ANTHROPIC_API_KEY?.length);
     return NextResponse.json(
