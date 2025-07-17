@@ -44,15 +44,50 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
 
-    const handleSend = (e?: React.FormEvent | React.KeyboardEvent | React.MouseEvent) => {
+    const handleSend = async (e?: React.FormEvent | React.KeyboardEvent | React.MouseEvent) => {
       if (e && typeof e.preventDefault === 'function') e.preventDefault();
       if (!input.trim()) return;
+      
+      const userMessage = input;
       setMessages((msgs) => [
         ...msgs,
-        { id: Date.now(), sender: "user", content: input, timestamp: Date.now() }
+        { id: Date.now(), sender: "user", content: userMessage, timestamp: Date.now() }
       ]);
-      if (onCommand) onCommand(input);
       setInput("");
+
+      // Call the real AI API
+      try {
+        const response = await fetch('/api/ai', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userInput: userMessage,
+            mode: 'assistant'
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('AI API request failed');
+        }
+
+        const data = await response.json();
+        
+        setMessages((msgs) => [
+          ...msgs,
+          { id: Date.now(), sender: "ai", content: data.message, timestamp: Date.now() }
+        ]);
+
+        // If there's a command handler, call it
+        if (onCommand) onCommand(userMessage);
+      } catch (error) {
+        console.error('AI API Error:', error);
+        setMessages((msgs) => [
+          ...msgs,
+          { id: Date.now(), sender: "ai", content: "Sorry, I'm having trouble connecting to the AI service. Please try again.", timestamp: Date.now() }
+        ]);
+      }
     };
 
     const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
