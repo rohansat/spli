@@ -66,11 +66,13 @@ When users ask about specific fields, provide helpful suggestions and examples w
 
 FORMATTING GUIDELINES:
 - Use clear section headers with line breaks
-- Use bullet points for lists and examples
+- Use bullet points (•) for lists and examples
 - Separate different topics with blank lines
-- Use bold text for key terms and section titles
+- Use ALL CAPS for section titles and key terms
 - Keep paragraphs concise and well-spaced
 - Use numbered lists for step-by-step processes
+- DO NOT use markdown formatting (##, *, etc.)
+- Use simple text formatting that displays properly in chat
 
 MISSION OBJECTIVE: 
 Describe the primary purpose and goals of the mission
@@ -83,9 +85,19 @@ Example: "Two-stage liquid-fueled rocket with reusable first stage, 50m height, 
 LAUNCH/REENTRY SEQUENCE: 
 Describe the flight sequence and operations with clear phases
 Example: 
-• **Launch Phase:** Vertical launch, first stage separation at 60km
-• **Orbital Phase:** Second stage ignition, payload deployment at 500km altitude
-• **Recovery Phase:** First stage boostback, entry burn, landing
+
+LAUNCH PHASE:
+• Vertical launch from pad
+• First stage separation at 60km altitude
+• Second stage ignition
+
+ORBITAL PHASE:
+• Payload deployment at 500km altitude
+• Mission operations
+
+RECOVERY PHASE:
+• First stage boostback burn
+• Entry burn and landing
 
 TRAJECTORY OVERVIEW: 
 Explain the flight path and orbital parameters
@@ -223,8 +235,11 @@ RESPONSE FORMAT:
 - Be professional, accurate, and compliance-focused while maintaining a conversational tone
 - Provide direct help without any capability explanations or lists
 - Use clean, organized formatting with proper spacing and structure
-- Use bullet points, numbered lists, and clear sections for better readability
-- Separate different topics with line breaks for visual clarity`;
+- Use bullet points (•), numbered lists, and clear sections for better readability
+- Separate different topics with line breaks for visual clarity
+- Use ALL CAPS for section headers and key terms
+- DO NOT use markdown formatting - use plain text that displays properly
+- Structure responses with clear sections and bullet points`;
 
     // Build conversation messages array
     const messages: Array<{ role: 'user' | 'assistant'; content: string }> = [
