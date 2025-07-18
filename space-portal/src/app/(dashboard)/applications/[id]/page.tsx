@@ -582,8 +582,10 @@ export default function ApplicationPage() {
                     aiPanelRef.current?.addAIMsg(`Section ${fillMatch[1]} filled with: \"${fillText}\"`);
                     return;
                   }
-                  // For form analysis, use the AI service
-                  if (lower.includes("analyze") || lower.includes("mission") || lower.includes("form")) {
+                  // For form analysis, suggestions, and help requests, use the AI service
+                  if (lower.includes("analyze") || lower.includes("mission") || lower.includes("form") || 
+                      lower.includes("help") || lower.includes("suggestion") || lower.includes("what should") ||
+                      lower.includes("how to") || lower.includes("example")) {
                     try {
                       const response = await fetch('/api/ai', {
                         method: 'POST',
@@ -593,7 +595,8 @@ export default function ApplicationPage() {
                         body: JSON.stringify({
                           userInput: cmd,
                           context: `Available form fields: ${getAllFormFields().map(f => f.name).join(', ')}`,
-                          mode: 'unified'
+                          mode: 'unified',
+                          conversationHistory: [] // Add conversation history for better context
                         }),
                       });
                       if (response.ok) {
