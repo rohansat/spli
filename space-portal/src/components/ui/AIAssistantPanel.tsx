@@ -28,7 +28,7 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
       {
         id: 1,
         sender: "ai",
-        content: "Hi! I'm SPLI Chat, your AI assistant for aerospace compliance and FAA applications. How can I help you today? Feel free to ask me about FAA processes, get help with your application, or ask any questions about launch licensing!",
+        content: "Hi! I'm SPLI Chat, your AI assistant for aerospace compliance and FAA applications. How can I help you today?",
         timestamp: Date.now()
       }
     ]);
