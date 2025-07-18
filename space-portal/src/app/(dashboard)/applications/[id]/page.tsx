@@ -679,31 +679,12 @@ export default function ApplicationPage() {
                   }
                   
                   // For form analysis, suggestions, and help requests, use the AI service
-                  // Only trigger if it's not a replacement command
+                  // Only trigger if it's not a replacement command and not already handled by the chat component
                   if (!lower.includes("replace") && !lower.includes("update") && !lower.includes("change") &&
                       (lower.includes("analyze") || lower.includes("mission") || lower.includes("form") || 
                       lower.includes("help") || lower.includes("suggestion") || lower.includes("what should") ||
                       lower.includes("how to") || lower.includes("example") || lower.includes("suggestions"))) {
-                    try {
-                      const response = await fetch('/api/ai', {
-                        method: 'POST',
-                        headers: {
-                          'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                          userInput: cmd,
-                          context: `Available form fields: ${getAllFormFields().map(f => f.name).join(', ')}`,
-                          mode: 'unified',
-                          conversationHistory: [] // Add conversation history for better context
-                        }),
-                      });
-                      if (response.ok) {
-                        const data = await response.json();
-                        aiPanelRef.current?.addAIMsg(data.message);
-                      }
-                    } catch (error) {
-                      console.error('Form analysis error:', error);
-                    }
+                    // Don't call AI service here - let the chat component handle it
                     return;
                   }
                   aiPanelRef.current?.addAIMsg("I can help with general questions, form analysis, and dashboard commands like 'save draft', 'submit application', or 'fill section X with ...'. What would you like to do?");
