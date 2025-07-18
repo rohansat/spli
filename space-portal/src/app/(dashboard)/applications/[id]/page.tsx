@@ -496,6 +496,9 @@ export default function ApplicationPage() {
                 ref={aiPanelRef}
                 onCommand={async (cmd) => {
                   const lower = cmd.trim().toLowerCase();
+                  console.log('Processing command:', cmd);
+                  console.log('Lowercase command:', lower);
+                  
                   if (lower === "save draft") {
                     if (application?.status === "approved") {
                       aiPanelRef.current?.addAIMsg("This application is already approved and cannot be edited.");
@@ -514,11 +517,27 @@ export default function ApplicationPage() {
                     aiPanelRef.current?.addAIMsg("Application submitted. Redirecting to dashboard...");
                     return;
                   }
-                  // Replace specific field command: e.g., replace mission objective section with new text
-                  const replaceMatch = lower.match(/^replace (mission objective|vehicle description|launch reentry sequence|trajectory overview|safety considerations|ground operations|technical summary|dimensions mass stages|propulsion types|recovery systems|ground support equipment|site names coordinates|site operator|airspace maritime notes|launch site|launch window|flight path|landing site|early risk assessments|public safety challenges|planned safety tools|full application timeline|intended window|license type intent|clarify part450|unique tech international) (section )?with (.+)$/);
+                  
+                  // More flexible replace command patterns
+                  const replacePatterns = [
+                    /^replace (mission objective|vehicle description|launch reentry sequence|trajectory overview|safety considerations|ground operations|technical summary|dimensions mass stages|propulsion types|recovery systems|ground support equipment|site names coordinates|site operator|airspace maritime notes|launch site|launch window|flight path|landing site|early risk assessments|public safety challenges|planned safety tools|full application timeline|intended window|license type intent|clarify part450|unique tech international) (section )?with (.+)$/,
+                    /^replace (mission objective|vehicle description|launch reentry sequence|trajectory overview|safety considerations|ground operations|technical summary|dimensions mass stages|propulsion types|recovery systems|ground support equipment|site names coordinates|site operator|airspace maritime notes|launch site|launch window|flight path|landing site|early risk assessments|public safety challenges|planned safety tools|full application timeline|intended window|license type intent|clarify part450|unique tech international) (.+)$/,
+                    /^update (mission objective|vehicle description|launch reentry sequence|trajectory overview|safety considerations|ground operations|technical summary|dimensions mass stages|propulsion types|recovery systems|ground support equipment|site names coordinates|site operator|airspace maritime notes|launch site|launch window|flight path|landing site|early risk assessments|public safety challenges|planned safety tools|full application timeline|intended window|license type intent|clarify part450|unique tech international) (section )?with (.+)$/,
+                    /^change (mission objective|vehicle description|launch reentry sequence|trajectory overview|safety considerations|ground operations|technical summary|dimensions mass stages|propulsion types|recovery systems|ground support equipment|site names coordinates|site operator|airspace maritime notes|launch site|launch window|flight path|landing site|early risk assessments|public safety challenges|planned safety tools|full application timeline|intended window|license type intent|clarify part450|unique tech international) (section )?to (.+)$/
+                  ];
+                  
+                  let replaceMatch = null;
+                  for (const pattern of replacePatterns) {
+                    replaceMatch = lower.match(pattern);
+                    if (replaceMatch) break;
+                  }
+                  
                   if (replaceMatch) {
+                    console.log('Replace match found:', replaceMatch);
                     const fieldName = replaceMatch[1].replace(/\s+/g, '').toLowerCase();
-                    const newValue = replaceMatch[3];
+                    const newValue = replaceMatch[3] || replaceMatch[2]; // Handle different pattern groups
+                    console.log('Field name:', fieldName);
+                    console.log('New value:', newValue);
                     
                     // Map field names to actual form field names
                     const fieldMapping: Record<string, string> = {
@@ -551,8 +570,15 @@ export default function ApplicationPage() {
                     };
                     
                     const actualFieldName = fieldMapping[fieldName];
+                    console.log('Actual field name:', actualFieldName);
+                    
                     if (actualFieldName) {
-                      setFormData((prev) => ({ ...prev, [actualFieldName]: newValue }));
+                      console.log('Updating form data for field:', actualFieldName, 'with value:', newValue);
+                      setFormData((prev) => {
+                        const updated = { ...prev, [actualFieldName]: newValue };
+                        console.log('Updated form data:', updated);
+                        return updated;
+                      });
                       aiPanelRef.current?.addAIMsg(`I've replaced the ${replaceMatch[1]} section with: "${newValue}"`);
                       return;
                     } else {
@@ -582,6 +608,75 @@ export default function ApplicationPage() {
                     aiPanelRef.current?.addAIMsg(`Section ${fillMatch[1]} filled with: \"${fillText}\"`);
                     return;
                   }
+                  // Check if this is a replacement request that wasn't caught by the regex patterns
+                  if (lower.includes("replace") || lower.includes("update") || lower.includes("change")) {
+                    // Try to extract field name and value from the command
+                    const fieldNames = [
+                      'mission objective', 'vehicle description', 'launch reentry sequence', 'trajectory overview',
+                      'safety considerations', 'ground operations', 'technical summary', 'dimensions mass stages',
+                      'propulsion types', 'recovery systems', 'ground support equipment', 'site names coordinates',
+                      'site operator', 'airspace maritime notes', 'launch site', 'launch window', 'flight path',
+                      'landing site', 'early risk assessments', 'public safety challenges', 'planned safety tools',
+                      'full application timeline', 'intended window', 'license type intent', 'clarify part450',
+                      'unique tech international'
+                    ];
+                    
+                    let foundField = null;
+                    let newValue = null;
+                    
+                    for (const field of fieldNames) {
+                      if (lower.includes(field)) {
+                        foundField = field;
+                        // Try to extract the new value after "with" or "to"
+                        const withMatch = lower.match(new RegExp(`${field.replace(/\s+/g, '\\s+')}.*?(?:with|to)\\s+(.+)$`));
+                        if (withMatch) {
+                          newValue = withMatch[1].trim();
+                          break;
+                        }
+                      }
+                    }
+                    
+                    if (foundField && newValue) {
+                      console.log('Fallback replacement - Field:', foundField, 'Value:', newValue);
+                      const fieldName = foundField.replace(/\s+/g, '').toLowerCase();
+                      const fieldMapping: Record<string, string> = {
+                        'missionobjective': 'missionObjective',
+                        'vehicledescription': 'vehicleDescription',
+                        'launchreentrysequence': 'launchReentrySequence',
+                        'trajectoryoverview': 'trajectoryOverview',
+                        'safetyconsiderations': 'safetyConsiderations',
+                        'groundoperations': 'groundOperations',
+                        'technicalsummary': 'technicalSummary',
+                        'dimensionsmassstages': 'dimensionsMassStages',
+                        'propulsiontypes': 'propulsionTypes',
+                        'recoverysystems': 'recoverySystems',
+                        'groundsupportequipment': 'groundSupportEquipment',
+                        'sitenamescoordinates': 'siteNamesCoordinates',
+                        'siteoperator': 'siteOperator',
+                        'airspacemaritimenotes': 'airspaceMaritimeNotes',
+                        'launchsite': 'launchSite',
+                        'launchwindow': 'launchWindow',
+                        'flightpath': 'flightPath',
+                        'landingsite': 'landingSite',
+                        'earlyriskassessments': 'earlyRiskAssessments',
+                        'publicsafetychallenges': 'publicSafetyChallenges',
+                        'plannedsafetytools': 'plannedSafetyTools',
+                        'fullapplicationtimeline': 'fullApplicationTimeline',
+                        'intendedwindow': 'intendedWindow',
+                        'licensetypeintent': 'licenseTypeIntent',
+                        'clarifypart450': 'clarifyPart450',
+                        'uniquetechinternational': 'uniqueTechInternational'
+                      };
+                      
+                      const actualFieldName = fieldMapping[fieldName];
+                      if (actualFieldName) {
+                        setFormData((prev) => ({ ...prev, [actualFieldName]: newValue }));
+                        aiPanelRef.current?.addAIMsg(`I've replaced the ${foundField} section with: "${newValue}"`);
+                        return;
+                      }
+                    }
+                  }
+                  
                   // For form analysis, suggestions, and help requests, use the AI service
                   if (lower.includes("analyze") || lower.includes("mission") || lower.includes("form") || 
                       lower.includes("help") || lower.includes("suggestion") || lower.includes("what should") ||
