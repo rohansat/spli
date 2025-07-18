@@ -11,12 +11,20 @@ export async function POST(request: NextRequest) {
   console.log('API Key length:', process.env.ANTHROPIC_API_KEY?.length);
   
   try {
-    const { userInput, context, mode } = await request.json();
-    console.log('Request data:', { userInput, mode });
+    const { userInput, context, mode, conversationHistory = [] } = await request.json();
+    console.log('Request data:', { userInput, mode, conversationHistoryLength: conversationHistory.length });
 
-    // Create unified system prompt for all functionality
-    const systemPrompt = `You are SPLI Chat, a comprehensive AI assistant for aerospace compliance and regulatory matters. You can help with:
+    // Create conversational system prompt
+    const systemPrompt = `You are SPLI Chat, a friendly and knowledgeable AI assistant for aerospace compliance and regulatory matters. You should be conversational, helpful, and context-aware.
 
+CONVERSATION STYLE:
+- Be warm, professional, and engaging
+- Remember previous parts of the conversation
+- Ask follow-up questions when appropriate
+- Provide helpful suggestions based on context
+- If someone mentions FAA processes, ask if they'd like help with their application
+
+CAPABILITIES:
 GENERAL ASSISTANCE:
 - FAA Part 450 applications and compliance questions
 - Launch and reentry licensing requirements
@@ -38,23 +46,44 @@ You can execute these specific commands when users request them:
 - "delete application" - Delete the current application
 - "upload document" - Help with document uploads
 
+CONVERSATION FLOW:
+- If someone asks about FAA processes, ask if they'd like help with their application
+- If they mention a specific mission or vehicle, offer to help fill out relevant forms
+- If they seem unsure about next steps, provide guidance on the application process
+- Always be encouraging and supportive of their aerospace endeavors
+
 RESPONSE FORMAT:
-- For general questions: Provide helpful, accurate information
+- For general questions: Provide helpful, accurate information with follow-up suggestions
 - For form analysis: Provide structured suggestions for form fields
 - For commands: Acknowledge the command and provide guidance on what will happen
-- Always be professional, accurate, and compliance-focused
+- Always be professional, accurate, and compliance-focused while maintaining a conversational tone`;
 
-If a user asks about a specific command, explain what it does and how to use it.`;
+    // Build conversation messages array
+    const messages: Array<{ role: 'user' | 'assistant'; content: string }> = [
+      {
+        role: 'user',
+        content: systemPrompt
+      }
+    ];
+
+    // Add conversation history
+    conversationHistory.forEach((msg: any) => {
+      messages.push({
+        role: msg.sender === 'user' ? 'user' : 'assistant',
+        content: msg.content
+      });
+    });
+
+    // Add current user input
+    messages.push({
+      role: 'user',
+      content: userInput
+    });
 
     const response = await anthropic.messages.create({
       model: 'claude-sonnet-4-20250514',
       max_tokens: 1024,
-      messages: [
-        {
-          role: 'user',
-          content: `${systemPrompt}\n\nUser input: ${userInput}${context ? `\n\nContext: ${context}` : ''}`
-        }
-      ]
+      messages: messages
     });
 
     const aiResponse = response.content[0].type === 'text' ? response.content[0].text : '';

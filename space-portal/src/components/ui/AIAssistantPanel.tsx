@@ -24,7 +24,14 @@ interface AIAssistantPanelProps {
 
 export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPanelProps>(
   ({ onCommand, onFileDrop, hideTabs }, ref) => {
-    const [messages, setMessages] = useState<Message[]>([]);
+    const [messages, setMessages] = useState<Message[]>([
+      {
+        id: 1,
+        sender: "ai",
+        content: "Hi! I'm SPLI Chat, your AI assistant for aerospace compliance and FAA applications. How can I help you today? Feel free to ask me about FAA processes, get help with your application, or ask any questions about launch licensing!",
+        timestamp: Date.now()
+      }
+    ]);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const [input, setInput] = useState("");
     const [isDragging, setIsDragging] = useState(false);
@@ -64,7 +71,8 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
           },
           body: JSON.stringify({
             userInput: userMessage,
-            mode: 'unified'
+            mode: 'unified',
+            conversationHistory: messages // Send conversation history for context
           }),
         });
 
@@ -124,7 +132,7 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
         {/* Message List */}
         <div className="flex-1 min-h-0 overflow-y-auto space-y-3 pr-1 pb-2 bg-gradient-to-br from-zinc-900 via-zinc-950 to-zinc-900 rounded-2xl shadow-xl border border-zinc-800">
           {messages.length === 0 ? (
-            <div className="text-zinc-500 text-center mt-10">How can I help you with your application?</div>
+            <div className="text-zinc-500 text-center mt-10">Loading chat...</div>
           ) : (
             messages.map((msg) => (
               <div
