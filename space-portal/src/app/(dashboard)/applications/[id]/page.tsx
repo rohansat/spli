@@ -514,6 +514,53 @@ export default function ApplicationPage() {
                     aiPanelRef.current?.addAIMsg("Application submitted. Redirecting to dashboard...");
                     return;
                   }
+                  // Replace specific field command: e.g., replace mission objective section with new text
+                  const replaceMatch = lower.match(/^replace (mission objective|vehicle description|launch reentry sequence|trajectory overview|safety considerations|ground operations|technical summary|dimensions mass stages|propulsion types|recovery systems|ground support equipment|site names coordinates|site operator|airspace maritime notes|launch site|launch window|flight path|landing site|early risk assessments|public safety challenges|planned safety tools|full application timeline|intended window|license type intent|clarify part450|unique tech international) (section )?with (.+)$/);
+                  if (replaceMatch) {
+                    const fieldName = replaceMatch[1].replace(/\s+/g, '').toLowerCase();
+                    const newValue = replaceMatch[3];
+                    
+                    // Map field names to actual form field names
+                    const fieldMapping: Record<string, string> = {
+                      'missionobjective': 'missionObjective',
+                      'vehicledescription': 'vehicleDescription',
+                      'launchreentrysequence': 'launchReentrySequence',
+                      'trajectoryoverview': 'trajectoryOverview',
+                      'safetyconsiderations': 'safetyConsiderations',
+                      'groundoperations': 'groundOperations',
+                      'technicalsummary': 'technicalSummary',
+                      'dimensionsmassstages': 'dimensionsMassStages',
+                      'propulsiontypes': 'propulsionTypes',
+                      'recoverysystems': 'recoverySystems',
+                      'groundsupportequipment': 'groundSupportEquipment',
+                      'sitenamescoordinates': 'siteNamesCoordinates',
+                      'siteoperator': 'siteOperator',
+                      'airspacemaritimenotes': 'airspaceMaritimeNotes',
+                      'launchsite': 'launchSite',
+                      'launchwindow': 'launchWindow',
+                      'flightpath': 'flightPath',
+                      'landingsite': 'landingSite',
+                      'earlyriskassessments': 'earlyRiskAssessments',
+                      'publicsafetychallenges': 'publicSafetyChallenges',
+                      'plannedsafetytools': 'plannedSafetyTools',
+                      'fullapplicationtimeline': 'fullApplicationTimeline',
+                      'intendedwindow': 'intendedWindow',
+                      'licensetypeintent': 'licenseTypeIntent',
+                      'clarifypart450': 'clarifyPart450',
+                      'uniquetechinternational': 'uniqueTechInternational'
+                    };
+                    
+                    const actualFieldName = fieldMapping[fieldName];
+                    if (actualFieldName) {
+                      setFormData((prev) => ({ ...prev, [actualFieldName]: newValue }));
+                      aiPanelRef.current?.addAIMsg(`I've replaced the ${replaceMatch[1]} section with: "${newValue}"`);
+                      return;
+                    } else {
+                      aiPanelRef.current?.addAIMsg(`Field "${replaceMatch[1]}" not found. Available fields: ${Object.keys(fieldMapping).join(', ')}`);
+                      return;
+                    }
+                  }
+                  
                   // Fill section command: e.g., fill section 2 with Launch details
                   const fillMatch = lower.match(/^fill section (\d+) with (.+)$/);
                   if (fillMatch) {
