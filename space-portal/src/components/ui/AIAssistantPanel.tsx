@@ -55,7 +55,7 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
       ]);
       setInput("");
 
-      // Call the real AI API
+      // Call the unified AI API
       try {
         const response = await fetch('/api/ai', {
           method: 'POST',
@@ -64,7 +64,7 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
           },
           body: JSON.stringify({
             userInput: userMessage,
-            mode: 'assistant'
+            mode: 'unified'
           }),
         });
 

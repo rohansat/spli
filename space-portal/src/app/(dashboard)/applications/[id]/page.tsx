@@ -490,87 +490,95 @@ export default function ApplicationPage() {
                 ×
               </button>
             </div>
-            {/* Restore tabs for toggling between AI Assistant and AI Form Assistant */}
-            <Tabs value={aiChatTab} onValueChange={v => setAiChatTab(v as 'assistant' | 'form')} className="w-full h-full flex flex-col">
-              <TabsList className="flex w-full flex-shrink-0">
-                <TabsTrigger value="assistant" className="flex-1">AI Assistant</TabsTrigger>
-                <TabsTrigger value="form" className="flex-1">AI Form Assistant</TabsTrigger>
-              </TabsList>
-              <div className="flex-1 min-h-0 flex flex-col">
-                {aiChatTab === 'assistant' ? (
-                  <AIAssistantPanel
-                    ref={aiPanelRef}
-                    onCommand={async (cmd) => {
-                      const lower = cmd.trim().toLowerCase();
-                      if (lower === "save draft") {
-                        if (application?.status === "approved") {
-                          aiPanelRef.current?.addAIMsg("This application is already approved and cannot be edited.");
-                          return;
-                        }
-                        await handleSave();
-                        aiPanelRef.current?.addAIMsg("Draft saved successfully.");
-                        return;
+            {/* Unified SPLI Chat - No tabs needed */}
+            <div className="flex-1 min-h-0 flex flex-col">
+              <AIAssistantPanel
+                ref={aiPanelRef}
+                onCommand={async (cmd) => {
+                  const lower = cmd.trim().toLowerCase();
+                  if (lower === "save draft") {
+                    if (application?.status === "approved") {
+                      aiPanelRef.current?.addAIMsg("This application is already approved and cannot be edited.");
+                      return;
+                    }
+                    await handleSave();
+                    aiPanelRef.current?.addAIMsg("Draft saved successfully.");
+                    return;
+                  }
+                  if (lower === "submit application") {
+                    if (application?.status === "approved") {
+                      aiPanelRef.current?.addAIMsg("This application is already approved and cannot be submitted again.");
+                      return;
+                    }
+                    handleSubmit();
+                    aiPanelRef.current?.addAIMsg("Application submitted. Redirecting to dashboard...");
+                    return;
+                  }
+                  // Fill section command: e.g., fill section 2 with Launch details
+                  const fillMatch = lower.match(/^fill section (\d+) with (.+)$/);
+                  if (fillMatch) {
+                    const sectionIdx = parseInt(fillMatch[1], 10) - 1;
+                    const fillText = fillMatch[2];
+                    const section = part450FormTemplate.sections[sectionIdx];
+                    if (!section) {
+                      aiPanelRef.current?.addAIMsg(`Section ${fillMatch[1]} does not exist.`);
+                      return;
+                    }
+                    // Fill all text/textarea fields in the section with the provided text
+                    const updates: Record<string, string> = {};
+                    section.fields.forEach((field: any) => {
+                      if (["text", "textarea"].includes(field.type)) {
+                        updates[field.name] = fillText;
                       }
-                      if (lower === "submit application") {
-                        if (application?.status === "approved") {
-                          aiPanelRef.current?.addAIMsg("This application is already approved and cannot be submitted again.");
-                          return;
-                        }
-                        handleSubmit();
-                        aiPanelRef.current?.addAIMsg("Application submitted. Redirecting to dashboard...");
-                        return;
+                    });
+                    setFormData((prev) => ({ ...prev, ...updates }));
+                    aiPanelRef.current?.addAIMsg(`Section ${fillMatch[1]} filled with: \"${fillText}\"`);
+                    return;
+                  }
+                  // For form analysis, use the AI service
+                  if (lower.includes("analyze") || lower.includes("mission") || lower.includes("form")) {
+                    try {
+                      const response = await fetch('/api/ai', {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                          userInput: cmd,
+                          context: `Available form fields: ${getAllFormFields().map(f => f.name).join(', ')}`,
+                          mode: 'unified'
+                        }),
+                      });
+                      if (response.ok) {
+                        const data = await response.json();
+                        aiPanelRef.current?.addAIMsg(data.message);
                       }
-                      // Fill section command: e.g., fill section 2 with Launch details
-                      const fillMatch = lower.match(/^fill section (\d+) with (.+)$/);
-                      if (fillMatch) {
-                        const sectionIdx = parseInt(fillMatch[1], 10) - 1;
-                        const fillText = fillMatch[2];
-                        const section = part450FormTemplate.sections[sectionIdx];
-                        if (!section) {
-                          aiPanelRef.current?.addAIMsg(`Section ${fillMatch[1]} does not exist.`);
-                          return;
-                        }
-                        // Fill all text/textarea fields in the section with the provided text
-                        const updates: Record<string, string> = {};
-                        section.fields.forEach((field: any) => {
-                          if (["text", "textarea"].includes(field.type)) {
-                            updates[field.name] = fillText;
-                          }
-                        });
-                        setFormData((prev) => ({ ...prev, ...updates }));
-                        aiPanelRef.current?.addAIMsg(`Section ${fillMatch[1]} filled with: \"${fillText}\"`);
-                        return;
-                      }
-                      aiPanelRef.current?.addAIMsg("Sorry, I didn't understand that command. Try 'save draft', 'submit application', or 'fill section X with ...'.");
-                    }}
-                    onFileDrop={async (files) => {
-                      if (!user) return;
-                      for (const file of files) {
-                        const newDocument: Omit<Document, "id" | "uploadedAt"> = {
-                          name: file.name,
-                          type: "attachment",
-                          applicationId: applicationId || undefined,
-                          applicationName: application?.name || undefined,
-                          fileSize: `${(file.size / (1024 * 1024)).toFixed(2)} MB`,
-                          url: URL.createObjectURL(file),
-                          userId: user.email || "",
-                        };
-                        await uploadDocument(newDocument);
-                        aiPanelRef.current?.addAIMsg(`Document \"${file.name}\" uploaded successfully and added to Document Management.`);
-                      }
-                    }}
-                    hideTabs={true}
-                  />
-                ) : (
-                  <AIFormChat
-                    onFillForm={handleAIFillForm}
-                    formFields={getAllFormFields()}
-                    onClose={() => setShowFloatingChat(false)}
-                    aiAnalyze={mockAIAnalysis}
-                  />
-                )}
-              </div>
-            </Tabs>
+                    } catch (error) {
+                      console.error('Form analysis error:', error);
+                    }
+                    return;
+                  }
+                  aiPanelRef.current?.addAIMsg("I can help with general questions, form analysis, and dashboard commands like 'save draft', 'submit application', or 'fill section X with ...'. What would you like to do?");
+                }}
+                onFileDrop={async (files) => {
+                  if (!user) return;
+                  for (const file of files) {
+                    const newDocument: Omit<Document, "id" | "uploadedAt"> = {
+                      name: file.name,
+                      type: "attachment",
+                      applicationId: applicationId || undefined,
+                      applicationName: application?.name || undefined,
+                      fileSize: `${(file.size / (1024 * 1024)).toFixed(2)} MB`,
+                      url: URL.createObjectURL(file),
+                      userId: user.email || "",
+                    };
+                    await uploadDocument(newDocument);
+                    aiPanelRef.current?.addAIMsg(`Document \"${file.name}\" uploaded successfully and added to Document Management.`);
+                  }
+                }}
+                hideTabs={true}
+              />
+            </div>
           </div>
         </div>
       )}
