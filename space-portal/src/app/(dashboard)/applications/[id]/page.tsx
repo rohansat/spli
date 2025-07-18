@@ -609,7 +609,8 @@ export default function ApplicationPage() {
                     return;
                   }
                   // Check if this is a replacement request that wasn't caught by the regex patterns
-                  if (lower.includes("replace") || lower.includes("update") || lower.includes("change")) {
+                  if ((lower.includes("replace") || lower.includes("update") || lower.includes("change")) && 
+                      (lower.includes("with") || lower.includes("to"))) {
                     // Try to extract field name and value from the command
                     const fieldNames = [
                       'mission objective', 'vehicle description', 'launch reentry sequence', 'trajectory overview',
@@ -678,9 +679,11 @@ export default function ApplicationPage() {
                   }
                   
                   // For form analysis, suggestions, and help requests, use the AI service
-                  if (lower.includes("analyze") || lower.includes("mission") || lower.includes("form") || 
+                  // Only trigger if it's not a replacement command
+                  if (!lower.includes("replace") && !lower.includes("update") && !lower.includes("change") &&
+                      (lower.includes("analyze") || lower.includes("mission") || lower.includes("form") || 
                       lower.includes("help") || lower.includes("suggestion") || lower.includes("what should") ||
-                      lower.includes("how to") || lower.includes("example")) {
+                      lower.includes("how to") || lower.includes("example") || lower.includes("suggestions"))) {
                     try {
                       const response = await fetch('/api/ai', {
                         method: 'POST',
