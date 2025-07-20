@@ -678,6 +678,46 @@ export default function ApplicationPage() {
                     }
                   }
                   
+                  // Auto-fill form based on mission summary
+                  if (lower.includes("auto fill") || lower.includes("autofill") || lower.includes("fill form") || 
+                      lower.includes("analyze and fill") || lower.includes("fill application")) {
+                    try {
+                      const response = await fetch('/api/ai', {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                          userInput: cmd,
+                          context: `Available form fields: ${getAllFormFields().map(f => f.name).join(', ')}`,
+                          mode: 'form',
+                          conversationHistory: []
+                        }),
+                      });
+                      if (response.ok) {
+                        const data = await response.json();
+                        if (data.suggestions && data.suggestions.length > 0) {
+                          // Apply suggestions to form
+                          const formUpdates: Record<string, string> = {};
+                          data.suggestions.forEach((suggestion: any) => {
+                            formUpdates[suggestion.field] = suggestion.value;
+                          });
+                          setFormData((prev) => ({ ...prev, ...formUpdates }));
+                          
+                          // Show summary of what was filled
+                          const filledFields = data.suggestions.map((s: any) => s.field).join(', ');
+                          aiPanelRef.current?.addAIMsg(`I've automatically filled the following sections based on your mission description: ${filledFields}. The form has been updated with relevant information.`);
+                        } else {
+                          aiPanelRef.current?.addAIMsg("I couldn't extract enough information to auto-fill the form. Please provide more details about your mission, vehicle, and operations.");
+                        }
+                      }
+                    } catch (error) {
+                      console.error('Auto-fill error:', error);
+                      aiPanelRef.current?.addAIMsg("Sorry, I encountered an error while trying to auto-fill the form. Please try again.");
+                    }
+                    return;
+                  }
+                  
                   // For form analysis, suggestions, and help requests, use the AI service
                   // Only trigger if it's not a replacement command and not already handled by the chat component
                   if (!lower.includes("replace") && !lower.includes("update") && !lower.includes("change") &&

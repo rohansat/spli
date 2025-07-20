@@ -49,6 +49,7 @@ You can execute these specific commands when users request them:
 - "submit application" - Submit the application for review
 - "replace [field name] section with [content]" - Replace a specific form field with new content
 - "fill section X with [content]" - Fill a specific form section with provided content
+- "auto fill" or "fill form" - Analyze mission description and automatically fill relevant form sections
 - "delete application" - Delete the current application
 - "upload document" - Help with document uploads
 
@@ -301,22 +302,56 @@ RESPONSE FORMAT:
 }
 
 function extractFormSuggestions(aiResponse: string, userInput: string) {
-  // This is a simple extraction - you can make this more sophisticated
+  // Enhanced extraction for comprehensive form filling
   const suggestions = [];
   
-  // Look for common form fields and extract relevant information
+  // Comprehensive field mappings for all 25 form fields
   const fieldMappings = {
-    missionObjective: ['mission', 'objective', 'purpose', 'goal'],
-    vehicleDescription: ['vehicle', 'rocket', 'launcher', 'spacecraft'],
-    launchSite: ['launch site', 'location', 'facility'],
-    launchWindow: ['launch window', 'timing', 'schedule'],
-    safetyConsiderations: ['safety', 'risk', 'hazard'],
-    groundOperations: ['ground', 'operations', 'facility']
+    // Section 1: Concept of Operations (CONOPS)
+    missionObjective: ['mission', 'objective', 'purpose', 'goal', 'aim', 'target'],
+    vehicleDescription: ['vehicle', 'rocket', 'launcher', 'spacecraft', 'craft', 'system'],
+    launchReentrySequence: ['launch sequence', 'reentry sequence', 'flight sequence', 'mission sequence'],
+    trajectoryOverview: ['trajectory', 'flight path', 'orbit', 'path', 'route'],
+    safetyConsiderations: ['safety', 'risk', 'hazard', 'protection', 'precaution'],
+    groundOperations: ['ground', 'launch pad', 'facility', 'infrastructure', 'support'],
+    
+    // Section 2: Vehicle Overview
+    technicalSummary: ['technical', 'specification', 'data sheet', 'specs', 'technical data'],
+    dimensionsMassStages: ['dimension', 'mass', 'weight', 'size', 'stage', 'configuration'],
+    propulsionTypes: ['propulsion', 'engine', 'motor', 'fuel', 'thrust', 'power'],
+    recoverySystems: ['recovery', 'landing', 'reusable', 'return', 'retrieval'],
+    groundSupportEquipment: ['ground support', 'equipment', 'facility', 'infrastructure', 'GSE'],
+    
+    // Section 3: Planned Launch/Reentry Location(s)
+    siteNamesCoordinates: ['site', 'location', 'coordinates', 'latitude', 'longitude'],
+    siteOperator: ['operator', 'site operator', 'facility operator', 'third party'],
+    airspaceMaritimeNotes: ['airspace', 'maritime', 'flight corridor', 'exclusion zone'],
+    
+    // Section 4: Launch Information
+    launchSite: ['launch site', 'launch pad', 'facility', 'location'],
+    launchWindow: ['launch window', 'timing', 'schedule', 'window'],
+    flightPath: ['flight path', 'trajectory', 'route', 'path'],
+    landingSite: ['landing site', 'recovery site', 'landing location'],
+    
+    // Section 5: Preliminary Risk or Safety Considerations
+    earlyRiskAssessments: ['risk assessment', 'hazard analysis', 'safety analysis'],
+    publicSafetyChallenges: ['public safety', 'safety challenge', 'risk to public'],
+    plannedSafetyTools: ['safety tool', 'DEBRIS', 'SARA', 'safety software'],
+    
+    // Section 6: Timeline & Intent
+    fullApplicationTimeline: ['timeline', 'schedule', 'deadline', 'application timeline'],
+    intendedWindow: ['intended window', 'target window', 'planned window'],
+    licenseTypeIntent: ['license type', 'vehicle license', 'operator license'],
+    
+    // Section 7: List of Questions for FAA
+    clarifyPart450: ['clarify', 'question', 'requirement', 'regulation', 'compliance'],
+    uniqueTechInternational: ['unique technology', 'international', 'novel', 'innovative']
   };
 
   const lowerInput = userInput.toLowerCase();
   const lowerResponse = aiResponse.toLowerCase();
 
+  // Extract suggestions based on user input and AI response
   for (const [field, keywords] of Object.entries(fieldMappings)) {
     if (keywords.some(keyword => lowerInput.includes(keyword) || lowerResponse.includes(keyword))) {
       // Extract relevant text from response
@@ -332,16 +367,82 @@ function extractFormSuggestions(aiResponse: string, userInput: string) {
     }
   }
 
+  // If no suggestions found, try to generate basic ones based on mission type
+  if (suggestions.length === 0) {
+    const missionType = detectMissionType(lowerInput);
+    if (missionType) {
+      suggestions.push(...generateBasicSuggestions(missionType, userInput));
+    }
+  }
+
   return suggestions;
 }
 
-function extractRelevantText(response: string, keywords: string[]) {
-  // Simple extraction - find sentences containing keywords
-  const sentences = response.split(/[.!?]+/);
+function detectMissionType(input: string): string | null {
+  if (input.includes('satellite') || input.includes('leo') || input.includes('low earth orbit')) return 'satellite';
+  if (input.includes('suborbital') || input.includes('space tourism')) return 'suborbital';
+  if (input.includes('orbital') || input.includes('geo') || input.includes('geosynchronous')) return 'orbital';
+  if (input.includes('test') || input.includes('demonstration')) return 'test';
+  return null;
+}
+
+function generateBasicSuggestions(missionType: string, userInput: string): any[] {
+  const suggestions = [];
+  
+  switch (missionType) {
+    case 'satellite':
+      suggestions.push({
+        field: 'missionObjective',
+        value: 'Launch commercial satellite to low Earth orbit for telecommunications and data services.',
+        confidence: 0.7,
+        reasoning: 'Based on satellite mission type detected'
+      });
+      suggestions.push({
+        field: 'trajectoryOverview',
+        value: 'Standard launch trajectory to low Earth orbit with payload deployment at target altitude.',
+        confidence: 0.7,
+        reasoning: 'Standard satellite trajectory'
+      });
+      break;
+    case 'suborbital':
+      suggestions.push({
+        field: 'missionObjective',
+        value: 'Conduct suborbital flight for research, testing, or space tourism purposes.',
+        confidence: 0.7,
+        reasoning: 'Based on suborbital mission type detected'
+      });
+      suggestions.push({
+        field: 'trajectoryOverview',
+        value: 'Suborbital trajectory with apogee above 100km, followed by controlled descent.',
+        confidence: 0.7,
+        reasoning: 'Standard suborbital trajectory'
+      });
+      break;
+  }
+  
+  return suggestions;
+}
+
+function extractRelevantText(aiResponse: string, keywords: string[]): string | null {
+  // Enhanced extraction - look for sentences containing keywords
+  const sentences = aiResponse.split(/[.!?]+/).filter(s => s.trim().length > 0);
+  
   for (const sentence of sentences) {
-    if (keywords.some(keyword => sentence.toLowerCase().includes(keyword))) {
+    const lowerSentence = sentence.toLowerCase();
+    if (keywords.some(keyword => lowerSentence.includes(keyword))) {
       return sentence.trim();
     }
   }
+  
+  // If no specific sentence found, return a relevant portion
+  const lowerResponse = aiResponse.toLowerCase();
+  for (const keyword of keywords) {
+    if (lowerResponse.includes(keyword)) {
+      const start = Math.max(0, lowerResponse.indexOf(keyword) - 50);
+      const end = Math.min(aiResponse.length, lowerResponse.indexOf(keyword) + 100);
+      return aiResponse.substring(start, end).trim();
+    }
+  }
+  
   return null;
 } 
