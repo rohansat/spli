@@ -240,7 +240,22 @@ RESPONSE FORMAT:
 - Separate different topics with line breaks for visual clarity
 - Use ALL CAPS for section headers and key terms
 - DO NOT use markdown formatting - use plain text that displays properly
-- Structure responses with clear sections and bullet points`;
+- Structure responses with clear sections and bullet points
+
+FOR AUTO-FILL REQUESTS:
+- Structure the response with clear section headers in ALL CAPS
+- Each section should contain only the relevant content for that field
+- Use this format:
+  MISSION OBJECTIVE
+  [content for mission objective]
+
+  VEHICLE DESCRIPTION
+  [content for vehicle description]
+
+  LAUNCH/REENTRY SEQUENCE
+  [content for launch sequence]
+
+  [Continue for each relevant section...]`;
 
     // Build conversation messages array
     const messages: Array<{ role: 'user' | 'assistant'; content: string }> = [
@@ -302,80 +317,147 @@ RESPONSE FORMAT:
 }
 
 function extractFormSuggestions(aiResponse: string, userInput: string) {
-  // Enhanced extraction for comprehensive form filling
+  // Smart parsing of structured AI response
   const suggestions = [];
   
-  // Comprehensive field mappings for all 25 form fields
+  // Field name mappings for parsing
   const fieldMappings = {
     // Section 1: Concept of Operations (CONOPS)
-    missionObjective: ['mission', 'objective', 'purpose', 'goal', 'aim', 'target'],
-    vehicleDescription: ['vehicle', 'rocket', 'launcher', 'spacecraft', 'craft', 'system'],
-    launchReentrySequence: ['launch sequence', 'reentry sequence', 'flight sequence', 'mission sequence'],
-    trajectoryOverview: ['trajectory', 'flight path', 'orbit', 'path', 'route'],
-    safetyConsiderations: ['safety', 'risk', 'hazard', 'protection', 'precaution'],
-    groundOperations: ['ground', 'launch pad', 'facility', 'infrastructure', 'support'],
+    missionObjective: ['mission objective', 'mission', 'objective'],
+    vehicleDescription: ['vehicle description', 'vehicle', 'rocket', 'launcher'],
+    launchReentrySequence: ['launch/reentry sequence', 'launch sequence', 'reentry sequence', 'flight sequence'],
+    trajectoryOverview: ['trajectory overview', 'trajectory', 'flight path'],
+    safetyConsiderations: ['safety considerations', 'safety', 'risk'],
+    groundOperations: ['ground operations', 'ground', 'operations'],
     
     // Section 2: Vehicle Overview
-    technicalSummary: ['technical', 'specification', 'data sheet', 'specs', 'technical data'],
-    dimensionsMassStages: ['dimension', 'mass', 'weight', 'size', 'stage', 'configuration'],
-    propulsionTypes: ['propulsion', 'engine', 'motor', 'fuel', 'thrust', 'power'],
-    recoverySystems: ['recovery', 'landing', 'reusable', 'return', 'retrieval'],
-    groundSupportEquipment: ['ground support', 'equipment', 'facility', 'infrastructure', 'GSE'],
+    technicalSummary: ['technical summary', 'technical', 'specifications'],
+    dimensionsMassStages: ['dimensions/mass/stages', 'dimensions', 'mass', 'stages'],
+    propulsionTypes: ['propulsion types', 'propulsion', 'engines'],
+    recoverySystems: ['recovery systems', 'recovery', 'landing'],
+    groundSupportEquipment: ['ground support equipment', 'ground support', 'GSE'],
     
     // Section 3: Planned Launch/Reentry Location(s)
-    siteNamesCoordinates: ['site', 'location', 'coordinates', 'latitude', 'longitude'],
-    siteOperator: ['operator', 'site operator', 'facility operator', 'third party'],
-    airspaceMaritimeNotes: ['airspace', 'maritime', 'flight corridor', 'exclusion zone'],
+    siteNamesCoordinates: ['site names/coordinates', 'site', 'coordinates', 'location'],
+    siteOperator: ['site operator', 'operator'],
+    airspaceMaritimeNotes: ['airspace/maritime notes', 'airspace', 'maritime'],
     
     // Section 4: Launch Information
-    launchSite: ['launch site', 'launch pad', 'facility', 'location'],
-    launchWindow: ['launch window', 'timing', 'schedule', 'window'],
-    flightPath: ['flight path', 'trajectory', 'route', 'path'],
-    landingSite: ['landing site', 'recovery site', 'landing location'],
+    launchSite: ['launch site', 'launch location'],
+    launchWindow: ['launch window', 'window', 'timing'],
+    flightPath: ['flight path', 'path'],
+    landingSite: ['landing site', 'landing location'],
     
     // Section 5: Preliminary Risk or Safety Considerations
-    earlyRiskAssessments: ['risk assessment', 'hazard analysis', 'safety analysis'],
-    publicSafetyChallenges: ['public safety', 'safety challenge', 'risk to public'],
-    plannedSafetyTools: ['safety tool', 'DEBRIS', 'SARA', 'safety software'],
+    earlyRiskAssessments: ['early risk assessments', 'risk assessment'],
+    publicSafetyChallenges: ['public safety challenges', 'public safety'],
+    plannedSafetyTools: ['planned safety tools', 'safety tools'],
     
     // Section 6: Timeline & Intent
-    fullApplicationTimeline: ['timeline', 'schedule', 'deadline', 'application timeline'],
-    intendedWindow: ['intended window', 'target window', 'planned window'],
-    licenseTypeIntent: ['license type', 'vehicle license', 'operator license'],
+    fullApplicationTimeline: ['full application timeline', 'timeline'],
+    intendedWindow: ['intended window', 'target window'],
+    licenseTypeIntent: ['license type intent', 'license type'],
     
     // Section 7: List of Questions for FAA
-    clarifyPart450: ['clarify', 'question', 'requirement', 'regulation', 'compliance'],
-    uniqueTechInternational: ['unique technology', 'international', 'novel', 'innovative']
+    clarifyPart450: ['clarify part 450', 'clarify', 'questions'],
+    uniqueTechInternational: ['unique tech/international', 'unique technology']
   };
 
-  const lowerInput = userInput.toLowerCase();
-  const lowerResponse = aiResponse.toLowerCase();
+  // Parse structured response with clear sections
+  const parsedSections = parseStructuredResponse(aiResponse);
+  
+  // Map parsed sections to form fields
+  for (const [field, searchTerms] of Object.entries(fieldMappings)) {
+    const content = findMatchingContent(parsedSections, searchTerms);
+    if (content) {
+      suggestions.push({
+        field,
+        value: content,
+        confidence: 0.9,
+        reasoning: `Extracted from AI response section matching ${searchTerms[0]}`
+      });
+    }
+  }
 
-  // Extract suggestions based on user input and AI response
-  for (const [field, keywords] of Object.entries(fieldMappings)) {
-    if (keywords.some(keyword => lowerInput.includes(keyword) || lowerResponse.includes(keyword))) {
-      // Extract relevant text from response
-      const relevantText = extractRelevantText(aiResponse, keywords);
-      if (relevantText) {
-        suggestions.push({
-          field,
-          value: relevantText,
-          confidence: 0.8,
-          reasoning: `Based on user input mentioning ${keywords.join(' or ')}`
-        });
+  // If structured parsing didn't work, fall back to keyword-based extraction
+  if (suggestions.length === 0) {
+    const lowerInput = userInput.toLowerCase();
+    const lowerResponse = aiResponse.toLowerCase();
+
+    for (const [field, keywords] of Object.entries(fieldMappings)) {
+      if (keywords.some(keyword => lowerInput.includes(keyword) || lowerResponse.includes(keyword))) {
+        const relevantText = extractRelevantText(aiResponse, keywords);
+        if (relevantText) {
+          suggestions.push({
+            field,
+            value: relevantText,
+            confidence: 0.7,
+            reasoning: `Based on keyword matching: ${keywords.join(' or ')}`
+          });
+        }
       }
     }
   }
 
-  // If no suggestions found, try to generate basic ones based on mission type
+  // Final fallback: generate basic suggestions based on mission type
   if (suggestions.length === 0) {
-    const missionType = detectMissionType(lowerInput);
+    const missionType = detectMissionType(userInput.toLowerCase());
     if (missionType) {
       suggestions.push(...generateBasicSuggestions(missionType, userInput));
     }
   }
 
   return suggestions;
+}
+
+function parseStructuredResponse(response: string): Record<string, string> {
+  const sections: Record<string, string> = {};
+  
+  // Split response into lines and look for section headers
+  const lines = response.split('\n');
+  let currentSection = '';
+  let currentContent: string[] = [];
+  
+  for (const line of lines) {
+    const trimmedLine = line.trim();
+    
+    // Look for section headers (ALL CAPS, bold, or clear section titles)
+    if (trimmedLine.match(/^[A-Z\s\/]+$/) || 
+        trimmedLine.match(/^\*\*[^*]+\*\*$/) ||
+        trimmedLine.match(/^[A-Z][a-z\s]+:$/)) {
+      
+      // Save previous section
+      if (currentSection && currentContent.length > 0) {
+        sections[currentSection.toLowerCase()] = currentContent.join(' ').trim();
+      }
+      
+      // Start new section
+      currentSection = trimmedLine.replace(/\*\*/g, '').replace(/:/g, '').trim();
+      currentContent = [];
+    } else if (trimmedLine.length > 0 && currentSection) {
+      // Add content to current section
+      currentContent.push(trimmedLine);
+    }
+  }
+  
+  // Save last section
+  if (currentSection && currentContent.length > 0) {
+    sections[currentSection.toLowerCase()] = currentContent.join(' ').trim();
+  }
+  
+  return sections;
+}
+
+function findMatchingContent(sections: Record<string, string>, searchTerms: string[]): string | null {
+  for (const [sectionName, content] of Object.entries(sections)) {
+    for (const term of searchTerms) {
+      if (sectionName.includes(term.toLowerCase()) || 
+          sectionName.toLowerCase().includes(term.toLowerCase())) {
+        return content;
+      }
+    }
+  }
+  return null;
 }
 
 function detectMissionType(input: string): string | null {
