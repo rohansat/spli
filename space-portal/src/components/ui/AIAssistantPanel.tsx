@@ -202,7 +202,7 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
                   }
                 }}
                 placeholder="Type a command, request, or drop a file..."
-                className="flex-1 bg-zinc-800/60 outline-none text-white placeholder:text-zinc-400 px-3 py-2 rounded-xl border border-zinc-700 focus:border-blue-400 transition-all min-h-[40px] max-h-[120px]"
+                className="flex-1 bg-zinc-800/60 outline-none text-white placeholder:text-zinc-400 px-3 py-2 rounded-xl border border-zinc-700 focus:border-blue-400 transition-all min-h-[40px] max-h-[150px] overflow-y-auto"
                 autoResize={true}
               />
               <Button

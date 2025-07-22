@@ -182,7 +182,7 @@ export default function ApplicationPage() {
             onChange={(e) => handleInputChange(field.name, e.target.value)}
             placeholder={field.label}
             rows={4}
-            className="bg-white/10 border-white/20 text-white"
+            className="bg-white/10 border-white/20 text-white max-h-[300px] overflow-y-auto"
             autoResize={true}
           />
         );
@@ -710,6 +710,49 @@ export default function ApplicationPage() {
                           aiPanelRef.current?.addAIMsg(`I've automatically filled the following sections based on your mission description: ${filledFields}. The form has been updated with relevant information.`);
                         } else {
                           aiPanelRef.current?.addAIMsg("I couldn't extract enough information to auto-fill the form. Please provide more details about your mission, vehicle, and operations.");
+                        }
+                      }
+                    } catch (error) {
+                      console.error('Auto-fill error:', error);
+                      aiPanelRef.current?.addAIMsg("Sorry, I encountered an error while trying to auto-fill the form. Please try again.");
+                    }
+                    return;
+                  }
+                  
+                  // Auto-detect comprehensive mission descriptions and offer to fill form
+                  const missionKeywords = ['launch', 'satellite', 'rocket', 'mission', 'vehicle', 'orbit', 'trajectory', 'safety', 'ground operations'];
+                  const hasMissionDescription = missionKeywords.some(keyword => lower.includes(keyword));
+                  const isLongDescription = cmd.length > 100; // If it's a substantial description
+                  
+                  if (hasMissionDescription && isLongDescription && !lower.includes("replace") && !lower.includes("update") && !lower.includes("change")) {
+                    try {
+                      const response = await fetch('/api/ai', {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                          userInput: cmd,
+                          context: `Available form fields: ${getAllFormFields().map(f => f.name).join(', ')}`,
+                          mode: 'form',
+                          conversationHistory: []
+                        }),
+                      });
+                      if (response.ok) {
+                        const data = await response.json();
+                        if (data.suggestions && data.suggestions.length > 0) {
+                          // Apply suggestions to form
+                          const formUpdates: Record<string, string> = {};
+                          data.suggestions.forEach((suggestion: any) => {
+                            formUpdates[suggestion.field] = suggestion.value;
+                          });
+                          setFormData((prev) => ({ ...prev, ...formUpdates }));
+                          
+                          // Show summary of what was filled
+                          const filledFields = data.suggestions.map((s: any) => s.field).join(', ');
+                          aiPanelRef.current?.addAIMsg(`I've automatically filled the following sections based on your mission description: ${filledFields}. The form has been updated with relevant information.`);
+                        } else {
+                          aiPanelRef.current?.addAIMsg("I analyzed your mission description but couldn't extract enough information to auto-fill the form. Please provide more details about your mission, vehicle, and operations.");
                         }
                       }
                     } catch (error) {

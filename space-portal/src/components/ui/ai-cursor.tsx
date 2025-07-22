@@ -104,7 +104,7 @@ export function AICursor({ onFillForm, formFields, isVisible, onClose, inline = 
                 value={userInput}
                 onChange={(e) => setUserInput(e.target.value)}
                 placeholder="Describe your mission: e.g., 'We're launching a small satellite for telecommunications. Our rocket is a two-stage liquid-fueled vehicle with reusable first stage. We'll launch from Cape Canaveral and land the first stage back at the launch site...'"
-                className="min-h-[120px] w-full bg-zinc-800 border border-zinc-700 text-white placeholder-zinc-400 rounded p-3"
+                className="min-h-[120px] max-h-[300px] w-full bg-zinc-800 border border-zinc-700 text-white placeholder-zinc-400 rounded p-3 overflow-y-auto"
                 disabled={isProcessing}
                 autoResize={true}
               />
@@ -208,7 +208,7 @@ export function AICursor({ onFillForm, formFields, isVisible, onClose, inline = 
                   value={userInput}
                   onChange={(e) => setUserInput(e.target.value)}
                   placeholder="Describe your mission: e.g., 'We're launching a small satellite for telecommunications. Our rocket is a two-stage liquid-fueled vehicle with reusable first stage. We'll launch from Cape Canaveral and land the first stage back at the launch site...'"
-                  className="min-h-[120px] w-full bg-zinc-800 border border-zinc-700 text-white placeholder-zinc-400 rounded p-3"
+                  className="min-h-[120px] max-h-[300px] w-full bg-zinc-800 border border-zinc-700 text-white placeholder-zinc-400 rounded p-3 overflow-y-auto"
                   disabled={isProcessing}
                   autoResize={true}
                 />

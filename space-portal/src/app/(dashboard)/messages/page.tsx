@@ -237,7 +237,7 @@ export default function MessagesPage() {
                   }
                   placeholder="Type your message here"
                   rows={8}
-                  className="bg-white/10 border-white/20 text-white"
+                  className="bg-white/10 border-white/20 text-white max-h-[400px] overflow-y-auto"
                   autoResize={true}
                 />
               </div>
@@ -404,7 +404,7 @@ export default function MessagesPage() {
                   <Textarea
                     placeholder="Type your reply here..."
                     rows={4}
-                    className="bg-white/10 border-white/20 text-white mb-4"
+                    className="bg-white/10 border-white/20 text-white mb-4 max-h-[300px] overflow-y-auto"
                     autoResize={true}
                   />
                   <div className="flex justify-end">

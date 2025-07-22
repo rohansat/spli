@@ -243,7 +243,90 @@ FOR AUTO-FILL REQUESTS:
   LAUNCH/REENTRY SEQUENCE
   [content for launch sequence]
 
-  [Continue for each relevant section...]`;
+  [Continue for each relevant section...]
+
+IMPORTANT: When a user provides a comprehensive mission description, ALWAYS respond with structured sections as shown above, even if they don't explicitly ask for auto-fill. This allows the system to automatically extract and fill form fields.
+
+RESPONSE FORMAT FOR APPLICATION ANALYSIS:
+When analyzing an application summary, structure your response with clear section headers:
+
+MISSION OBJECTIVE
+[Extracted mission objective from the description]
+
+VEHICLE DESCRIPTION
+[Extracted vehicle information from the description]
+
+LAUNCH/REENTRY SEQUENCE
+[Extracted launch sequence information]
+
+TRAJECTORY OVERVIEW
+[Extracted trajectory information]
+
+SAFETY CONSIDERATIONS
+[Extracted safety information]
+
+GROUND OPERATIONS
+[Extracted ground operations information]
+
+TECHNICAL SUMMARY
+[Extracted technical specifications]
+
+DIMENSIONS/MASS/STAGES
+[Extracted physical characteristics]
+
+PROPULSION TYPES
+[Extracted propulsion system information]
+
+RECOVERY SYSTEMS
+[Extracted recovery system information]
+
+GROUND SUPPORT EQUIPMENT
+[Extracted ground support requirements]
+
+SITE NAMES/COORDINATES
+[Extracted launch site information]
+
+SITE OPERATOR
+[Extracted site operator information]
+
+AIRSPACE/MARITIME NOTES
+[Extracted airspace considerations]
+
+LAUNCH SITE
+[Extracted launch location]
+
+LAUNCH WINDOW
+[Extracted launch timing]
+
+FLIGHT PATH
+[Extracted flight path details]
+
+LANDING SITE
+[Extracted landing/recovery location]
+
+EARLY RISK ASSESSMENTS
+[Extracted risk assessment information]
+
+PUBLIC SAFETY CHALLENGES
+[Extracted public safety considerations]
+
+PLANNED SAFETY TOOLS
+[Extracted safety analysis tools]
+
+FULL APPLICATION TIMELINE
+[Extracted timeline information]
+
+INTENDED WINDOW
+[Extracted intended launch window]
+
+LICENSE TYPE INTENT
+[Extracted license type information]
+
+CLARIFY PART 450
+[Extracted questions about regulations]
+
+UNIQUE TECH/INTERNATIONAL
+[Extracted unique technology or international aspects]`;
 
     // Build conversation messages array
     const messages: Array<{ role: 'user' | 'assistant'; content: string }> = [
@@ -308,6 +391,8 @@ function extractFormSuggestions(aiResponse: string, userInput: string) {
   // Smart parsing of structured AI response
   const suggestions = [];
   
+  console.log('AI Response for parsing:', aiResponse);
+  
   // Field name mappings for parsing - enhanced with more variations
   const fieldMappings = {
     // Section 1: Concept of Operations (CONOPS)
@@ -353,6 +438,7 @@ function extractFormSuggestions(aiResponse: string, userInput: string) {
 
   // Parse structured response with clear sections
   const parsedSections = parseStructuredResponse(aiResponse);
+  console.log('Parsed sections:', parsedSections);
   
   // Map parsed sections to form fields
   for (const [field, searchTerms] of Object.entries(fieldMappings)) {
@@ -367,8 +453,11 @@ function extractFormSuggestions(aiResponse: string, userInput: string) {
     }
   }
 
+  console.log('Structured parsing suggestions:', suggestions);
+
   // If structured parsing didn't work well, fall back to keyword-based extraction
   if (suggestions.length < 5) { // Require at least 5 fields to be confident in structured parsing
+    console.log('Falling back to keyword-based extraction');
     const lowerInput = userInput.toLowerCase();
     const lowerResponse = aiResponse.toLowerCase();
 
@@ -390,8 +479,11 @@ function extractFormSuggestions(aiResponse: string, userInput: string) {
     }
   }
 
+  console.log('Final suggestions:', suggestions);
+
   // Final fallback: generate basic suggestions based on mission type
   if (suggestions.length === 0) {
+    console.log('Using basic suggestions fallback');
     const missionType = detectMissionType(userInput.toLowerCase());
     if (missionType) {
       suggestions.push(...generateBasicSuggestions(missionType, userInput));
@@ -412,13 +504,16 @@ function parseStructuredResponse(response: string): Record<string, string> {
   for (const line of lines) {
     const trimmedLine = line.trim();
     
-    // Look for section headers (ALL CAPS, bold, or clear section titles)
-    // Enhanced pattern matching for better section detection
+    // Look for section headers - enhanced pattern matching
+    // Match patterns like: "MISSION OBJECTIVE", "VEHICLE DESCRIPTION", etc.
     if (trimmedLine.match(/^[A-Z\s\/]+$/) || 
         trimmedLine.match(/^\*\*[^*]+\*\*$/) ||
         trimmedLine.match(/^[A-Z][a-z\s]+:$/) ||
         trimmedLine.match(/^[A-Z\s]+:$/) ||
-        trimmedLine.match(/^[A-Z][A-Z\s]+$/)) {
+        trimmedLine.match(/^[A-Z][A-Z\s]+$/) ||
+        // New patterns for the AI response format
+        trimmedLine.match(/^[A-Z\s]+\s+[A-Z\s]+$/) ||
+        trimmedLine.match(/^[A-Z][A-Z\s\/]+[A-Z]$/)) {
       
       // Save previous section
       if (currentSection && currentContent.length > 0) {
@@ -451,10 +546,28 @@ function findMatchingContent(sections: Record<string, string>, searchTerms: stri
       const normalizedSectionName = sectionName.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').trim();
       const normalizedTerm = term.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').trim();
       
+      // Direct match
       if (normalizedSectionName.includes(normalizedTerm) || 
-          normalizedTerm.includes(normalizedSectionName) ||
-          normalizedSectionName.split(/\s+/).some(word => normalizedTerm.includes(word)) ||
-          normalizedTerm.split(/\s+/).some(word => normalizedSectionName.includes(word))) {
+          normalizedTerm.includes(normalizedSectionName)) {
+        return content;
+      }
+      
+      // Word-based matching
+      const sectionWords = normalizedSectionName.split(/\s+/);
+      const termWords = normalizedTerm.split(/\s+/);
+      
+      // Check if any words match
+      if (sectionWords.some(word => termWords.includes(word)) ||
+          termWords.some(word => sectionWords.includes(word))) {
+        return content;
+      }
+      
+      // Handle special cases like "mission objective" vs "missionobjective"
+      const combinedSectionName = normalizedSectionName.replace(/\s+/g, '');
+      const combinedTerm = normalizedTerm.replace(/\s+/g, '');
+      
+      if (combinedSectionName.includes(combinedTerm) || 
+          combinedTerm.includes(combinedSectionName)) {
         return content;
       }
     }

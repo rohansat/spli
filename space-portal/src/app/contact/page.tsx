@@ -104,7 +104,7 @@ export default function Contact() {
                 <label className="block text-white mb-2">Message</label>
                 <Textarea
                   placeholder="Type your message here..."
-                  className="bg-[#161616] border-zinc-800 text-white min-h-[150px]"
+                  className="bg-[#161616] border-zinc-800 text-white min-h-[150px] max-h-[400px] overflow-y-auto"
                   autoResize={true}
                 />
               </div>
