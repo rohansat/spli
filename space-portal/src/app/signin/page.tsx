@@ -63,9 +63,10 @@ export default function SignInPage() {
               ) : (
                 <div className="flex items-center justify-center">
                   <svg className="w-6 h-6 mr-3" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M11.5 2.75h-8a.75.75 0 0 0-.75.75v16.5c0 .414.336.75.75.75h8a.75.75 0 0 0 .75-.75V3.5a.75.75 0 0 0-.75-.75Z"/>
-                    <path d="M15.5 2.75h-8a.75.75 0 0 0-.75.75v16.5c0 .414.336.75.75.75h8a.75.75 0 0 0 .75-.75V3.5a.75.75 0 0 0-.75-.75Z"/>
-                    <path d="M19.5 2.75h-8a.75.75 0 0 0-.75.75v16.5c0 .414.336.75.75.75h8a.75.75 0 0 0 .75-.75V3.5a.75.75 0 0 0-.75-.75Z"/>
+                    <path d="M0 0h11v11H0z"/>
+                    <path d="M12 0h11v11H12z"/>
+                    <path d="M0 12h11v11H0z"/>
+                    <path d="M12 12h11v11H12z"/>
                   </svg>
                   Continue with Microsoft
                 </div>
