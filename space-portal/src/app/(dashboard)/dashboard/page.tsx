@@ -77,6 +77,8 @@ export default function Dashboard() {
         return "destructive";
       case "approved":
         return "default";
+      case "pending_approval":
+        return "default";
       default:
         return "secondary";
     }
@@ -92,6 +94,8 @@ export default function Dashboard() {
         return "Submitted";
       case "approved":
         return "Approved";
+      case "pending_approval":
+        return "Pending Approval";
       default:
         return status;
     }
@@ -247,7 +251,9 @@ export default function Dashboard() {
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    {applications.map((app) => (
+                    {applications
+                      .filter(app => app.status !== "pending_approval")
+                      .map((app) => (
                       <Link
                         key={app.id}
                         href={`/applications/${app.id}`}
@@ -285,21 +291,25 @@ export default function Dashboard() {
                 ) : (
                   <div className="space-y-3">
                     {applications
-                      .filter(app => app.status === "approved" || app.status === "under_review")
+                      .filter(app => app.status === "approved" || app.status === "under_review" || app.status === "pending_approval")
                       .map((app) => (
                         <div key={app.id} className="p-4 rounded-lg bg-[#111111]">
                           <div className="flex items-center gap-2 mb-2">
                             <div className={cn(
                               "h-1.5 w-1.5 rounded-full",
-                              app.status === "approved" ? "bg-[#22C55E]" : "bg-[#FFB224]"
+                              app.status === "approved" ? "bg-[#22C55E]" : 
+                              app.status === "pending_approval" ? "bg-[#3B82F6]" : "bg-[#FFB224]"
                             )} />
                             <h3 className="font-medium text-white text-xs">
-                              {app.status === "approved" ? "ACTIVE LICENSE" : "PENDING APPROVAL"}
+                              {app.status === "approved" ? "ACTIVE LICENSE" : 
+                               app.status === "pending_approval" ? "PENDING APPROVAL" : "UNDER REVIEW"}
                             </h3>
                           </div>
                           <p className="text-sm text-zinc-500 mb-1">{app.name}</p>
                           <p className="text-[11px] text-zinc-600">
-                            {app.status === "approved" ? "May 15, 2025 - June 30, 2025" : `Submitted on ${formatDate(app.updatedAt)}`}
+                            {app.status === "approved" ? "May 15, 2025 - June 30, 2025" : 
+                             app.status === "pending_approval" ? `Submitted on ${formatDate(app.updatedAt)}` :
+                             `Submitted on ${formatDate(app.updatedAt)}`}
                           </p>
                         </div>
                       ))}
