@@ -3,13 +3,14 @@
 import { useState } from "react";
 import { useApplication } from "@/components/providers/ApplicationProvider";
 import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { FileUp, FileText, Mail, File, Download, Search, Filter, Trash2, Upload } from "lucide-react";
+import { FileUp, FileText, Mail, File, Download, Search, Filter, Trash2, Upload, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Document } from "@/types";
 import { Footer } from "@/components/Footer";
@@ -17,6 +18,7 @@ import { Footer } from "@/components/Footer";
 export default function DocumentManagement() {
   const { documents, applications, uploadDocument, removeDocument } = useApplication();
   const { data: session } = useSession();
+  const router = useRouter();
   const user = session?.user;
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("All Documents");
@@ -39,6 +41,20 @@ export default function DocumentManagement() {
   const searchFilteredDocuments = filteredDocuments.filter(doc => 
     searchQuery ? doc.name.toLowerCase().includes(searchQuery.toLowerCase()) : true
   );
+
+  // Helper function to get application name by ID
+  const getApplicationName = (applicationId: string | undefined) => {
+    if (!applicationId) return "No application";
+    const app = applications.find(app => app.id === applicationId);
+    return app ? app.name : "Unknown application";
+  };
+
+  // Handle document click to navigate to application
+  const handleDocumentClick = (doc: Document) => {
+    if (doc.applicationId) {
+      router.push(`/applications/${doc.applicationId}`);
+    }
+  };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -246,13 +262,36 @@ export default function DocumentManagement() {
                 <div className="divide-y divide-zinc-800">
                   {searchFilteredDocuments.map((doc) => (
                     <div key={doc.id} className="grid grid-cols-[2fr,1fr,1fr,2fr,0.5fr] gap-4 py-4 text-sm items-center">
-                      <div className="flex items-center gap-2 text-white">
+                      <div className="flex items-center gap-2">
                         <FileText className="h-4 w-4 text-blue-400" />
-                        {doc.name}
+                        <button
+                          onClick={() => handleDocumentClick(doc)}
+                          className={cn(
+                            "text-left hover:text-blue-400 transition-colors flex items-center gap-1",
+                            doc.applicationId ? "text-white cursor-pointer" : "text-zinc-400 cursor-default"
+                          )}
+                          disabled={!doc.applicationId}
+                          title={doc.applicationId ? "Click to open application" : "No associated application"}
+                        >
+                          {doc.name}
+                          {doc.applicationId && <ExternalLink className="h-3 w-3 opacity-60" />}
+                        </button>
                       </div>
                       <div className="text-zinc-400">{doc.type}</div>
                       <div className="text-zinc-400">{doc.fileSize}</div>
-                      <div className="text-zinc-400">{doc.applicationId}</div>
+                      <div className="text-zinc-400">
+                        {doc.applicationId ? (
+                          <button
+                            onClick={() => handleDocumentClick(doc)}
+                            className="text-left hover:text-blue-400 transition-colors cursor-pointer"
+                            title="Click to open application"
+                          >
+                            {getApplicationName(doc.applicationId)}
+                          </button>
+                        ) : (
+                          "No application"
+                        )}
+                      </div>
                       <div className="flex justify-end gap-2">
                         <Button 
                           variant="ghost" 
