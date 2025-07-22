@@ -183,6 +183,7 @@ export default function ApplicationPage() {
             placeholder={field.label}
             rows={4}
             className="bg-white/10 border-white/20 text-white"
+            autoResize={true}
           />
         );
       case "select":

@@ -623,7 +623,8 @@ export async function analyzeUserInput(request: AIAnalysisRequest): Promise<AIAn
       body: JSON.stringify({
         userInput,
         context: `Available form fields: ${formFields.map(f => f.name).join(', ')}`,
-        mode: 'form'
+        mode: 'form',
+        conversationHistory: []
       }),
     });
 
@@ -633,21 +634,31 @@ export async function analyzeUserInput(request: AIAnalysisRequest): Promise<AIAn
 
     const data = await response.json();
     
-    return {
-      suggestions: data.suggestions || [],
-      summary: `AI analyzed mission description and generated ${data.suggestions?.length || 0} field suggestions.`
-    };
+    // Enhanced response handling
+    if (data.suggestions && data.suggestions.length > 0) {
+      return {
+        suggestions: data.suggestions,
+        summary: `AI analyzed mission description and extracted information for ${data.suggestions.length} Part 450 application sections.`
+      };
+    } else {
+      // Fallback to local analysis if AI didn't provide structured suggestions
+      const missionInfo = extractMissionInfo(userInput);
+      const localSuggestions = generateSuggestions(missionInfo, userInput);
+      
+      return {
+        suggestions: localSuggestions,
+        summary: `Local analysis completed with ${localSuggestions.length} field suggestions.`
+      };
+    }
   } catch (error) {
     console.error('AI Analysis Error:', error);
-    // Fallback to basic suggestions
+    // Fallback to local analysis
+    const missionInfo = extractMissionInfo(userInput);
+    const localSuggestions = generateSuggestions(missionInfo, userInput);
+    
     return {
-      suggestions: [{
-        field: 'missionObjective',
-        value: 'Mission objective based on your description.',
-        confidence: 0.7,
-        reasoning: 'Basic analysis of your input.'
-      }],
-      summary: 'Basic analysis completed with fallback suggestions.'
+      suggestions: localSuggestions,
+      summary: 'Local analysis completed with fallback suggestions due to AI service error.'
     };
   }
 }

@@ -1,5 +1,6 @@
-import React, { useRef, useState, useEffect } from 'react';
-import { Sparkles, Wand2, Loader2, Check, User, Brain } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { User, Brain, Sparkles, Wand2, Loader2 } from 'lucide-react';
+import { Textarea } from './textarea';
 
 interface Message {
   sender: 'user' | 'ai' | 'system';
@@ -185,7 +186,7 @@ export function AIFormChat({ onFillForm, formFields, onClose, aiAnalyze }: AIFor
         )}
       </div>
       <div className="border-t border-zinc-800 p-3 bg-zinc-900 flex items-center gap-2 mt-0 mb-0" style={{ marginTop: 'auto' }}>
-        <textarea
+        <Textarea
           value={userInput}
           onChange={e => setUserInput(e.target.value)}
           placeholder="Describe your mission, vehicle, or operations..."
@@ -193,6 +194,7 @@ export function AIFormChat({ onFillForm, formFields, onClose, aiAnalyze }: AIFor
           disabled={isProcessing}
           rows={3}
           style={{ lineHeight: '1.5' }}
+          autoResize={true}
         />
         <button
           onClick={handleSend}

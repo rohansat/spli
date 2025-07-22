@@ -15,7 +15,151 @@ export async function POST(request: NextRequest) {
     console.log('Request data:', { userInput, mode, conversationHistoryLength: conversationHistory.length });
 
     // Create conversational system prompt
-    const systemPrompt = `You are SPLI Chat, a friendly and knowledgeable AI assistant for aerospace compliance and regulatory matters. You should be conversational, helpful, and context-aware.
+    const systemPrompt = `You are SPLI Chat, a specialized AI assistant for FAA Part 450 launch and reentry license applications. Your primary function is to analyze comprehensive mission descriptions and extract relevant information to fill out Part 450 application sections.
+
+CORE FUNCTIONALITY:
+When a user provides a comprehensive mission description or application summary, your job is to:
+1. Analyze the entire description thoroughly
+2. Extract specific information relevant to each Part 450 section
+3. Provide structured, accurate content for each applicable form field
+4. Ensure all extracted information is directly relevant to the Part 450 application
+
+PART 450 APPLICATION SECTIONS TO FILL:
+
+SECTION 1: CONCEPT OF OPERATIONS (CONOPS)
+- MISSION OBJECTIVE: Primary purpose and goals of the mission
+- VEHICLE DESCRIPTION: Launch vehicle specifications and characteristics
+- LAUNCH/REENTRY SEQUENCE: Detailed flight sequence and operations
+- TRAJECTORY OVERVIEW: Flight path and orbital parameters
+- SAFETY CONSIDERATIONS: Safety measures and risk mitigation
+- GROUND OPERATIONS: Pre-launch and post-launch ground activities
+
+SECTION 2: VEHICLE OVERVIEW
+- TECHNICAL SUMMARY: Technical specifications and data
+- DIMENSIONS/MASS/STAGES: Physical characteristics and configuration
+- PROPULSION TYPES: Propulsion systems and engines
+- RECOVERY SYSTEMS: Recovery mechanisms if applicable
+- GROUND SUPPORT EQUIPMENT: Required ground infrastructure
+
+SECTION 3: PLANNED LAUNCH/REENTRY LOCATION(S)
+- SITE NAMES/COORDINATES: Launch location and coordinates
+- SITE OPERATOR: Facility operator information
+- AIRSPACE/MARITIME NOTES: Airspace and maritime considerations
+
+SECTION 4: LAUNCH INFORMATION
+- LAUNCH SITE: Exact launch location
+- LAUNCH WINDOW: Launch timing and schedule
+- FLIGHT PATH: Trajectory details
+- LANDING SITE: Recovery location if applicable
+
+SECTION 5: PRELIMINARY RISK OR SAFETY CONSIDERATIONS
+- EARLY RISK ASSESSMENTS: Potential risks and hazards
+- PUBLIC SAFETY CHALLENGES: Public safety concerns
+- PLANNED SAFETY TOOLS: Safety analysis tools and methods
+
+SECTION 6: TIMELINE & INTENT
+- FULL APPLICATION TIMELINE: Submission schedule
+- INTENDED WINDOW: Target launch period
+- LICENSE TYPE INTENT: Type of license sought
+
+SECTION 7: LIST OF QUESTIONS FOR FAA
+- CLARIFY PART 450: Questions about regulations
+- UNIQUE TECH/INTERNATIONAL: Unique aspects or international considerations
+
+ANALYSIS INSTRUCTIONS:
+When analyzing a mission description:
+1. Read the entire description carefully
+2. Identify all relevant information for each Part 450 section
+3. Extract specific details like:
+   - Mission type (satellite, suborbital, orbital, etc.)
+   - Vehicle specifications (stages, propulsion, dimensions, mass)
+   - Launch site and timing information
+   - Safety considerations and risk assessments
+   - Technical details and specifications
+   - Timeline and licensing information
+4. Provide accurate, specific content for each applicable field
+5. If information is missing for a section, indicate "Information not provided in description"
+
+RESPONSE FORMAT FOR APPLICATION ANALYSIS:
+When analyzing an application summary, structure your response with clear section headers:
+
+MISSION OBJECTIVE
+[Extracted mission objective from the description]
+
+VEHICLE DESCRIPTION
+[Extracted vehicle information from the description]
+
+LAUNCH/REENTRY SEQUENCE
+[Extracted launch sequence information]
+
+TRAJECTORY OVERVIEW
+[Extracted trajectory information]
+
+SAFETY CONSIDERATIONS
+[Extracted safety information]
+
+GROUND OPERATIONS
+[Extracted ground operations information]
+
+TECHNICAL SUMMARY
+[Extracted technical specifications]
+
+DIMENSIONS/MASS/STAGES
+[Extracted physical characteristics]
+
+PROPULSION TYPES
+[Extracted propulsion system information]
+
+RECOVERY SYSTEMS
+[Extracted recovery system information]
+
+GROUND SUPPORT EQUIPMENT
+[Extracted ground support requirements]
+
+SITE NAMES/COORDINATES
+[Extracted launch site information]
+
+SITE OPERATOR
+[Extracted site operator information]
+
+AIRSPACE/MARITIME NOTES
+[Extracted airspace considerations]
+
+LAUNCH SITE
+[Extracted launch location]
+
+LAUNCH WINDOW
+[Extracted launch timing]
+
+FLIGHT PATH
+[Extracted flight path details]
+
+LANDING SITE
+[Extracted landing/recovery location]
+
+EARLY RISK ASSESSMENTS
+[Extracted risk assessment information]
+
+PUBLIC SAFETY CHALLENGES
+[Extracted public safety considerations]
+
+PLANNED SAFETY TOOLS
+[Extracted safety analysis tools]
+
+FULL APPLICATION TIMELINE
+[Extracted timeline information]
+
+INTENDED WINDOW
+[Extracted intended launch window]
+
+LICENSE TYPE INTENT
+[Extracted license type information]
+
+CLARIFY PART 450
+[Extracted questions about regulations]
+
+UNIQUE TECH/INTERNATIONAL
+[Extracted unique technology or international aspects]
 
 CONVERSATION STYLE:
 - Be warm, professional, and engaging
@@ -33,15 +177,6 @@ RESPONSE GUIDELINES:
 - For complex topics: Provide detailed information when requested
 - Always be encouraging and supportive
 - Never list capabilities or explain what you can do - just help directly
-
-CAPABILITIES:
-- FAA Part 450 applications and compliance questions
-- Launch and reentry licensing requirements
-- Document management and form filling guidance
-- General aerospace regulatory questions
-- Application status and next steps
-- Form analysis and field suggestions
-- Dashboard commands (save draft, submit application, etc.)
 
 DASHBOARD COMMANDS:
 You can execute these specific commands when users request them:
@@ -74,153 +209,6 @@ FORMATTING GUIDELINES:
 - Use numbered lists for step-by-step processes
 - DO NOT use markdown formatting (##, *, etc.)
 - Use simple text formatting that displays properly in chat
-
-MISSION OBJECTIVE: 
-Describe the primary purpose and goals of the mission
-Example: "Launch commercial satellite to LEO for telecommunications services"
-
-VEHICLE DESCRIPTION: 
-Detail the launch vehicle specifications
-Example: "Two-stage liquid-fueled rocket with reusable first stage, 50m height, 3.7m diameter"
-
-LAUNCH/REENTRY SEQUENCE: 
-Describe the flight sequence and operations with clear phases
-Example: 
-
-LAUNCH PHASE:
-• Vertical launch from pad
-• First stage separation at 60km altitude
-• Second stage ignition
-
-ORBITAL PHASE:
-• Payload deployment at 500km altitude
-• Mission operations
-
-RECOVERY PHASE:
-• First stage boostback burn
-• Entry burn and landing
-
-TRAJECTORY OVERVIEW: 
-Explain the flight path and orbital parameters
-Example: "Suborbital trajectory to 100km altitude, ballistic flight path, splashdown in Pacific Ocean"
-
-SAFETY CONSIDERATIONS: 
-List safety measures and risk mitigation
-Example: 
-• Flight termination system
-• Exclusion zones
-• Emergency procedures
-• Range safety coordination
-
-GROUND OPERATIONS: 
-Describe pre-launch and post-launch ground activities
-Example: 
-• Vehicle integration
-• Fueling operations
-• Payload processing
-• Launch pad preparation
-
-TECHNICAL SUMMARY: 
-Provide technical specifications and data
-Example: "Thrust: 1.2M lbf, payload capacity: 22,800kg to LEO, propellant: RP-1/LOX"
-
-DIMENSIONS/MASS/STAGES: 
-Detail physical characteristics
-Example: "Height: 50m, mass: 549,054kg, two-stage configuration, first stage: 42m, second stage: 8m"
-
-PROPULSION TYPES: 
-Specify propulsion systems
-Example: "Merlin 1D engines, liquid oxygen/RP-1 propellant, sea level thrust: 190,000 lbf each"
-
-RECOVERY SYSTEMS: 
-Describe recovery mechanisms if applicable
-Example: "Grid fins, landing legs, controlled descent, vertical landing on drone ship"
-
-GROUND SUPPORT EQUIPMENT: 
-List required ground infrastructure
-Example: 
-• Launch mount
-• Fueling systems
-• Electrical support
-• Weather monitoring
-• Communications
-
-SITE NAMES/COORDINATES: 
-Specify launch location
-Example: "Cape Canaveral Space Force Station, Launch Complex 40, 28.5619°N, 80.5772°W"
-
-SITE OPERATOR: 
-Identify facility operator
-Example: "Space Force, 45th Space Wing, Launch and Test Range System"
-
-AIRSPACE/MARITIME NOTES: 
-Address airspace and maritime considerations
-Example: "Flight corridor coordination with FAA, maritime exclusion zones, airspace restrictions"
-
-LAUNCH SITE: 
-Specify exact launch location
-Example: "Kennedy Space Center, Launch Complex 39A"
-
-LAUNCH WINDOW: 
-Define launch timing
-Example: "Q2 2024, daily windows 2-4 hours, weather dependent"
-
-FLIGHT PATH: 
-Describe trajectory details
-Example: "Northeast trajectory, downrange distance 500km, max altitude 100km"
-
-LANDING SITE: 
-Specify recovery location if applicable
-Example: "Of Course I Still Love You drone ship, Atlantic Ocean, 400km downrange"
-
-EARLY RISK ASSESSMENTS: 
-Identify potential risks
-Example: 
-• Vehicle failure modes
-• Range safety risks
-• Environmental impacts
-• Public safety considerations
-
-PUBLIC SAFETY CHALLENGES: 
-Address public safety concerns
-Example: 
-• Debris field analysis
-• Population exposure
-• Emergency response coordination
-
-PLANNED SAFETY TOOLS: 
-List safety analysis tools
-Example: 
-• DEBRIS software
-• SARA analysis
-• Range safety modeling
-• Risk assessment tools
-
-FULL APPLICATION TIMELINE: 
-Specify submission schedule
-Example: "Pre-application submitted Q1 2024, full application submission Q3 2024"
-
-INTENDED WINDOW: 
-Define target launch period
-Example: "Q4 2024 launch window, 30-day period, weather dependent"
-
-LICENSE TYPE INTENT: 
-Specify license type sought
-Example: "Mission-specific license for commercial satellite launch, vehicle/operator license for multiple missions"
-
-CLARIFY PART 450: 
-List questions about regulations
-Example: 
-• Payload classification clarification
-• Environmental review requirements
-• Insurance requirements
-
-UNIQUE TECH/INTERNATIONAL: 
-Address unique aspects
-Example: 
-• Novel propulsion technology
-• International payload
-• Foreign launch vehicle components
 
 CONVERSATION FLOW:
 - Match the user's communication style and detail level
@@ -320,47 +308,47 @@ function extractFormSuggestions(aiResponse: string, userInput: string) {
   // Smart parsing of structured AI response
   const suggestions = [];
   
-  // Field name mappings for parsing
+  // Field name mappings for parsing - enhanced with more variations
   const fieldMappings = {
     // Section 1: Concept of Operations (CONOPS)
-    missionObjective: ['mission objective', 'mission', 'objective'],
-    vehicleDescription: ['vehicle description', 'vehicle', 'rocket', 'launcher'],
-    launchReentrySequence: ['launch/reentry sequence', 'launch sequence', 'reentry sequence', 'flight sequence'],
-    trajectoryOverview: ['trajectory overview', 'trajectory', 'flight path'],
-    safetyConsiderations: ['safety considerations', 'safety', 'risk'],
-    groundOperations: ['ground operations', 'ground', 'operations'],
+    missionObjective: ['mission objective', 'mission', 'objective', 'purpose', 'goal'],
+    vehicleDescription: ['vehicle description', 'vehicle', 'rocket', 'launcher', 'spacecraft'],
+    launchReentrySequence: ['launch/reentry sequence', 'launch sequence', 'reentry sequence', 'flight sequence', 'mission sequence'],
+    trajectoryOverview: ['trajectory overview', 'trajectory', 'flight path', 'orbit', 'path'],
+    safetyConsiderations: ['safety considerations', 'safety', 'risk', 'hazard'],
+    groundOperations: ['ground operations', 'ground', 'operations', 'launch pad'],
     
     // Section 2: Vehicle Overview
-    technicalSummary: ['technical summary', 'technical', 'specifications'],
-    dimensionsMassStages: ['dimensions/mass/stages', 'dimensions', 'mass', 'stages'],
-    propulsionTypes: ['propulsion types', 'propulsion', 'engines'],
-    recoverySystems: ['recovery systems', 'recovery', 'landing'],
-    groundSupportEquipment: ['ground support equipment', 'ground support', 'GSE'],
+    technicalSummary: ['technical summary', 'technical', 'specifications', 'specs', 'technical data'],
+    dimensionsMassStages: ['dimensions/mass/stages', 'dimensions', 'mass', 'stages', 'size', 'weight'],
+    propulsionTypes: ['propulsion types', 'propulsion', 'engines', 'motor', 'fuel'],
+    recoverySystems: ['recovery systems', 'recovery', 'landing', 'reusable'],
+    groundSupportEquipment: ['ground support equipment', 'ground support', 'GSE', 'equipment'],
     
     // Section 3: Planned Launch/Reentry Location(s)
-    siteNamesCoordinates: ['site names/coordinates', 'site', 'coordinates', 'location'],
-    siteOperator: ['site operator', 'operator'],
-    airspaceMaritimeNotes: ['airspace/maritime notes', 'airspace', 'maritime'],
+    siteNamesCoordinates: ['site names/coordinates', 'site', 'coordinates', 'location', 'latitude', 'longitude'],
+    siteOperator: ['site operator', 'operator', 'facility operator'],
+    airspaceMaritimeNotes: ['airspace/maritime notes', 'airspace', 'maritime', 'flight corridor'],
     
     // Section 4: Launch Information
-    launchSite: ['launch site', 'launch location'],
-    launchWindow: ['launch window', 'window', 'timing'],
-    flightPath: ['flight path', 'path'],
-    landingSite: ['landing site', 'landing location'],
+    launchSite: ['launch site', 'launch location', 'launch pad', 'facility'],
+    launchWindow: ['launch window', 'window', 'timing', 'schedule', 'launch time'],
+    flightPath: ['flight path', 'path', 'trajectory', 'route'],
+    landingSite: ['landing site', 'landing location', 'recovery site'],
     
     // Section 5: Preliminary Risk or Safety Considerations
-    earlyRiskAssessments: ['early risk assessments', 'risk assessment'],
-    publicSafetyChallenges: ['public safety challenges', 'public safety'],
-    plannedSafetyTools: ['planned safety tools', 'safety tools'],
+    earlyRiskAssessments: ['early risk assessments', 'risk assessment', 'hazard analysis'],
+    publicSafetyChallenges: ['public safety challenges', 'public safety', 'safety challenge'],
+    plannedSafetyTools: ['planned safety tools', 'safety tools', 'DEBRIS', 'SARA'],
     
     // Section 6: Timeline & Intent
-    fullApplicationTimeline: ['full application timeline', 'timeline'],
-    intendedWindow: ['intended window', 'target window'],
-    licenseTypeIntent: ['license type intent', 'license type'],
+    fullApplicationTimeline: ['full application timeline', 'timeline', 'schedule', 'deadline'],
+    intendedWindow: ['intended window', 'target window', 'planned window'],
+    licenseTypeIntent: ['license type intent', 'license type', 'license intent'],
     
     // Section 7: List of Questions for FAA
-    clarifyPart450: ['clarify part 450', 'clarify', 'questions'],
-    uniqueTechInternational: ['unique tech/international', 'unique technology']
+    clarifyPart450: ['clarify part 450', 'clarify', 'questions', 'requirements'],
+    uniqueTechInternational: ['unique tech/international', 'unique technology', 'international', 'novel']
   };
 
   // Parse structured response with clear sections
@@ -369,28 +357,31 @@ function extractFormSuggestions(aiResponse: string, userInput: string) {
   // Map parsed sections to form fields
   for (const [field, searchTerms] of Object.entries(fieldMappings)) {
     const content = findMatchingContent(parsedSections, searchTerms);
-    if (content) {
+    if (content && content.trim().length > 0 && !content.includes('Information not provided')) {
       suggestions.push({
         field,
-        value: content,
+        value: content.trim(),
         confidence: 0.9,
         reasoning: `Extracted from AI response section matching ${searchTerms[0]}`
       });
     }
   }
 
-  // If structured parsing didn't work, fall back to keyword-based extraction
-  if (suggestions.length === 0) {
+  // If structured parsing didn't work well, fall back to keyword-based extraction
+  if (suggestions.length < 5) { // Require at least 5 fields to be confident in structured parsing
     const lowerInput = userInput.toLowerCase();
     const lowerResponse = aiResponse.toLowerCase();
 
     for (const [field, keywords] of Object.entries(fieldMappings)) {
+      // Skip if we already have this field from structured parsing
+      if (suggestions.some(s => s.field === field)) continue;
+      
       if (keywords.some(keyword => lowerInput.includes(keyword) || lowerResponse.includes(keyword))) {
         const relevantText = extractRelevantText(aiResponse, keywords);
-        if (relevantText) {
+        if (relevantText && relevantText.trim().length > 0) {
           suggestions.push({
             field,
-            value: relevantText,
+            value: relevantText.trim(),
             confidence: 0.7,
             reasoning: `Based on keyword matching: ${keywords.join(' or ')}`
           });
@@ -422,13 +413,17 @@ function parseStructuredResponse(response: string): Record<string, string> {
     const trimmedLine = line.trim();
     
     // Look for section headers (ALL CAPS, bold, or clear section titles)
+    // Enhanced pattern matching for better section detection
     if (trimmedLine.match(/^[A-Z\s\/]+$/) || 
         trimmedLine.match(/^\*\*[^*]+\*\*$/) ||
-        trimmedLine.match(/^[A-Z][a-z\s]+:$/)) {
+        trimmedLine.match(/^[A-Z][a-z\s]+:$/) ||
+        trimmedLine.match(/^[A-Z\s]+:$/) ||
+        trimmedLine.match(/^[A-Z][A-Z\s]+$/)) {
       
       // Save previous section
       if (currentSection && currentContent.length > 0) {
-        sections[currentSection.toLowerCase()] = currentContent.join(' ').trim();
+        const cleanSectionName = currentSection.replace(/\*\*/g, '').replace(/:/g, '').trim().toLowerCase();
+        sections[cleanSectionName] = currentContent.join(' ').trim();
       }
       
       // Start new section
@@ -442,7 +437,8 @@ function parseStructuredResponse(response: string): Record<string, string> {
   
   // Save last section
   if (currentSection && currentContent.length > 0) {
-    sections[currentSection.toLowerCase()] = currentContent.join(' ').trim();
+    const cleanSectionName = currentSection.replace(/\*\*/g, '').replace(/:/g, '').trim().toLowerCase();
+    sections[cleanSectionName] = currentContent.join(' ').trim();
   }
   
   return sections;
@@ -451,8 +447,14 @@ function parseStructuredResponse(response: string): Record<string, string> {
 function findMatchingContent(sections: Record<string, string>, searchTerms: string[]): string | null {
   for (const [sectionName, content] of Object.entries(sections)) {
     for (const term of searchTerms) {
-      if (sectionName.includes(term.toLowerCase()) || 
-          sectionName.toLowerCase().includes(term.toLowerCase())) {
+      // Enhanced matching logic
+      const normalizedSectionName = sectionName.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').trim();
+      const normalizedTerm = term.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').trim();
+      
+      if (normalizedSectionName.includes(normalizedTerm) || 
+          normalizedTerm.includes(normalizedSectionName) ||
+          normalizedSectionName.split(/\s+/).some(word => normalizedTerm.includes(word)) ||
+          normalizedTerm.split(/\s+/).some(word => normalizedSectionName.includes(word))) {
         return content;
       }
     }

@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
-import { mockAIAnalysis, AIFormSuggestion } from '@/lib/ai-service';
 import { Sparkles, Wand2, Check, X, Loader2, Zap, Brain } from 'lucide-react';
+import { mockAIAnalysis, AIFormSuggestion } from '@/lib/ai-service';
+import { Textarea } from './textarea';
 
 interface AICursorProps {
   onFillForm: (suggestions: Record<string, string>) => void;
@@ -98,13 +99,14 @@ export function AICursor({ onFillForm, formFields, isVisible, onClose, inline = 
                 <Sparkles className="h-4 w-4 text-blue-400" />
                 <span>Tell me about your space mission, vehicle, and operations</span>
               </div>
-              <textarea
+              <Textarea
                 ref={textareaRef}
                 value={userInput}
                 onChange={(e) => setUserInput(e.target.value)}
                 placeholder="Describe your mission: e.g., 'We're launching a small satellite for telecommunications. Our rocket is a two-stage liquid-fueled vehicle with reusable first stage. We'll launch from Cape Canaveral and land the first stage back at the launch site...'"
                 className="min-h-[120px] w-full bg-zinc-800 border border-zinc-700 text-white placeholder-zinc-400 rounded p-3"
                 disabled={isProcessing}
+                autoResize={true}
               />
               <div className="flex items-center gap-2 text-xs text-zinc-500">
                 <Zap className="h-3 w-3" />
@@ -201,13 +203,14 @@ export function AICursor({ onFillForm, formFields, isVisible, onClose, inline = 
                   <Sparkles className="h-4 w-4 text-blue-400" />
                   <span>Tell me about your space mission, vehicle, and operations</span>
                 </div>
-                <textarea
+                <Textarea
                   ref={textareaRef}
                   value={userInput}
                   onChange={(e) => setUserInput(e.target.value)}
                   placeholder="Describe your mission: e.g., 'We're launching a small satellite for telecommunications. Our rocket is a two-stage liquid-fueled vehicle with reusable first stage. We'll launch from Cape Canaveral and land the first stage back at the launch site...'"
                   className="min-h-[120px] w-full bg-zinc-800 border border-zinc-700 text-white placeholder-zinc-400 rounded p-3"
                   disabled={isProcessing}
+                  autoResize={true}
                 />
                 <div className="flex items-center gap-2 text-xs text-zinc-500">
                   <Zap className="h-3 w-3" />

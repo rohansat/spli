@@ -238,6 +238,7 @@ export default function MessagesPage() {
                   placeholder="Type your message here"
                   rows={8}
                   className="bg-white/10 border-white/20 text-white"
+                  autoResize={true}
                 />
               </div>
             </div>
@@ -404,6 +405,7 @@ export default function MessagesPage() {
                     placeholder="Type your reply here..."
                     rows={4}
                     className="bg-white/10 border-white/20 text-white mb-4"
+                    autoResize={true}
                   />
                   <div className="flex justify-end">
                     <Button className="spacex-button">

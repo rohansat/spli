@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useRef, useState, useImperativeHandle, forwardRef } from "react";
+import React, { useState, useRef, useImperativeHandle, forwardRef } from "react";
 import { Paperclip, Send, UploadCloud, User, Bot } from "lucide-react";
 import { Button } from "./button";
 import dayjs from "dayjs";
+import { Textarea } from './textarea';
 
 interface Message {
   id: number;
@@ -191,15 +192,18 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
               >
                 <Paperclip className="h-5 w-5" />
               </button>
-              <input
-                type="text"
+              <Textarea
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") handleSend(e);
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSend(e);
+                  }
                 }}
                 placeholder="Type a command, request, or drop a file..."
-                className="flex-1 bg-zinc-800/60 outline-none text-white placeholder:text-zinc-400 px-3 py-2 rounded-xl border border-zinc-700 focus:border-blue-400 transition-all"
+                className="flex-1 bg-zinc-800/60 outline-none text-white placeholder:text-zinc-400 px-3 py-2 rounded-xl border border-zinc-700 focus:border-blue-400 transition-all min-h-[40px] max-h-[120px]"
+                autoResize={true}
               />
               <Button
                 size="icon"
