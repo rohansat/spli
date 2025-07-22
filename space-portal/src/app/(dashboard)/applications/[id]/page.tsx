@@ -9,8 +9,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { part450FormTemplate } from "@/lib/mock-data";
-import { ChevronLeft, Save, Send, AlertTriangle, Upload, X, Brain } from "lucide-react";
+import { ChevronLeft, Save, Send, AlertTriangle, Upload, X, Brain, Mail, Paperclip } from "lucide-react";
 import Link from "next/link";
 import { db } from "@/lib/firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
@@ -52,6 +53,15 @@ export default function ApplicationPage() {
   const [chatWidth, setChatWidth] = useState(400);
   const [chatHeight, setChatHeight] = useState(600);
   const [aiChatTab, setAiChatTab] = useState<'assistant' | 'form'>('assistant');
+  
+  // Compose message state
+  const [isComposeOpen, setIsComposeOpen] = useState(false);
+  const [composeMessage, setComposeMessage] = useState({
+    recipient: "recipient@faa.gov",
+    subject: "",
+    body: ""
+  });
+  const [isSendingMessage, setIsSendingMessage] = useState(false);
 
   const applicationId = params?.id as string;
   const application = applicationId ? getApplicationById(applicationId) : undefined;
@@ -132,10 +142,8 @@ export default function ApplicationPage() {
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const filesArray = Array.from(e.target.files);
-      setUploadedFiles((prev) => [...prev, ...filesArray]);
-    }
+    const files = Array.from(e.target.files || []);
+    setUploadedFiles((prev) => [...prev, ...files]);
   };
 
   const removeFile = (index: number) => {
@@ -143,21 +151,21 @@ export default function ApplicationPage() {
   };
 
   const handleAIFillForm = (suggestions: Record<string, string>) => {
-    setFormData((prev) => ({
-      ...prev,
-      ...suggestions,
-    }));
+    setFormData((prev) => ({ ...prev, ...suggestions }));
   };
 
-  // Get all form fields from the template
   const getAllFormFields = () => {
-    return part450FormTemplate.sections.flatMap(section => 
-      section.fields.map(field => ({
-        name: field.name,
-        label: field.label,
-        type: field.type
-      }))
-    );
+    const fields: Array<{ name: string; label: string; type: string }> = [];
+    part450FormTemplate.sections.forEach((section) => {
+      section.fields.forEach((field) => {
+        fields.push({
+          name: field.name,
+          label: field.label,
+          type: field.type,
+        });
+      });
+    });
+    return fields;
   };
 
   const renderField = (field: FormField) => {
@@ -209,6 +217,52 @@ export default function ApplicationPage() {
 
   // Add a helper for compact button style
   const buttonSizeClass = showFloatingChat ? 'h-8 px-3 text-sm' : 'h-10 px-6 text-base';
+
+  // Handle sending message to FAA
+  const handleSendMessage = async () => {
+    setIsSendingMessage(true);
+    try {
+      // Create application summary for attachment
+      const applicationSummary = Object.entries(formData)
+        .filter(([_, value]) => value && value.trim() !== '')
+        .map(([key, value]) => `${key}: ${value}`)
+        .join('\n\n');
+
+      // In a real implementation, you would:
+      // 1. Create a PDF of the application
+      // 2. Send the email with attachment via your backend
+      // 3. Store the message in your database
+      
+      // For now, we'll simulate the email sending
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Close the dialog and show success message
+      setIsComposeOpen(false);
+      setSaveMessage("Message sent to FAA successfully");
+      setSaveMessageType("success");
+      setTimeout(() => {
+        setSaveMessage("");
+        setSaveMessageType("");
+      }, 3000);
+      
+      // Reset compose form
+      setComposeMessage({
+        recipient: "recipient@faa.gov",
+        subject: "",
+        body: ""
+      });
+    } catch (error) {
+      console.error("Error sending message:", error);
+      setSaveMessage("Failed to send message to FAA");
+      setSaveMessageType("error");
+      setTimeout(() => {
+        setSaveMessage("");
+        setSaveMessageType("");
+      }, 3000);
+    } finally {
+      setIsSendingMessage(false);
+    }
+  };
 
   return (
     <div className="relative max-w-[1400px] mx-auto bg-black py-8 min-h-[80vh] flex flex-row gap-6">
@@ -438,6 +492,103 @@ export default function ApplicationPage() {
                     ))}
                   </div>
 
+                  {/* Ready for FAA button for Section 7 */}
+                  {sectionIndex === 6 && (
+                    <div className="bg-gradient-to-r from-green-500/20 to-blue-500/20 p-6 rounded-xl border border-green-500/30">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="text-xl font-bold text-white mb-2">Ready to Contact FAA?</h3>
+                          <p className="text-white/70">
+                            Send your application to FAA officials for review and consultation.
+                          </p>
+                        </div>
+                        <Dialog open={isComposeOpen} onOpenChange={setIsComposeOpen}>
+                          <DialogTrigger asChild>
+                            <Button className="bg-gradient-to-r from-green-500 to-blue-500 text-white hover:opacity-90 transition-opacity px-6 py-3">
+                              <Mail className="mr-2 h-4 w-4" />
+                              Ready for FAA
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="bg-black text-white border border-white/20">
+                            <DialogHeader>
+                              <DialogTitle className="text-2xl font-bold">COMPOSE MESSAGE</DialogTitle>
+                              <DialogDescription className="text-white/60">
+                                Send a message to FAA officials with your application attached
+                              </DialogDescription>
+                            </DialogHeader>
+                            <div className="space-y-4 py-4">
+                              <div className="space-y-2">
+                                <label htmlFor="recipient" className="text-sm font-medium text-white">
+                                  To
+                                </label>
+                                <Input
+                                  id="recipient"
+                                  value={composeMessage.recipient}
+                                  onChange={(e) =>
+                                    setComposeMessage({ ...composeMessage, recipient: e.target.value })
+                                  }
+                                  placeholder="recipient@faa.gov"
+                                  className="bg-white/10 border-white/20 text-white"
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <label htmlFor="subject" className="text-sm font-medium text-white">
+                                  Subject
+                                </label>
+                                <Input
+                                  id="subject"
+                                  value={composeMessage.subject}
+                                  onChange={(e) =>
+                                    setComposeMessage({ ...composeMessage, subject: e.target.value })
+                                  }
+                                  placeholder="Enter subject"
+                                  className="bg-white/10 border-white/20 text-white"
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <label htmlFor="body" className="text-sm font-medium text-white">
+                                  Message
+                                </label>
+                                <Textarea
+                                  id="body"
+                                  value={composeMessage.body}
+                                  onChange={(e) =>
+                                    setComposeMessage({ ...composeMessage, body: e.target.value })
+                                  }
+                                  placeholder="Type your message here"
+                                  rows={8}
+                                  className="bg-white/10 border-white/20 text-white"
+                                  autoResize={true}
+                                />
+                              </div>
+                              <div className="flex items-center gap-2 text-sm text-white/60">
+                                <Paperclip className="h-4 w-4" />
+                                <span>Application will be attached automatically</span>
+                              </div>
+                            </div>
+                            <DialogFooter>
+                              <Button
+                                variant="outline"
+                                onClick={() => setIsComposeOpen(false)}
+                                className="border-white/40 text-white"
+                              >
+                                Cancel
+                              </Button>
+                              <Button 
+                                onClick={handleSendMessage} 
+                                disabled={isSendingMessage || !composeMessage.subject || !composeMessage.body}
+                                className="bg-gradient-to-r from-blue-500 to-purple-500 text-white"
+                              >
+                                <Send className="mr-2 h-4 w-4" />
+                                {isSendingMessage ? "Sending..." : "SEND"}
+                              </Button>
+                            </DialogFooter>
+                          </DialogContent>
+                        </Dialog>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="flex justify-between pt-8">
                     {sectionIndex > 0 && (
                       <Button
@@ -519,28 +670,12 @@ export default function ApplicationPage() {
                     return;
                   }
                   
-                  // More flexible replace command patterns
-                  const replacePatterns = [
-                    /^replace (mission objective|vehicle description|launch reentry sequence|trajectory overview|safety considerations|ground operations|technical summary|dimensions mass stages|propulsion types|recovery systems|ground support equipment|site names coordinates|site operator|airspace maritime notes|launch site|launch window|flight path|landing site|early risk assessments|public safety challenges|planned safety tools|full application timeline|intended window|license type intent|clarify part450|unique tech international) (section )?with (.+)$/,
-                    /^replace (mission objective|vehicle description|launch reentry sequence|trajectory overview|safety considerations|ground operations|technical summary|dimensions mass stages|propulsion types|recovery systems|ground support equipment|site names coordinates|site operator|airspace maritime notes|launch site|launch window|flight path|landing site|early risk assessments|public safety challenges|planned safety tools|full application timeline|intended window|license type intent|clarify part450|unique tech international) (.+)$/,
-                    /^update (mission objective|vehicle description|launch reentry sequence|trajectory overview|safety considerations|ground operations|technical summary|dimensions mass stages|propulsion types|recovery systems|ground support equipment|site names coordinates|site operator|airspace maritime notes|launch site|launch window|flight path|landing site|early risk assessments|public safety challenges|planned safety tools|full application timeline|intended window|license type intent|clarify part450|unique tech international) (section )?with (.+)$/,
-                    /^change (mission objective|vehicle description|launch reentry sequence|trajectory overview|safety considerations|ground operations|technical summary|dimensions mass stages|propulsion types|recovery systems|ground support equipment|site names coordinates|site operator|airspace maritime notes|launch site|launch window|flight path|landing site|early risk assessments|public safety challenges|planned safety tools|full application timeline|intended window|license type intent|clarify part450|unique tech international) (section )?to (.+)$/
-                  ];
-                  
-                  let replaceMatch = null;
-                  for (const pattern of replacePatterns) {
-                    replaceMatch = lower.match(pattern);
-                    if (replaceMatch) break;
-                  }
-                  
+                  // Replace section command: e.g., replace mission objective with Launch satellite
+                  const replaceMatch = lower.match(/^replace (.+) with (.+)$/);
                   if (replaceMatch) {
-                    console.log('Replace match found:', replaceMatch);
-                    const fieldName = replaceMatch[1].replace(/\s+/g, '').toLowerCase();
-                    const newValue = replaceMatch[3] || replaceMatch[2]; // Handle different pattern groups
-                    console.log('Field name:', fieldName);
-                    console.log('New value:', newValue);
+                    const fieldName = replaceMatch[1].toLowerCase().replace(/\s+/g, '');
+                    const newValue = replaceMatch[2];
                     
-                    // Map field names to actual form field names
                     const fieldMapping: Record<string, string> = {
                       'missionobjective': 'missionObjective',
                       'vehicledescription': 'vehicleDescription',
@@ -639,38 +774,36 @@ export default function ApplicationPage() {
                     }
                     
                     if (foundField && newValue) {
-                      console.log('Fallback replacement - Field:', foundField, 'Value:', newValue);
-                      const fieldName = foundField.replace(/\s+/g, '').toLowerCase();
                       const fieldMapping: Record<string, string> = {
-                        'missionobjective': 'missionObjective',
-                        'vehicledescription': 'vehicleDescription',
-                        'launchreentrysequence': 'launchReentrySequence',
-                        'trajectoryoverview': 'trajectoryOverview',
-                        'safetyconsiderations': 'safetyConsiderations',
-                        'groundoperations': 'groundOperations',
-                        'technicalsummary': 'technicalSummary',
-                        'dimensionsmassstages': 'dimensionsMassStages',
-                        'propulsiontypes': 'propulsionTypes',
-                        'recoverysystems': 'recoverySystems',
-                        'groundsupportequipment': 'groundSupportEquipment',
-                        'sitenamescoordinates': 'siteNamesCoordinates',
-                        'siteoperator': 'siteOperator',
-                        'airspacemaritimenotes': 'airspaceMaritimeNotes',
-                        'launchsite': 'launchSite',
-                        'launchwindow': 'launchWindow',
-                        'flightpath': 'flightPath',
-                        'landingsite': 'landingSite',
-                        'earlyriskassessments': 'earlyRiskAssessments',
-                        'publicsafetychallenges': 'publicSafetyChallenges',
-                        'plannedsafetytools': 'plannedSafetyTools',
-                        'fullapplicationtimeline': 'fullApplicationTimeline',
-                        'intendedwindow': 'intendedWindow',
-                        'licensetypeintent': 'licenseTypeIntent',
-                        'clarifypart450': 'clarifyPart450',
-                        'uniquetechinternational': 'uniqueTechInternational'
+                        'mission objective': 'missionObjective',
+                        'vehicle description': 'vehicleDescription',
+                        'launch reentry sequence': 'launchReentrySequence',
+                        'trajectory overview': 'trajectoryOverview',
+                        'safety considerations': 'safetyConsiderations',
+                        'ground operations': 'groundOperations',
+                        'technical summary': 'technicalSummary',
+                        'dimensions mass stages': 'dimensionsMassStages',
+                        'propulsion types': 'propulsionTypes',
+                        'recovery systems': 'recoverySystems',
+                        'ground support equipment': 'groundSupportEquipment',
+                        'site names coordinates': 'siteNamesCoordinates',
+                        'site operator': 'siteOperator',
+                        'airspace maritime notes': 'airspaceMaritimeNotes',
+                        'launch site': 'launchSite',
+                        'launch window': 'launchWindow',
+                        'flight path': 'flightPath',
+                        'landing site': 'landingSite',
+                        'early risk assessments': 'earlyRiskAssessments',
+                        'public safety challenges': 'publicSafetyChallenges',
+                        'planned safety tools': 'plannedSafetyTools',
+                        'full application timeline': 'fullApplicationTimeline',
+                        'intended window': 'intendedWindow',
+                        'license type intent': 'licenseTypeIntent',
+                        'clarify part450': 'clarifyPart450',
+                        'unique tech international': 'uniqueTechInternational'
                       };
                       
-                      const actualFieldName = fieldMapping[fieldName];
+                      const actualFieldName = fieldMapping[foundField];
                       if (actualFieldName) {
                         setFormData((prev) => ({ ...prev, [actualFieldName]: newValue }));
                         aiPanelRef.current?.addAIMsg(`I've replaced the ${foundField} section with: "${newValue}"`);
