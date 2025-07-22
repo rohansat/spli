@@ -3,88 +3,104 @@
 import { signIn } from 'next-auth/react';
 import { PublicNav } from '@/components/layout/PublicNav';
 import { Footer } from '@/components/layout/Footer';
-import Link from 'next/link';
 import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 
 export default function SignInPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleMicrosoftSignIn = async () => {
     try {
+      setIsLoading(true);
       await signIn('azure-ad', {
         callbackUrl: '/dashboard',
         redirect: true
       });
     } catch (error) {
       console.error('Error signing in with Microsoft:', error);
+      setIsLoading(false);
     }
   };
 
   return (
     <div className="min-h-screen flex flex-col bg-black">
       <PublicNav />
-      <main className="flex-1 flex items-center justify-center">
-        <div className="w-full max-w-md p-8 bg-black/80 rounded-lg shadow-lg border border-white/20 mt-24 mb-12">
-          <h2 className="text-3xl font-bold text-white text-center mb-2 tracking-wide">SIGN IN</h2>
-          <p className="text-center text-white/60 mb-8">Enter your credentials to access your portal</p>
-          <form className="space-y-6">
-            <div>
-              <label htmlFor="email" className="block text-sm font-semibold text-white mb-2">EMAIL</label>
-              <input
-                id="email"
-                type="email"
-                autoComplete="email"
-                placeholder="you@example.com"
-                className="w-full px-4 py-3 rounded-md bg-black border border-white/20 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-blue-600"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                disabled
-              />
-            </div>
-            <div>
-              <label htmlFor="password" className="block text-sm font-semibold text-white mb-2">PASSWORD</label>
-              <input
-                id="password"
-                type="password"
-                autoComplete="current-password"
-                placeholder="••••••••"
-                className="w-full px-4 py-3 rounded-md bg-black border border-white/20 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-blue-600"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                disabled
-              />
-            </div>
-            <button
-              type="button"
-              className="w-full py-3 bg-white text-black rounded-md font-semibold text-lg transition cursor-not-allowed opacity-60"
-              disabled
-            >
-              SIGN IN
-            </button>
-          </form>
-          <div className="my-6 flex items-center justify-center">
-            <div className="border-t border-white/20 flex-1" />
-            <span className="mx-4 text-white/50 text-sm">or</span>
-            <div className="border-t border-white/20 flex-1" />
+      <main className="flex-1 flex items-center justify-center px-4">
+        <div className="w-full max-w-md">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold text-white mb-3 tracking-tight">
+              Welcome to SPLI
+            </h1>
+            <p className="text-lg text-white/70 leading-relaxed">
+              Sign in to access your aerospace licensing portal
+            </p>
           </div>
-          <button
-            onClick={handleMicrosoftSignIn}
-            className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-semibold text-lg transition mb-4"
-          >
-            Sign in with Microsoft
-          </button>
-          <p className="text-center text-white/60 mt-6">
-            Don't have an account?{' '}
-            <Link
-              href="https://calendly.com/harikesh-tambareni/spli-ai-demo?month=2025-06"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-400 hover:underline font-semibold"
+
+          {/* Sign In Card */}
+          <Card className="bg-white/5 backdrop-blur-sm border border-white/10 p-8 rounded-2xl shadow-2xl">
+            <div className="text-center mb-8">
+              <h2 className="text-2xl font-semibold text-white mb-2">
+                Sign In
+              </h2>
+              <p className="text-white/60">
+                Use your Microsoft account to continue
+              </p>
+            </div>
+
+            {/* Microsoft Sign In Button */}
+            <Button
+              onClick={handleMicrosoftSignIn}
+              disabled={isLoading}
+              className="w-full h-14 bg-white hover:bg-gray-100 text-gray-900 font-semibold text-lg rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl border-0 mb-6 group"
             >
-              Get Started
-            </Link>
-          </p>
+              {isLoading ? (
+                <div className="flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-900 mr-3"></div>
+                  Signing in...
+                </div>
+              ) : (
+                <div className="flex items-center justify-center">
+                  <svg className="w-6 h-6 mr-3" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M11.5 2.75h-8a.75.75 0 0 0-.75.75v16.5c0 .414.336.75.75.75h8a.75.75 0 0 0 .75-.75V3.5a.75.75 0 0 0-.75-.75Z"/>
+                    <path d="M15.5 2.75h-8a.75.75 0 0 0-.75.75v16.5c0 .414.336.75.75.75h8a.75.75 0 0 0 .75-.75V3.5a.75.75 0 0 0-.75-.75Z"/>
+                    <path d="M19.5 2.75h-8a.75.75 0 0 0-.75.75v16.5c0 .414.336.75.75.75h8a.75.75 0 0 0 .75-.75V3.5a.75.75 0 0 0-.75-.75Z"/>
+                  </svg>
+                  Continue with Microsoft
+                </div>
+              )}
+            </Button>
+
+            {/* Additional Info */}
+            <div className="text-center">
+              <p className="text-sm text-white/50 leading-relaxed">
+                By signing in, you agree to our{' '}
+                <a href="/terms-of-service" className="text-blue-400 hover:text-blue-300 transition-colors">
+                  Terms of Service
+                </a>{' '}
+                and{' '}
+                <a href="/privacy-policy" className="text-blue-400 hover:text-blue-300 transition-colors">
+                  Privacy Policy
+                </a>
+              </p>
+            </div>
+          </Card>
+
+          {/* Footer Info */}
+          <div className="text-center mt-8">
+            <p className="text-white/40 text-sm">
+              Need help?{' '}
+              <a 
+                href="https://calendly.com/harikesh-tambareni/spli-ai-demo?month=2025-06"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-400 hover:text-blue-300 transition-colors font-medium"
+              >
+                Schedule a demo
+              </a>
+            </p>
+          </div>
         </div>
       </main>
       <Footer />
