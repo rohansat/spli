@@ -304,12 +304,12 @@ export default function ApplicationPage() {
           <Alert
             className={
               saveMessageType === "success"
-                ? "mb-6 bg-green-500/20 border-green-500/30"
-                : "mb-6 bg-red-500/20 border-red-500/30"
+                ? "mb-6 bg-green-500/20 border-green-500/30 text-white"
+                : "mb-6 bg-red-500/20 border-red-500/30 text-white"
             }
           >
-            <AlertTitle>{saveMessageType === "success" ? "Success" : "Error"}</AlertTitle>
-            <AlertDescription>{saveMessage}</AlertDescription>
+            <AlertTitle className="text-white">{saveMessageType === "success" ? "Success" : "Error"}</AlertTitle>
+            <AlertDescription className="text-white">{saveMessage}</AlertDescription>
           </Alert>
         )}
 
