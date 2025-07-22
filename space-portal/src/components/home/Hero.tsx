@@ -12,8 +12,20 @@ export function Hero() {
         </h1>
       </div>
 
-      {/* Black background */}
-      <div className="absolute inset-0 bg-black z-0" />
+      {/* Video background */}
+      <div className="absolute inset-0 z-0">
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="w-full h-full object-cover"
+        >
+          <source src="/earthy.mp4" type="video/mp4" />
+        </video>
+        {/* Overlay to ensure text readability */}
+        <div className="absolute inset-0 bg-black/40" />
+      </div>
     </div>
   );
 }
