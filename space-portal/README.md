@@ -1,36 +1,57 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SPLI - Space Portal Licensing Interface
 
-## Getting Started
+A comprehensive web application for managing FAA Part 450 license applications with AI assistance.
 
-First, run the development server:
+## Features
+
+- **Part 450 Application Management**: Complete form handling for FAA license applications
+- **AI-Powered Assistance**: Intelligent form filling and analysis
+- **Document Management**: Upload and organize application documents
+- **Email Integration**: Send applications to FAA officials with PDF attachments
+- **Real-time Collaboration**: AI chat and form assistance
+
+## Email Configuration
+
+To enable real email sending functionality, you need to configure SendGrid:
+
+1. **Get SendGrid API Key**:
+   - Sign up at [SendGrid](https://sendgrid.com/)
+   - Create an API key in your SendGrid dashboard
+   - Copy the API key
+
+2. **Set Environment Variable**:
+   Create a `.env.local` file in the root directory and add:
+   ```
+   SENDGRID_API_KEY=your_sendgrid_api_key_here
+   ```
+
+3. **Verify Sender Email**:
+   - In SendGrid, verify your sender email address
+   - This will be the "from" address for emails
+
+**Note**: Without the SendGrid API key, the email functionality will work in simulation mode for development purposes.
+
+## Development
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Build
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run build
+npm start
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Technologies Used
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Next.js 14
+- React 18
+- TypeScript
+- Tailwind CSS
+- Firebase
+- SendGrid
+- Anthropic Claude AI
+- jsPDF for PDF generation

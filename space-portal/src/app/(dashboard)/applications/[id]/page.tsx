@@ -222,35 +222,43 @@ export default function ApplicationPage() {
   const handleSendMessage = async () => {
     setIsSendingMessage(true);
     try {
-      // Create application summary for attachment
-      const applicationSummary = Object.entries(formData)
-        .filter(([_, value]) => value && value.trim() !== '')
-        .map(([key, value]) => `${key}: ${value}`)
-        .join('\n\n');
-
-      // In a real implementation, you would:
-      // 1. Create a PDF of the application
-      // 2. Send the email with attachment via your backend
-      // 3. Store the message in your database
-      
-      // For now, we'll simulate the email sending
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Close the dialog and show success message
-      setIsComposeOpen(false);
-      setSaveMessage("Message sent to FAA successfully");
-      setSaveMessageType("success");
-      setTimeout(() => {
-        setSaveMessage("");
-        setSaveMessageType("");
-      }, 3000);
-      
-      // Reset compose form
-      setComposeMessage({
-        recipient: "recipient@faa.gov",
-        subject: "",
-        body: ""
+      // Call the email API endpoint
+      const response = await fetch('/api/email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          recipient: composeMessage.recipient,
+          subject: composeMessage.subject,
+          body: composeMessage.body,
+          applicationData: formData,
+          userEmail: user?.email || 'unknown@user.com',
+          applicationName: application?.name || 'Part 450 Application'
+        }),
       });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        // Close the dialog and show success message
+        setIsComposeOpen(false);
+        setSaveMessage(data.message || "Message sent to FAA successfully");
+        setSaveMessageType("success");
+        setTimeout(() => {
+          setSaveMessage("");
+          setSaveMessageType("");
+        }, 3000);
+        
+        // Reset compose form
+        setComposeMessage({
+          recipient: "recipient@faa.gov",
+          subject: "",
+          body: ""
+        });
+      } else {
+        throw new Error(data.error || 'Failed to send email');
+      }
     } catch (error) {
       console.error("Error sending message:", error);
       setSaveMessage("Failed to send message to FAA");
@@ -563,7 +571,12 @@ export default function ApplicationPage() {
                               </div>
                               <div className="flex items-center gap-2 text-sm text-white/60">
                                 <Paperclip className="h-4 w-4" />
-                                <span>Application will be attached automatically</span>
+                                <span>Application PDF will be attached automatically</span>
+                              </div>
+                              <div className="text-xs text-white/40 mt-2">
+                                <p>• Email will be sent from your account: {user?.email}</p>
+                                <p>• Application data will be included as a PDF attachment</p>
+                                <p>• Message will be formatted professionally for FAA officials</p>
                               </div>
                             </div>
                             <DialogFooter>
