@@ -36,7 +36,7 @@ interface FormField {
 export default function ApplicationPage() {
   const params = useParams();
   const router = useRouter();
-  const { getApplicationById, uploadDocument, applications } = useApplication();
+  const { getApplicationById, uploadDocument, applications, updateApplicationStatus } = useApplication();
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [activeTab, setActiveTab] = useState("section-0");
   const [isSaving, setIsSaving] = useState(false);
@@ -133,12 +133,8 @@ export default function ApplicationPage() {
   };
 
   const handleSubmit = () => {
-    setIsSubmitting(true);
-    // Simulate API call to submit application
-    setTimeout(() => {
-      setIsSubmitting(false);
-      router.push("/dashboard");
-    }, 1500);
+    // Open the compose message dialog instead of direct submission
+    setIsComposeOpen(true);
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -240,14 +236,19 @@ export default function ApplicationPage() {
       const data = await response.json();
 
       if (response.ok && data.success) {
+        // Update application status to "Pending Approval"
+        if (applicationId) {
+          await updateApplicationStatus(applicationId, "pending_approval");
+        }
+        
         // Close the dialog and show success message
         setIsComposeOpen(false);
-        setSaveMessage(data.message || "Message sent to FAA successfully");
+        setSaveMessage(data.message || "Application submitted successfully! Status updated to Pending Approval.");
         setSaveMessageType("success");
         setTimeout(() => {
           setSaveMessage("");
           setSaveMessageType("");
-        }, 3000);
+        }, 5000); // Show for longer since it's an important status change
         
         // Reset compose form
         setComposeMessage({
@@ -352,11 +353,11 @@ export default function ApplicationPage() {
             {/* Submit Application Button (unchanged) */}
             <Button
               onClick={handleSubmit}
-              disabled={isSubmitting || application.status === "approved"}
+              disabled={application.status === "approved"}
               className={`bg-gradient-to-r from-blue-500 to-purple-500 text-white flex items-center justify-center ${buttonSizeClass}`}
             >
-              <Send className="mr-2 h-4 w-4" />
-              {isSubmitting ? "Submitting..." : "Submit Application"}
+              <Mail className="mr-2 h-4 w-4" />
+              Submit Application
             </Button>
           </div>
         </div>
@@ -501,7 +502,7 @@ export default function ApplicationPage() {
 
                   {/* Ready for FAA button for Section 7 */}
                   {sectionIndex === 6 && (
-                    <div className="bg-gradient-to-r from-green-500/20 to-blue-500/20 p-6 rounded-xl border border-green-500/30">
+                    <div className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 p-6 rounded-xl border border-blue-500/30">
                       <div className="flex items-center justify-between">
                         <div>
                           <h3 className="text-xl font-bold text-white mb-2">Ready to Contact FAA?</h3>
@@ -511,7 +512,7 @@ export default function ApplicationPage() {
                         </div>
                         <Dialog open={isComposeOpen} onOpenChange={setIsComposeOpen}>
                           <DialogTrigger asChild>
-                            <Button className="bg-gradient-to-r from-green-500 to-blue-500 text-white hover:opacity-90 transition-opacity px-6 py-3">
+                            <Button className="bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:opacity-90 transition-opacity px-6 py-3">
                               <Mail className="mr-2 h-4 w-4" />
                               Ready for FAA
                             </Button>
@@ -679,7 +680,7 @@ export default function ApplicationPage() {
                       return;
                     }
                     handleSubmit();
-                    aiPanelRef.current?.addAIMsg("Application submitted. Redirecting to dashboard...");
+                    aiPanelRef.current?.addAIMsg("Opening email dialog to submit application to FAA officials.");
                     return;
                   }
                   

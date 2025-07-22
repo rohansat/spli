@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 import { Application, Document } from "@/types";
 import { useSession } from 'next-auth/react';
 import { db } from "@/lib/firebase";
-import { collection, addDoc, query, where, getDocs, deleteDoc, doc } from "firebase/firestore";
+import { collection, addDoc, query, where, getDocs, deleteDoc, doc, updateDoc } from "firebase/firestore";
 
 interface ApplicationContextType {
   applications: Application[];
@@ -16,6 +16,7 @@ interface ApplicationContextType {
   uploadDocument: (document: Omit<Document, "id" | "uploadedAt">) => Promise<Document>;
   removeDocument: (id: string) => void;
   removeApplication: (appId: string) => void;
+  updateApplicationStatus: (appId: string, status: Application["status"]) => Promise<void>;
   isLoading: boolean;
 }
 
@@ -186,6 +187,28 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const updateApplicationStatus = async (appId: string, status: Application["status"]) => {
+    if (!user) return;
+    
+    try {
+      // Update in Firestore
+      const appRef = doc(db, "applications", appId);
+      await updateDoc(appRef, {
+        status: status,
+        updatedAt: new Date().toISOString()
+      });
+
+      // Update local state
+      setApplications(prev => prev.map(app => 
+        app.id === appId 
+          ? { ...app, status: status, updatedAt: new Date().toISOString() }
+          : app
+      ));
+    } catch (error) {
+      console.error("Error updating application status in Firestore:", error);
+    }
+  };
+
   return (
     <ApplicationContext.Provider
       value={{
@@ -197,6 +220,7 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
         uploadDocument,
         removeDocument,
         removeApplication,
+        updateApplicationStatus,
         isLoading,
       }}
     >
