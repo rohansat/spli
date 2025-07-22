@@ -233,7 +233,6 @@ export default function ApplicationPage() {
           subject: composeMessage.subject,
           body: composeMessage.body,
           applicationData: formData,
-          userEmail: user?.email || 'unknown@user.com',
           applicationName: application?.name || 'Part 450 Application'
         }),
       });
@@ -574,9 +573,10 @@ export default function ApplicationPage() {
                                 <span>Application PDF will be attached automatically</span>
                               </div>
                               <div className="text-xs text-white/40 mt-2">
-                                <p>• Email will be sent from your account: {user?.email}</p>
+                                <p>• Email will be sent from your Outlook account: {user?.email}</p>
                                 <p>• Application data will be included as a PDF attachment</p>
                                 <p>• Message will be formatted professionally for FAA officials</p>
+                                <p>• Email will be saved to your Sent Items folder</p>
                               </div>
                             </div>
                             <DialogFooter>

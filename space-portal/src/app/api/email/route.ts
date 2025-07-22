@@ -1,19 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
-import sgMail from '@sendgrid/mail';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '../auth/[...nextauth]/route';
 import { generatePDFBlob } from '@/lib/pdf-generator';
-
-// Initialize SendGrid with API key
-const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
-if (SENDGRID_API_KEY) {
-  sgMail.setApiKey(SENDGRID_API_KEY);
-}
 
 export async function POST(request: NextRequest) {
   try {
-    const { recipient, subject, body, applicationData, userEmail, applicationName } = await request.json();
+    // Get the user's session to access their access token
+    const session = await getServerSession(authOptions);
+    
+    if (!session?.accessToken) {
+      return NextResponse.json(
+        { error: 'User not authenticated or no access token available' },
+        { status: 401 }
+      );
+    }
+
+    const { recipient, subject, body, applicationData, applicationName } = await request.json();
 
     // Validate required fields
-    if (!recipient || !subject || !body || !applicationData || !userEmail) {
+    if (!recipient || !subject || !body || !applicationData) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
@@ -26,6 +31,11 @@ export async function POST(request: NextRequest) {
       .map(([key, value]) => `${key}: ${value}`)
       .join('\n\n');
 
+    // Generate PDF attachment
+    const pdfBlob = generatePDFBlob(applicationData as Record<string, string>, applicationName || 'Part 450 Application');
+    const pdfBuffer = await pdfBlob.arrayBuffer();
+    const pdfBase64 = Buffer.from(pdfBuffer).toString('base64');
+
     // Create email content
     const emailContent = `
 ${body}
@@ -36,77 +46,71 @@ ${applicationSummary}
 
 ---
 Sent from SPLI Application System
-User: ${userEmail}
     `.trim();
 
-    // Generate PDF attachment
-    const pdfBlob = generatePDFBlob(applicationData as Record<string, string>, applicationName || 'Part 450 Application');
-    const pdfBuffer = await pdfBlob.arrayBuffer();
-    const pdfBase64 = Buffer.from(pdfBuffer).toString('base64');
-
-    // Prepare email
-    const msg = {
-      to: recipient,
-      from: userEmail, // Send from user's email
-      subject: subject,
-      text: emailContent,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-            <h2 style="color: #333; margin-top: 0;">FAA Application Submission</h2>
-            <p style="color: #666; line-height: 1.6;">${body.replace(/\n/g, '<br>')}</p>
-          </div>
-          
-          <div style="background: #e9ecef; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-            <h3 style="color: #495057; margin-top: 0;">Application Summary</h3>
-            <div style="background: white; padding: 15px; border-radius: 4px; font-family: monospace; font-size: 14px; line-height: 1.4;">
-              ${applicationSummary.replace(/\n/g, '<br>')}
+    // Prepare email for Microsoft Graph API
+    const emailData = {
+      message: {
+        subject: subject,
+        body: {
+          contentType: 'HTML',
+          content: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                <h2 style="color: #333; margin-top: 0;">FAA Application Submission</h2>
+                <p style="color: #666; line-height: 1.6;">${body.replace(/\n/g, '<br>')}</p>
+              </div>
+              
+              <div style="background: #e9ecef; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                <h3 style="color: #495057; margin-top: 0;">Application Summary</h3>
+                <div style="background: white; padding: 15px; border-radius: 4px; font-family: monospace; font-size: 14px; line-height: 1.4;">
+                  ${applicationSummary.replace(/\n/g, '<br>')}
+                </div>
+              </div>
+              
+              <div style="text-align: center; color: #6c757d; font-size: 12px; border-top: 1px solid #dee2e6; padding-top: 20px;">
+                <p>Sent from SPLI Application System</p>
+              </div>
             </div>
-          </div>
-          
-          <div style="text-align: center; color: #6c757d; font-size: 12px; border-top: 1px solid #dee2e6; padding-top: 20px;">
-            <p>Sent from SPLI Application System</p>
-            <p>User: ${userEmail}</p>
-          </div>
-        </div>
-      `,
-      attachments: [
-        {
-          content: pdfBase64,
-          filename: `${applicationName || 'Part_450_Application'}.pdf`,
-          type: 'application/pdf',
-          disposition: 'attachment'
-        }
-      ]
+          `
+        },
+        toRecipients: [
+          {
+            emailAddress: {
+              address: recipient
+            }
+          }
+        ],
+        attachments: [
+          {
+            '@odata.type': '#microsoft.graph.fileAttachment',
+            name: `${applicationName || 'Part_450_Application'}.pdf`,
+            contentType: 'application/pdf',
+            contentBytes: pdfBase64
+          }
+        ]
+      },
+      saveToSentItems: true
     };
 
-    // Send email
-    if (!SENDGRID_API_KEY) {
-      // Fallback for development - simulate sending
-      console.log('SendGrid API key not configured. Simulating email send:', {
-        to: recipient,
-        from: userEmail,
-        subject: subject,
-        body: emailContent
-      });
-      
-      // Simulate delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      return NextResponse.json(
-        { 
-          success: true, 
-          message: 'Email sent successfully (simulated)',
-          note: 'SendGrid API key not configured - email was simulated'
-        },
-        { status: 200 }
-      );
+    // Send email using Microsoft Graph API
+    const response = await fetch('https://graph.microsoft.com/v1.0/me/sendMail', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${session.accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(emailData)
+    });
+
+    if (!response.ok) {
+      const errorData = await response.text();
+      console.error('Microsoft Graph API error:', errorData);
+      throw new Error(`Failed to send email: ${response.status} ${response.statusText}`);
     }
 
-    await sgMail.send(msg);
-
     return NextResponse.json(
-      { success: true, message: 'Email sent successfully' },
+      { success: true, message: 'Email sent successfully from your Outlook account' },
       { status: 200 }
     );
 

@@ -12,24 +12,29 @@ A comprehensive web application for managing FAA Part 450 license applications w
 
 ## Email Configuration
 
-To enable real email sending functionality, you need to configure SendGrid:
+The application uses Azure AD authentication with Microsoft Graph API for email functionality. Users can send emails directly from their Outlook accounts without any additional configuration.
 
-1. **Get SendGrid API Key**:
-   - Sign up at [SendGrid](https://sendgrid.com/)
-   - Create an API key in your SendGrid dashboard
-   - Copy the API key
+### Azure AD Setup:
+1. **Azure AD App Registration**:
+   - Create an app registration in Azure AD
+   - Configure redirect URIs for your domain
+   - Set required permissions: `Mail.Read`, `Mail.Send`, `User.Read`
 
-2. **Set Environment Variable**:
+2. **Environment Variables**:
    Create a `.env.local` file in the root directory and add:
    ```
-   SENDGRID_API_KEY=your_sendgrid_api_key_here
+   AZURE_AD_CLIENT_ID=your_azure_ad_client_id
+   AZURE_AD_CLIENT_SECRET=your_azure_ad_client_secret
+   NEXTAUTH_SECRET=your_nextauth_secret
+   NEXTAUTH_URL=https://your-domain.com
    ```
 
-3. **Verify Sender Email**:
-   - In SendGrid, verify your sender email address
-   - This will be the "from" address for emails
-
-**Note**: Without the SendGrid API key, the email functionality will work in simulation mode for development purposes.
+### How Email Works:
+- Users sign in with their Outlook accounts
+- Emails are sent directly from their authenticated Outlook account
+- No manual email verification required
+- PDF attachments are automatically generated and included
+- Emails are saved to the user's Sent Items folder
 
 ## Development
 
