@@ -1006,5 +1006,4 @@ export default function ApplicationPage() {
         </div>
       </Tabs>
     </div>
-  );
 }
