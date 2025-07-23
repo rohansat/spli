@@ -398,7 +398,7 @@ export default function ApplicationPage() {
                     value={`section-${index}`}
                     className="relative flex items-start gap-4 w-full bg-transparent hover:bg-zinc-900/50
                       data-[state=active]:bg-zinc-900 data-[state=active]:text-white
-                      px-4 py-4 text-white/70 justify-start text-left rounded-lg
+                      px-4 py-5 text-white/70 justify-start text-left rounded-lg
                       hover:text-white transition-all duration-200 border border-transparent
                       data-[state=active]:border-white/10"
                   >
@@ -409,7 +409,7 @@ export default function ApplicationPage() {
                         <span className="text-sm font-medium">{index + 1}</span>
                       </div>
                       <div className="flex flex-col min-w-0 flex-1">
-                        <span className="font-medium text-sm leading-tight break-words">{section.title}</span>
+                        <span className="font-medium text-sm leading-relaxed break-words whitespace-normal">{section.title}</span>
                         <span className="text-xs text-white/50 mt-1">Section {index + 1} of {part450FormTemplate.sections.length}</span>
                       </div>
                     </div>
