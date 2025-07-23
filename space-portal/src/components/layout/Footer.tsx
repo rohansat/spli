@@ -4,8 +4,8 @@ export function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="py-8 bg-black border-t border-white/10 text-white/60">
-      <div className="space-container">
+    <footer className="relative py-8 bg-black border-t border-white/10 text-white/60 overflow-hidden transition-all duration-1000 ease-in-out transform">
+      <div className="relative z-10 space-container">
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div className="mb-4 md:mb-0">
             <p>SPLI © {currentYear}</p>

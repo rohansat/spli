@@ -25,6 +25,7 @@ import { Rnd } from "react-rnd";
 import type { DraggableData, DraggableEvent } from 'react-draggable';
 import { AIFormChat } from '@/components/ui/ai-form-chat';
 import { mockAIAnalysis } from '@/lib/ai-service';
+import { ComplianceDashboard } from '@/components/ui/compliance-dashboard';
 
 interface FormField {
   name: string;
@@ -412,8 +413,9 @@ export default function ApplicationPage() {
             <p className="text-white/60 mt-2">Complete all sections of the pre application form to schedule your consultation with the FAA</p>
           </div>
           
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex gap-10 mt-8 items-start">
-            <div className="w-[300px] mt-20">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex gap-6 mt-8 items-start">
+            {/* Left Sidebar - Section Navigation */}
+            <div className="w-[280px] mt-20">
               <TabsList className="flex flex-col w-full min-h-[500px] gap-4 bg-black">
                 {part450FormTemplate.sections.map((section, index) => (
                   <TabsTrigger
@@ -455,7 +457,7 @@ export default function ApplicationPage() {
               </TabsList>
             </div>
 
-            <div className="flex-1 min-w-0 pr-4">
+            <div className="flex-1 min-w-0">
               {part450FormTemplate.sections.map((section, sectionIndex) => (
                 <TabsContent
                   key={`section-content-${sectionIndex}`}
@@ -939,6 +941,69 @@ export default function ApplicationPage() {
                 hideTabs={true}
               />
             </div>
+          </div>
+        </div>
+
+        {/* Right Sidebar - Compliance Dashboard */}
+        <div className="w-[350px] mt-20 ml-6">
+          <div className="sticky top-6">
+            <ComplianceDashboard 
+              formData={formData}
+              onIssueClick={(fieldName) => {
+                // Find the section containing this field and switch to it
+                const fieldMapping: Record<string, string> = {
+                  'missionObjective': 'mission objective',
+                  'vehicleDescription': 'vehicle description',
+                  'launchReentrySequence': 'launch reentry sequence',
+                  'trajectoryOverview': 'trajectory overview',
+                  'safetyConsiderations': 'safety considerations',
+                  'groundOperations': 'ground operations',
+                  'technicalSummary': 'technical summary',
+                  'dimensionsMassStages': 'dimensions mass stages',
+                  'propulsionTypes': 'propulsion types',
+                  'recoverySystems': 'recovery systems',
+                  'groundSupportEquipment': 'ground support equipment',
+                  'siteNamesCoordinates': 'site names coordinates',
+                  'siteOperator': 'site operator',
+                  'airspaceMaritimeNotes': 'airspace maritime notes',
+                  'launchSite': 'launch site',
+                  'launchWindow': 'launch window',
+                  'flightPath': 'flight path',
+                  'landingSite': 'landing site',
+                  'earlyRiskAssessments': 'early risk assessments',
+                  'publicSafetyChallenges': 'public safety challenges',
+                  'plannedSafetyTools': 'planned safety tools',
+                  'fullApplicationTimeline': 'full application timeline',
+                  'intendedWindow': 'intended window',
+                  'licenseTypeIntent': 'license type intent',
+                  'clarifyPart450': 'clarify part450',
+                  'uniqueTechInternational': 'unique tech international'
+                };
+
+                const fieldLabel = fieldMapping[fieldName];
+                if (fieldLabel) {
+                  // Find which section contains this field
+                  const sectionIndex = part450FormTemplate.sections.findIndex(section =>
+                    section.fields.some(field => 
+                      field.name === fieldName || 
+                      field.label.toLowerCase().includes(fieldLabel.toLowerCase())
+                    )
+                  );
+                  
+                  if (sectionIndex !== -1) {
+                    setActiveTab(`section-${sectionIndex}`);
+                    // Scroll to the field
+                    setTimeout(() => {
+                      const fieldElement = document.querySelector(`[name="${fieldName}"]`) as HTMLElement;
+                      if (fieldElement) {
+                        fieldElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        fieldElement.focus();
+                      }
+                    }, 100);
+                  }
+                }
+              }}
+            />
           </div>
         </div>
       )}
