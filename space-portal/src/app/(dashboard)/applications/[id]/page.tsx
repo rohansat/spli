@@ -188,7 +188,6 @@ export default function ApplicationPage() {
             placeholder={field.label}
             rows={4}
             className="bg-white/10 border-white/20 text-white max-h-[300px] overflow-y-auto"
-            autoResize={true}
           />
         );
       case "select":
@@ -568,7 +567,6 @@ export default function ApplicationPage() {
                                   placeholder="Type your message here"
                                   rows={8}
                                   className="bg-white/10 border-white/20 text-white"
-                                  autoResize={true}
                                 />
                               </div>
                               <div className="flex items-center gap-2 text-sm text-white/60">
@@ -1006,7 +1004,7 @@ export default function ApplicationPage() {
             />
           </div>
         </div>
-      )}
+      </Tabs>
     </div>
   );
 }
