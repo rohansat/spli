@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useApplication } from "@/components/providers/ApplicationProvider";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -17,15 +16,9 @@ import { db } from "@/lib/firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { useSession } from 'next-auth/react';
 import { AICursor } from "@/components/ui/ai-cursor";
-import { AICursorButton } from "@/components/ui/ai-cursor-button";
 import { AIAssistantPanel, AIAssistantPanelHandle } from "@/components/ui/AIAssistantPanel";
-import React, { useRef } from "react";
 import type { Document } from "@/types";
-import { Rnd } from "react-rnd";
-import type { DraggableData, DraggableEvent } from 'react-draggable';
-import { AIFormChat } from '@/components/ui/ai-form-chat';
-import { mockAIAnalysis } from '@/lib/ai-service';
-import { ComplianceDashboard } from '@/components/ui/compliance-dashboard';
+// import { ComplianceDashboard } from '@/components/ui/compliance-dashboard';
 
 interface FormField {
   name: string;
@@ -37,7 +30,7 @@ interface FormField {
 export default function ApplicationPage() {
   const params = useParams();
   const router = useRouter();
-  const { getApplicationById, uploadDocument, applications, updateApplicationStatus } = useApplication();
+  const { getApplicationById, uploadDocument, updateApplicationStatus } = useApplication();
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [activeTab, setActiveTab] = useState("section-0");
   const [isSaving, setIsSaving] = useState(false);
@@ -53,7 +46,6 @@ export default function ApplicationPage() {
   const [showFloatingChat, setShowFloatingChat] = useState(false);
   const [chatWidth, setChatWidth] = useState(400);
   const [chatHeight, setChatHeight] = useState(600);
-  const [aiChatTab, setAiChatTab] = useState<'assistant' | 'form'>('assistant');
   
   // Compose message state
   const [isComposeOpen, setIsComposeOpen] = useState(false);
@@ -90,7 +82,6 @@ export default function ApplicationPage() {
       }
     };
     fetchFormData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [applicationId, user?.email]);
 
   if (!application) {
@@ -134,7 +125,6 @@ export default function ApplicationPage() {
   };
 
   const handleSubmit = () => {
-    // Open the compose message dialog instead of direct submission
     setIsComposeOpen(true);
   };
 
@@ -188,7 +178,6 @@ export default function ApplicationPage() {
             placeholder={field.label}
             rows={4}
             className="bg-white/10 border-white/20 text-white max-h-[300px] overflow-y-auto"
-            autoResize={true}
           />
         );
       case "select":
@@ -212,14 +201,11 @@ export default function ApplicationPage() {
     }
   };
 
-  // Add a helper for compact button style
   const buttonSizeClass = showFloatingChat ? 'h-8 px-3 text-sm' : 'h-10 px-6 text-base';
 
-  // Handle sending message to FAA
   const handleSendMessage = async () => {
     setIsSendingMessage(true);
     try {
-      // Call the email API endpoint
       const response = await fetch('/api/email', {
         method: 'POST',
         headers: {
@@ -237,21 +223,18 @@ export default function ApplicationPage() {
       const data = await response.json();
 
       if (response.ok && data.success) {
-        // Update application status to "Pending Approval"
         if (applicationId) {
           await updateApplicationStatus(applicationId, "pending_approval");
         }
         
-        // Close the dialog and show success message
         setIsComposeOpen(false);
         setSaveMessage(data.message || "Application submitted successfully! Status updated to Pending Approval.");
         setSaveMessageType("success");
         setTimeout(() => {
           setSaveMessage("");
           setSaveMessageType("");
-        }, 5000); // Show for longer since it's an important status change
+        }, 5000);
         
-        // Reset compose form
         setComposeMessage({
           recipient: "recipient@faa.gov",
           subject: "",
@@ -275,9 +258,7 @@ export default function ApplicationPage() {
 
   return (
     <div className="relative max-w-[1400px] mx-auto bg-black py-8 min-h-[80vh] flex flex-row gap-6">
-      {/* Form area expands when chat is closed, shrinks when open */}
-      <div style={{ flex: showFloatingChat ? `0 1 calc(100% - ${chatWidth + 32}px)` : '1 1 100%' }} className="min-w-0 transition-all duration-300">
-        {/* Existing form content starts here */}
+      <div style={{ flex: showFloatingChat ? '0 1 calc(100% - 432px)' : '1 1 100%' }} className="min-w-0 transition-all duration-300">
         <div className="mb-8">
           <Link href="/dashboard" className="flex items-center text-white/70 hover:text-white transition-colors">
             <ChevronLeft className="mr-1 h-4 w-4" />
@@ -309,9 +290,7 @@ export default function ApplicationPage() {
             </div>
           </div>
 
-          {/* Button Row: AI Mode, Upload Documents, Save Draft, Submit Application */}
           <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4 mt-4 md:mt-0">
-            {/* AI Mode Button */}
             <Button
               variant="outline"
               onClick={() => setShowFloatingChat(true)}
@@ -321,7 +300,6 @@ export default function ApplicationPage() {
               AI Mode
             </Button>
 
-            {/* Upload Documents Button */}
             <div className="relative">
               <input
                 type="file"
@@ -340,7 +318,6 @@ export default function ApplicationPage() {
               </label>
             </div>
 
-            {/* Save Draft Button */}
             <Button
               variant="outline"
               onClick={handleSave}
@@ -351,7 +328,6 @@ export default function ApplicationPage() {
               {isSaving ? "Saving..." : "Save Draft"}
             </Button>
 
-            {/* Submit Application Button (unchanged) */}
             <Button
               onClick={handleSubmit}
               disabled={application.status === "approved"}
@@ -414,7 +390,6 @@ export default function ApplicationPage() {
           </div>
           
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex gap-6 mt-8 items-start">
-            {/* Left Sidebar - Section Navigation */}
             <div className="w-[280px] mt-20">
               <TabsList className="flex flex-col w-full min-h-[500px] gap-4 bg-black">
                 {part450FormTemplate.sections.map((section, index) => (
@@ -432,23 +407,9 @@ export default function ApplicationPage() {
                         data-[state=active]:bg-gradient-to-r from-blue-500 to-purple-500"
                         data-state={activeTab === `section-${index}` ? 'active' : ''}>
                         <span className="text-sm font-medium">{index + 1}</span>
-                        </div>
+                      </div>
                       <div className="flex flex-col">
-                        <span className="font-medium">
-                          {section.title === "Preliminary Risk or Safety Considerations"
-                            ? (<>
-                                Preliminary Risk or Safety<br />Considerations
-                              </>)
-                          : section.title === "Planned Launch/Reentry Location(s)"
-                            ? (<>
-                                Planned Launch/Reentry<br />Location(s)
-                              </>)
-                          : section.title === "Concept of Operations (CONOPS)"
-                            ? (<>
-                                Concept of Operations<br />(CONOPS)
-                              </>)
-                            : section.title}
-                        </span>
+                        <span className="font-medium">{section.title}</span>
                         <span className="text-sm text-white/50">Section {index + 1} of {part450FormTemplate.sections.length}</span>
                       </div>
                     </div>
@@ -466,19 +427,7 @@ export default function ApplicationPage() {
                 >
                   <div className="space-y-3">
                     <h2 className="text-3xl font-bold text-white bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
-                      {section.title === "Preliminary Risk or Safety Considerations"
-                        ? (<>
-                            Preliminary Risk or Safety<br />Considerations
-                          </>)
-                        : section.title === "Planned Launch/Reentry Location(s)"
-                          ? (<>
-                              Planned Launch/Reentry<br />Location(s)
-                            </>)
-                          : section.title === "Concept of Operations (CONOPS)"
-                            ? (<>
-                                Concept of Operations<br />(CONOPS)
-                              </>)
-                            : section.title}
+                      {section.title}
                     </h2>
                     <p className="text-white/60 text-lg">
                       Complete the {section.title.toLowerCase()} details
@@ -502,7 +451,6 @@ export default function ApplicationPage() {
                     ))}
                   </div>
 
-                  {/* Ready for FAA button for Section 7 */}
                   {sectionIndex === 6 && (
                     <div className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 p-6 rounded-xl border border-blue-500/30">
                       <div className="flex items-center justify-between">
@@ -568,18 +516,11 @@ export default function ApplicationPage() {
                                   placeholder="Type your message here"
                                   rows={8}
                                   className="bg-white/10 border-white/20 text-white"
-                                  autoResize={true}
                                 />
                               </div>
                               <div className="flex items-center gap-2 text-sm text-white/60">
                                 <Paperclip className="h-4 w-4" />
                                 <span>Application PDF will be attached automatically</span>
-                              </div>
-                              <div className="text-xs text-white/40 mt-2">
-                                <p>• Email will be sent from your Outlook account: {user?.email}</p>
-                                <p>• Application data will be included as a PDF attachment</p>
-                                <p>• Message will be formatted professionally for FAA officials</p>
-                                <p>• Email will be saved to your Sent Items folder</p>
                               </div>
                             </div>
                             <DialogFooter>
@@ -604,33 +545,14 @@ export default function ApplicationPage() {
                       </div>
                     </div>
                   )}
-
-                  <div className="flex justify-between pt-8">
-                    {sectionIndex > 0 && (
-                      <Button
-                        variant="outline"
-                        className="border-white/10 text-white hover:bg-white/5 transition-colors px-6"
-                        onClick={() => setActiveTab(`section-${sectionIndex - 1}`)}
-                      >
-                        Previous Section
-                      </Button>
-                    )}
-                    {sectionIndex < part450FormTemplate.sections.length - 1 && (
-                      <Button
-                        className="bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:opacity-90 transition-opacity ml-auto px-6"
-                        onClick={() => setActiveTab(`section-${sectionIndex + 1}`)}
-                      >
-                        Next Section
-                      </Button>
-                    )}
-                  </div>
                 </TabsContent>
               ))}
             </div>
           </Tabs>
+
+
         </div>
 
-        {/* AI Cursor Modal */}
         <AICursor
           isVisible={showAICursor}
           onClose={() => setShowAICursor(false)}
@@ -638,12 +560,12 @@ export default function ApplicationPage() {
           formFields={getAllFormFields()}
         />
       </div>
+
       {showFloatingChat && (
         <div
           className="fixed top-24 right-10 z-50 w-[420px] max-w-full h-[600px] max-h-[80vh] flex flex-col shadow-2xl rounded-2xl bg-zinc-900 border border-zinc-800"
           style={{ borderRadius: '1rem', overflow: 'hidden' }}
         >
-          {/* Chat content goes here (header, toggle, chat area, input) */}
           <div className="w-full h-full flex flex-col overflow-hidden">
             <div className="flex items-center justify-between p-3 border-b border-zinc-800 bg-zinc-900 rounded-t-2xl cursor-move">
               <span className="font-semibold text-white text-lg flex items-center gap-2">
@@ -658,14 +580,11 @@ export default function ApplicationPage() {
                 ×
               </button>
             </div>
-            {/* Unified SPLI Chat - No tabs needed */}
             <div className="flex-1 min-h-0 flex flex-col">
               <AIAssistantPanel
                 ref={aiPanelRef}
                 onCommand={async (cmd) => {
                   const lower = cmd.trim().toLowerCase();
-                  console.log('Processing command:', cmd);
-                  console.log('Lowercase command:', lower);
                   
                   if (lower === "save draft") {
                     if (application?.status === "approved") {
@@ -686,240 +605,6 @@ export default function ApplicationPage() {
                     return;
                   }
                   
-                  // Replace section command: e.g., replace mission objective with Launch satellite
-                  const replaceMatch = lower.match(/^replace (.+) with (.+)$/);
-                  if (replaceMatch) {
-                    const fieldName = replaceMatch[1].toLowerCase().replace(/\s+/g, '');
-                    const newValue = replaceMatch[2];
-                    
-                    const fieldMapping: Record<string, string> = {
-                      'missionobjective': 'missionObjective',
-                      'vehicledescription': 'vehicleDescription',
-                      'launchreentrysequence': 'launchReentrySequence',
-                      'trajectoryoverview': 'trajectoryOverview',
-                      'safetyconsiderations': 'safetyConsiderations',
-                      'groundoperations': 'groundOperations',
-                      'technicalsummary': 'technicalSummary',
-                      'dimensionsmassstages': 'dimensionsMassStages',
-                      'propulsiontypes': 'propulsionTypes',
-                      'recoverysystems': 'recoverySystems',
-                      'groundsupportequipment': 'groundSupportEquipment',
-                      'sitenamescoordinates': 'siteNamesCoordinates',
-                      'siteoperator': 'siteOperator',
-                      'airspacemaritimenotes': 'airspaceMaritimeNotes',
-                      'launchsite': 'launchSite',
-                      'launchwindow': 'launchWindow',
-                      'flightpath': 'flightPath',
-                      'landingsite': 'landingSite',
-                      'earlyriskassessments': 'earlyRiskAssessments',
-                      'publicsafetychallenges': 'publicSafetyChallenges',
-                      'plannedsafetytools': 'plannedSafetyTools',
-                      'fullapplicationtimeline': 'fullApplicationTimeline',
-                      'intendedwindow': 'intendedWindow',
-                      'licensetypeintent': 'licenseTypeIntent',
-                      'clarifypart450': 'clarifyPart450',
-                      'uniquetechinternational': 'uniqueTechInternational'
-                    };
-                    
-                    const actualFieldName = fieldMapping[fieldName];
-                    console.log('Actual field name:', actualFieldName);
-                    
-                    if (actualFieldName) {
-                      console.log('Updating form data for field:', actualFieldName, 'with value:', newValue);
-                      setFormData((prev) => {
-                        const updated = { ...prev, [actualFieldName]: newValue };
-                        console.log('Updated form data:', updated);
-                        return updated;
-                      });
-                      aiPanelRef.current?.addAIMsg(`I've replaced the ${replaceMatch[1]} section with: "${newValue}"`);
-                      return;
-                    } else {
-                      aiPanelRef.current?.addAIMsg(`Field "${replaceMatch[1]}" not found. Available fields: ${Object.keys(fieldMapping).join(', ')}`);
-                      return;
-                    }
-                  }
-                  
-                  // Fill section command: e.g., fill section 2 with Launch details
-                  const fillMatch = lower.match(/^fill section (\d+) with (.+)$/);
-                  if (fillMatch) {
-                    const sectionIdx = parseInt(fillMatch[1], 10) - 1;
-                    const fillText = fillMatch[2];
-                    const section = part450FormTemplate.sections[sectionIdx];
-                    if (!section) {
-                      aiPanelRef.current?.addAIMsg(`Section ${fillMatch[1]} does not exist.`);
-                      return;
-                    }
-                    // Fill all text/textarea fields in the section with the provided text
-                    const updates: Record<string, string> = {};
-                    section.fields.forEach((field: any) => {
-                      if (["text", "textarea"].includes(field.type)) {
-                        updates[field.name] = fillText;
-                      }
-                    });
-                    setFormData((prev) => ({ ...prev, ...updates }));
-                    aiPanelRef.current?.addAIMsg(`Section ${fillMatch[1]} filled with: \"${fillText}\"`);
-                    return;
-                  }
-                  // Check if this is a replacement request that wasn't caught by the regex patterns
-                  if ((lower.includes("replace") || lower.includes("update") || lower.includes("change")) && 
-                      (lower.includes("with") || lower.includes("to"))) {
-                    // Try to extract field name and value from the command
-                    const fieldNames = [
-                      'mission objective', 'vehicle description', 'launch reentry sequence', 'trajectory overview',
-                      'safety considerations', 'ground operations', 'technical summary', 'dimensions mass stages',
-                      'propulsion types', 'recovery systems', 'ground support equipment', 'site names coordinates',
-                      'site operator', 'airspace maritime notes', 'launch site', 'launch window', 'flight path',
-                      'landing site', 'early risk assessments', 'public safety challenges', 'planned safety tools',
-                      'full application timeline', 'intended window', 'license type intent', 'clarify part450',
-                      'unique tech international'
-                    ];
-                    
-                    let foundField = null;
-                    let newValue = null;
-                    
-                    for (const field of fieldNames) {
-                      if (lower.includes(field)) {
-                        foundField = field;
-                        // Try to extract the new value after "with" or "to"
-                        const withMatch = lower.match(new RegExp(`${field.replace(/\s+/g, '\\s+')}.*?(?:with|to)\\s+(.+)$`));
-                        if (withMatch) {
-                          newValue = withMatch[1].trim();
-                          break;
-                        }
-                      }
-                    }
-                    
-                    if (foundField && newValue) {
-                      const fieldMapping: Record<string, string> = {
-                        'mission objective': 'missionObjective',
-                        'vehicle description': 'vehicleDescription',
-                        'launch reentry sequence': 'launchReentrySequence',
-                        'trajectory overview': 'trajectoryOverview',
-                        'safety considerations': 'safetyConsiderations',
-                        'ground operations': 'groundOperations',
-                        'technical summary': 'technicalSummary',
-                        'dimensions mass stages': 'dimensionsMassStages',
-                        'propulsion types': 'propulsionTypes',
-                        'recovery systems': 'recoverySystems',
-                        'ground support equipment': 'groundSupportEquipment',
-                        'site names coordinates': 'siteNamesCoordinates',
-                        'site operator': 'siteOperator',
-                        'airspace maritime notes': 'airspaceMaritimeNotes',
-                        'launch site': 'launchSite',
-                        'launch window': 'launchWindow',
-                        'flight path': 'flightPath',
-                        'landing site': 'landingSite',
-                        'early risk assessments': 'earlyRiskAssessments',
-                        'public safety challenges': 'publicSafetyChallenges',
-                        'planned safety tools': 'plannedSafetyTools',
-                        'full application timeline': 'fullApplicationTimeline',
-                        'intended window': 'intendedWindow',
-                        'license type intent': 'licenseTypeIntent',
-                        'clarify part450': 'clarifyPart450',
-                        'unique tech international': 'uniqueTechInternational'
-                      };
-                      
-                      const actualFieldName = fieldMapping[foundField];
-                      if (actualFieldName) {
-                        setFormData((prev) => ({ ...prev, [actualFieldName]: newValue }));
-                        aiPanelRef.current?.addAIMsg(`I've replaced the ${foundField} section with: "${newValue}"`);
-                        return;
-                      }
-                    }
-                  }
-                  
-                  // Auto-fill form based on mission summary
-                  if (lower.includes("auto fill") || lower.includes("autofill") || lower.includes("fill form") || 
-                      lower.includes("analyze and fill") || lower.includes("fill application")) {
-                    try {
-                      const response = await fetch('/api/ai', {
-                        method: 'POST',
-                        headers: {
-                          'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                          userInput: cmd,
-                          context: `Available form fields: ${getAllFormFields().map(f => f.name).join(', ')}`,
-                          mode: 'form',
-                          conversationHistory: []
-                        }),
-                      });
-                      if (response.ok) {
-                        const data = await response.json();
-                        if (data.suggestions && data.suggestions.length > 0) {
-                          // Apply suggestions to form
-                          const formUpdates: Record<string, string> = {};
-                          data.suggestions.forEach((suggestion: any) => {
-                            formUpdates[suggestion.field] = suggestion.value;
-                          });
-                          setFormData((prev) => ({ ...prev, ...formUpdates }));
-                          
-                          // Show summary of what was filled
-                          const filledFields = data.suggestions.map((s: any) => s.field).join(', ');
-                          aiPanelRef.current?.addAIMsg(`I've automatically filled the following sections based on your mission description: ${filledFields}. The form has been updated with relevant information.`);
-                        } else {
-                          aiPanelRef.current?.addAIMsg("I couldn't extract enough information to auto-fill the form. Please provide more details about your mission, vehicle, and operations.");
-                        }
-                      }
-                    } catch (error) {
-                      console.error('Auto-fill error:', error);
-                      aiPanelRef.current?.addAIMsg("Sorry, I encountered an error while trying to auto-fill the form. Please try again.");
-                    }
-                    return;
-                  }
-                  
-                  // Auto-detect comprehensive mission descriptions and offer to fill form
-                  const missionKeywords = ['launch', 'satellite', 'rocket', 'mission', 'vehicle', 'orbit', 'trajectory', 'safety', 'ground operations'];
-                  const hasMissionDescription = missionKeywords.some(keyword => lower.includes(keyword));
-                  const isLongDescription = cmd.length > 100; // If it's a substantial description
-                  
-                  if (hasMissionDescription && isLongDescription && !lower.includes("replace") && !lower.includes("update") && !lower.includes("change")) {
-                    try {
-                      const response = await fetch('/api/ai', {
-                        method: 'POST',
-                        headers: {
-                          'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                          userInput: cmd,
-                          context: `Available form fields: ${getAllFormFields().map(f => f.name).join(', ')}`,
-                          mode: 'form',
-                          conversationHistory: []
-                        }),
-                      });
-                      if (response.ok) {
-                        const data = await response.json();
-                        if (data.suggestions && data.suggestions.length > 0) {
-                          // Apply suggestions to form
-                          const formUpdates: Record<string, string> = {};
-                          data.suggestions.forEach((suggestion: any) => {
-                            formUpdates[suggestion.field] = suggestion.value;
-                          });
-                          setFormData((prev) => ({ ...prev, ...formUpdates }));
-                          
-                          // Show summary of what was filled
-                          const filledFields = data.suggestions.map((s: any) => s.field).join(', ');
-                          aiPanelRef.current?.addAIMsg(`I've automatically filled the following sections based on your mission description: ${filledFields}. The form has been updated with relevant information.`);
-                        } else {
-                          aiPanelRef.current?.addAIMsg("I analyzed your mission description but couldn't extract enough information to auto-fill the form. Please provide more details about your mission, vehicle, and operations.");
-                        }
-                      }
-                    } catch (error) {
-                      console.error('Auto-fill error:', error);
-                      aiPanelRef.current?.addAIMsg("Sorry, I encountered an error while trying to auto-fill the form. Please try again.");
-                    }
-                    return;
-                  }
-                  
-                  // For form analysis, suggestions, and help requests, use the AI service
-                  // Only trigger if it's not a replacement command and not already handled by the chat component
-                  if (!lower.includes("replace") && !lower.includes("update") && !lower.includes("change") &&
-                      (lower.includes("analyze") || lower.includes("mission") || lower.includes("form") || 
-                      lower.includes("help") || lower.includes("suggestion") || lower.includes("what should") ||
-                      lower.includes("how to") || lower.includes("example") || lower.includes("suggestions"))) {
-                    // Don't call AI service here - let the chat component handle it
-                    return;
-                  }
                   aiPanelRef.current?.addAIMsg("I can help with general questions, form analysis, and dashboard commands like 'save draft', 'submit application', or 'fill section X with ...'. What would you like to do?");
                 }}
                 onFileDrop={async (files) => {
@@ -935,75 +620,12 @@ export default function ApplicationPage() {
                       userId: user.email || "",
                     };
                     await uploadDocument(newDocument);
-                    aiPanelRef.current?.addAIMsg(`Document \"${file.name}\" uploaded successfully and added to Document Management.`);
+                    aiPanelRef.current?.addAIMsg(`Document "${file.name}" uploaded successfully and added to Document Management.`);
                   }
                 }}
                 hideTabs={true}
               />
             </div>
-          </div>
-        </div>
-
-        {/* Right Sidebar - Compliance Dashboard */}
-        <div className="w-[350px] mt-20 ml-6">
-          <div className="sticky top-6">
-            <ComplianceDashboard 
-              formData={formData}
-              onIssueClick={(fieldName) => {
-                // Find the section containing this field and switch to it
-                const fieldMapping: Record<string, string> = {
-                  'missionObjective': 'mission objective',
-                  'vehicleDescription': 'vehicle description',
-                  'launchReentrySequence': 'launch reentry sequence',
-                  'trajectoryOverview': 'trajectory overview',
-                  'safetyConsiderations': 'safety considerations',
-                  'groundOperations': 'ground operations',
-                  'technicalSummary': 'technical summary',
-                  'dimensionsMassStages': 'dimensions mass stages',
-                  'propulsionTypes': 'propulsion types',
-                  'recoverySystems': 'recovery systems',
-                  'groundSupportEquipment': 'ground support equipment',
-                  'siteNamesCoordinates': 'site names coordinates',
-                  'siteOperator': 'site operator',
-                  'airspaceMaritimeNotes': 'airspace maritime notes',
-                  'launchSite': 'launch site',
-                  'launchWindow': 'launch window',
-                  'flightPath': 'flight path',
-                  'landingSite': 'landing site',
-                  'earlyRiskAssessments': 'early risk assessments',
-                  'publicSafetyChallenges': 'public safety challenges',
-                  'plannedSafetyTools': 'planned safety tools',
-                  'fullApplicationTimeline': 'full application timeline',
-                  'intendedWindow': 'intended window',
-                  'licenseTypeIntent': 'license type intent',
-                  'clarifyPart450': 'clarify part450',
-                  'uniqueTechInternational': 'unique tech international'
-                };
-
-                const fieldLabel = fieldMapping[fieldName];
-                if (fieldLabel) {
-                  // Find which section contains this field
-                  const sectionIndex = part450FormTemplate.sections.findIndex(section =>
-                    section.fields.some(field => 
-                      field.name === fieldName || 
-                      field.label.toLowerCase().includes(fieldLabel.toLowerCase())
-                    )
-                  );
-                  
-                  if (sectionIndex !== -1) {
-                    setActiveTab(`section-${sectionIndex}`);
-                    // Scroll to the field
-                    setTimeout(() => {
-                      const fieldElement = document.querySelector(`[name="${fieldName}"]`) as HTMLElement;
-                      if (fieldElement) {
-                        fieldElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        fieldElement.focus();
-                      }
-                    }, 100);
-                  }
-                }
-              }}
-            />
           </div>
         </div>
       )}
