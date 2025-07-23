@@ -257,7 +257,7 @@ export default function ApplicationPage() {
   };
 
   return (
-    <div className="relative max-w-[1400px] mx-auto bg-black py-8 min-h-[80vh] flex flex-row gap-6">
+    <div className="relative max-w-[1500px] mx-auto bg-black py-8 min-h-[80vh] flex flex-row gap-6">
       <div style={{ flex: showFloatingChat ? '0 1 calc(100% - 432px)' : '1 1 100%' }} className="min-w-0 transition-all duration-300">
         <div className="mb-8">
           <Link href="/dashboard" className="flex items-center text-white/70 hover:text-white transition-colors">
@@ -390,27 +390,27 @@ export default function ApplicationPage() {
           </div>
           
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex gap-6 mt-8 items-start">
-            <div className="w-[280px] mt-20">
+            <div className="w-[320px] mt-20">
               <TabsList className="flex flex-col w-full min-h-[500px] gap-4 bg-black">
                 {part450FormTemplate.sections.map((section, index) => (
                   <TabsTrigger
                     key={`section-${index}`}
                     value={`section-${index}`}
-                    className="relative flex items-center gap-4 w-full bg-transparent hover:bg-zinc-900/50
+                    className="relative flex items-start gap-4 w-full bg-transparent hover:bg-zinc-900/50
                       data-[state=active]:bg-zinc-900 data-[state=active]:text-white
                       px-4 py-4 text-white/70 justify-start text-left rounded-lg
                       hover:text-white transition-all duration-200 border border-transparent
                       data-[state=active]:border-white/10"
                   >
-                    <div className="flex items-center gap-4 w-full">
+                    <div className="flex items-start gap-4 w-full">
                       <div className="flex-shrink-0 w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center
-                        data-[state=active]:bg-gradient-to-r from-blue-500 to-purple-500"
+                        data-[state=active]:bg-gradient-to-r from-blue-500 to-purple-500 mt-1"
                         data-state={activeTab === `section-${index}` ? 'active' : ''}>
                         <span className="text-sm font-medium">{index + 1}</span>
                       </div>
-                      <div className="flex flex-col">
-                        <span className="font-medium">{section.title}</span>
-                        <span className="text-sm text-white/50">Section {index + 1} of {part450FormTemplate.sections.length}</span>
+                      <div className="flex flex-col min-w-0 flex-1">
+                        <span className="font-medium text-sm leading-tight break-words">{section.title}</span>
+                        <span className="text-xs text-white/50 mt-1">Section {index + 1} of {part450FormTemplate.sections.length}</span>
                       </div>
                     </div>
                   </TabsTrigger>
