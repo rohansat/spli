@@ -700,13 +700,13 @@ export default function ApplicationPage() {
                     aiPanelRef.current?.addAIMsg("Draft saved successfully.");
                     return;
                   }
-                  if (lower === "submit application") {
+                  if (lower === "submit application" || lower === "i'm done with the application" || lower === "im done with the application" || lower === "i am done with the application") {
                     if (application?.status === "approved") {
                       aiPanelRef.current?.addAIMsg("This application is already approved and cannot be submitted again.");
                       return;
                     }
                     handleSubmit();
-                    aiPanelRef.current?.addAIMsg("Opening email dialog to submit application to FAA officials.");
+                    aiPanelRef.current?.addAIMsg("Opening email dialog to submit application to FAA officials. You can now compose your message and send it to the FAA.");
                     return;
                   }
                   
@@ -936,17 +936,49 @@ export default function ApplicationPage() {
                     return;
                   }
                   
-                  // For form analysis, suggestions, and help requests, use the AI service
-                  // Only trigger if it's not a replacement command and not already handled by the chat component
-                  if (!lower.includes("replace") && !lower.includes("update") && !lower.includes("change") &&
-                      (lower.includes("analyze") || lower.includes("mission") || lower.includes("form") || 
-                      lower.includes("help") || lower.includes("suggestion") || lower.includes("what should") ||
-                      lower.includes("how to") || lower.includes("example") || lower.includes("suggestions"))) {
-                    // Don't call AI service here - let the chat component handle it
+                  // For Part 450 questions, application analysis, and general help
+                  if (lower.includes("part 450") || lower.includes("faa") || lower.includes("compliance") || 
+                      lower.includes("regulation") || lower.includes("requirement") || lower.includes("license") ||
+                      lower.includes("application") || lower.includes("mission") || lower.includes("vehicle") ||
+                      lower.includes("launch") || lower.includes("safety") || lower.includes("risk") ||
+                      lower.includes("trajectory") || lower.includes("ground operations") || lower.includes("recovery") ||
+                      lower.includes("propulsion") || lower.includes("site") || lower.includes("timeline") ||
+                      lower.includes("help") || lower.includes("how to") || lower.includes("what is") ||
+                      lower.includes("explain") || lower.includes("tell me about") || lower.includes("guide") ||
+                      lower.includes("process") || lower.includes("steps") || lower.includes("checklist") ||
+                      lower.includes("review") || lower.includes("analyze") || lower.includes("suggest") ||
+                      lower.includes("recommend") || lower.includes("improve") || lower.includes("complete") ||
+                      lower.includes("missing") || lower.includes("required") || lower.includes("optional")) {
+                    
+                    // Use the AI service for comprehensive Part 450 assistance
+                    try {
+                      const response = await fetch('/api/ai', {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                          userInput: cmd,
+                          context: `Current application data: ${JSON.stringify(formData)}. Available form fields: ${getAllFormFields().map(f => f.name).join(', ')}. Application status: ${application?.status}`,
+                          mode: 'assistance',
+                          conversationHistory: []
+                        }),
+                      });
+                      
+                      if (response.ok) {
+                        const data = await response.json();
+                        aiPanelRef.current?.addAIMsg(data.message);
+                      } else {
+                        aiPanelRef.current?.addAIMsg("I'm here to help with Part 450 applications, FAA compliance, and aerospace regulations. You can ask me about specific requirements, get guidance on filling out sections, or request analysis of your application.");
+                      }
+                    } catch (error) {
+                      console.error('AI assistance error:', error);
+                      aiPanelRef.current?.addAIMsg("I'm here to help with Part 450 applications, FAA compliance, and aerospace regulations. You can ask me about specific requirements, get guidance on filling out sections, or request analysis of your application.");
+                    }
                     return;
                   }
                   
-                  aiPanelRef.current?.addAIMsg("I can help with general questions, form analysis, and dashboard commands like 'save draft', 'submit application', 'replace [field] with [content]', 'fill section X with [content]', or 'auto fill'. What would you like to do?");
+                  aiPanelRef.current?.addAIMsg("I can help with Part 450 applications, FAA compliance, and aerospace regulations. Try commands like 'save draft', 'submit application', 'replace [field] with [content]', 'fill section X with [content]', 'auto fill', or ask me questions about Part 450 requirements, your application, or aerospace compliance.");
                 }}
                 onFileDrop={async (files) => {
                   if (!user) return;

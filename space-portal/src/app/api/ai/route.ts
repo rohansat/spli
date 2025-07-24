@@ -369,6 +369,14 @@ UNIQUE TECH/INTERNATIONAL
       });
     }
 
+    // For assistance mode, provide comprehensive Part 450 help
+    if (mode === 'assistance') {
+      return NextResponse.json({ 
+        message: aiResponse,
+        mode 
+      });
+    }
+
     return NextResponse.json({ 
       message: aiResponse,
       mode 
