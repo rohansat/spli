@@ -39,6 +39,18 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
         sender: "ai",
         content: "Hi! I'm SPLI Chat, your AI assistant for aerospace compliance and FAA applications. How can I help you today?",
         timestamp: Date.now()
+      },
+      {
+        id: 2,
+        sender: "ai",
+        content: "I can help you with:\n• Filling out FAA Part 450 applications\n• Analyzing your application for compliance\n• Suggesting improvements\n• Submitting your application\n• Answering questions about aerospace regulations",
+        timestamp: Date.now() + 1000
+      },
+      {
+        id: 3,
+        sender: "ai",
+        content: "You can also ask me to show you changes I make to your application with a visual diff view, just like in Cursor!",
+        timestamp: Date.now() + 2000
       }
     ]);
     const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -237,8 +249,7 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
         <div 
           className="flex-1 min-h-0 overflow-y-auto space-y-3 pr-1 pb-2 bg-gradient-to-br from-zinc-900 via-zinc-950 to-zinc-900 rounded-2xl shadow-xl border border-zinc-800 ai-chat-scrollbar"
           style={{
-            maxHeight: 'calc(100vh - 200px)',
-            overflowY: 'auto'
+            maxHeight: 'calc(100vh - 200px)'
           }}
         >
           {messages.length === 0 ? (
