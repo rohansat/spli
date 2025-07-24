@@ -644,7 +644,7 @@ export default function ApplicationPage() {
 
       {showFloatingChat && (
         <div
-          className="fixed top-24 right-6 z-50 w-[420px] max-w-full h-[600px] max-h-[80vh] flex flex-col shadow-2xl rounded-2xl bg-gradient-to-br from-gray-900 via-gray-800 to-black border border-gray-700/30 backdrop-blur-xl"
+          className="fixed top-24 right-6 z-50 w-[380px] max-w-full h-[520px] max-h-[75vh] flex flex-col shadow-2xl rounded-2xl bg-gradient-to-br from-gray-900 via-gray-800 to-black border border-gray-700/30 backdrop-blur-xl"
           style={{ 
             borderRadius: '1rem', 
             overflow: 'hidden',
@@ -655,11 +655,11 @@ export default function ApplicationPage() {
             {/* Animated background gradient */}
             <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 via-purple-600/5 to-transparent opacity-50"></div>
             
-            <div className="relative flex items-center justify-between p-5 border-b border-gray-700/40 bg-gradient-to-r from-gray-800/90 via-gray-700/80 to-gray-800/90 backdrop-blur-sm">
+            <div className="relative flex items-center justify-between p-4 border-b border-gray-700/40 bg-gradient-to-r from-gray-800/90 via-gray-700/80 to-gray-800/90 backdrop-blur-sm">
               <div className="flex items-center gap-4">
                 <div className="relative">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-600 flex items-center justify-center shadow-lg">
-                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-600 flex items-center justify-center shadow-lg">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                     </svg>
                   </div>
