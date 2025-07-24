@@ -51,6 +51,30 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
         sender: "ai",
         content: "You can also ask me to show you changes I make to your application with a visual diff view, just like in Cursor!",
         timestamp: Date.now() + 2000
+      },
+      {
+        id: 4,
+        sender: "user",
+        content: "Can you help me with Part 450 requirements?",
+        timestamp: Date.now() + 3000
+      },
+      {
+        id: 5,
+        sender: "ai",
+        content: "Absolutely! Part 450 covers commercial space launch and reentry operations. Key requirements include:\n\n• Safety analysis and risk assessment\n• Launch site and vehicle information\n• Flight safety analysis\n• Environmental compliance\n• Financial responsibility\n• Insurance requirements\n\nWhat specific aspect would you like to know more about?",
+        timestamp: Date.now() + 4000
+      },
+      {
+        id: 6,
+        sender: "user",
+        content: "What about safety considerations?",
+        timestamp: Date.now() + 5000
+      },
+      {
+        id: 7,
+        sender: "ai",
+        content: "Safety considerations for Part 450 applications include:\n\n• Public safety analysis\n• Risk assessment for launch and reentry\n• Emergency response procedures\n• Flight termination systems\n• Ground safety measures\n• Environmental impact assessment\n• Insurance and liability coverage\n\nI can help you fill out the safety section of your application with detailed information about your specific mission.",
+        timestamp: Date.now() + 6000
       }
     ]);
     const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -249,7 +273,8 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
         <div 
           className="flex-1 min-h-0 overflow-y-auto space-y-3 pr-1 pb-2 bg-gradient-to-br from-zinc-900 via-zinc-950 to-zinc-900 rounded-2xl shadow-xl border border-zinc-800 ai-chat-scrollbar"
           style={{
-            maxHeight: 'calc(100vh - 200px)'
+            height: '400px',
+            maxHeight: '400px'
           }}
         >
           {messages.length === 0 ? (
