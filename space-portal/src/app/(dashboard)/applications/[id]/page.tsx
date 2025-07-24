@@ -409,7 +409,7 @@ export default function ApplicationPage() {
                         <span className="text-sm font-medium">{index + 1}</span>
                       </div>
                       <div className="flex flex-col min-w-0 flex-1">
-                        <span className="font-medium text-sm leading-tight break-words">{section.title}</span>
+                        <span className="font-medium text-sm leading-tight break-words whitespace-pre-line">{section.title}</span>
                         <span className="text-xs text-white/50 mt-1">Section {index + 1} of {part450FormTemplate.sections.length}</span>
                       </div>
                     </div>
