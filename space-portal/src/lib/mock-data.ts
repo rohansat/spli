@@ -23,7 +23,7 @@ export const messages: Message[] = [];
 export const part450FormTemplate = {
   sections: [
     {
-      title: "Concept of Operations (CONOPS)",
+      title: "Concept of Operations\n(CONOPS)",
       fields: [
         { name: "missionObjective", label: "Mission Objective", type: "textarea" },
         { name: "vehicleDescription", label: "Vehicle Description", type: "textarea" },
@@ -44,7 +44,7 @@ export const part450FormTemplate = {
       ],
     },
     {
-      title: "Planned Launch/Reentry Location(s)",
+      title: "Planned Launch/Reentry\nLocation(s)",
       fields: [
         { name: "siteNamesCoordinates", label: "Site Names and Coordinates", type: "textarea" },
         { name: "siteOperator", label: "Site Operator (if 3rd party)", type: "textarea" },
@@ -61,7 +61,7 @@ export const part450FormTemplate = {
       ],
     },
     {
-      title: "Preliminary Risk or Safety Considerations",
+      title: "Preliminary Risk or Safety\nConsiderations",
       fields: [
         { name: "earlyRiskAssessments", label: "Any Early Risk Assessments", type: "textarea" },
         { name: "publicSafetyChallenges", label: "Known Public Safety Challenges", type: "textarea" },
