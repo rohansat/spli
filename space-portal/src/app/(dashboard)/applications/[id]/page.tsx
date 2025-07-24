@@ -332,14 +332,91 @@ export default function ApplicationPage() {
               {isSaving ? "Saving..." : "Save Draft"}
             </Button>
 
-            <Button
-              onClick={handleSubmit}
-              disabled={application.status === "approved"}
-              className={`bg-gradient-to-r from-blue-500 to-purple-500 text-white flex items-center justify-center ${buttonSizeClass}`}
-            >
-              <Mail className="mr-2 h-4 w-4" />
-              Submit Application
-            </Button>
+            <Dialog open={isComposeOpen} onOpenChange={setIsComposeOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  disabled={application.status === "approved"}
+                  className={`bg-gradient-to-r from-blue-500 to-purple-500 text-white flex items-center justify-center ${buttonSizeClass}`}
+                >
+                  <Mail className="mr-2 h-4 w-4" />
+                  Submit Application
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="bg-black text-white border border-white/20">
+                <DialogHeader>
+                  <DialogTitle className="text-2xl font-bold">COMPOSE MESSAGE</DialogTitle>
+                  <DialogDescription className="text-white/60">
+                    Send a message to FAA officials with your application attached
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <label htmlFor="recipient" className="text-sm font-medium text-white">
+                      To
+                    </label>
+                    <Input
+                      id="recipient"
+                      value={composeMessage.recipient}
+                      onChange={(e) =>
+                        setComposeMessage({ ...composeMessage, recipient: e.target.value })
+                      }
+                      placeholder="recipient@faa.gov"
+                      className="bg-white/10 border-white/20 text-white"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label htmlFor="subject" className="text-sm font-medium text-white">
+                      Subject
+                    </label>
+                    <Input
+                      id="subject"
+                      value={composeMessage.subject}
+                      onChange={(e) =>
+                        setComposeMessage({ ...composeMessage, subject: e.target.value })
+                      }
+                      placeholder="Enter subject"
+                      className="bg-white/10 border-white/20 text-white"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label htmlFor="body" className="text-sm font-medium text-white">
+                      Message
+                    </label>
+                    <Textarea
+                      id="body"
+                      value={composeMessage.body}
+                      onChange={(e) =>
+                        setComposeMessage({ ...composeMessage, body: e.target.value })
+                      }
+                      placeholder="Type your message here"
+                      rows={8}
+                      className="bg-white/10 border-white/20 text-white"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-white/60">
+                    <Paperclip className="h-4 w-4" />
+                    <span>Application PDF will be attached automatically</span>
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsComposeOpen(false)}
+                    className="border-white/40 text-white"
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    onClick={handleSendMessage} 
+                    disabled={isSendingMessage || !composeMessage.subject || !composeMessage.body}
+                    className="bg-gradient-to-r from-blue-500 to-purple-500 text-white"
+                  >
+                    <Send className="mr-2 h-4 w-4" />
+                    {isSendingMessage ? "Sending..." : "SEND"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
 
@@ -567,21 +644,27 @@ export default function ApplicationPage() {
 
       {showFloatingChat && (
         <div
-          className="fixed top-24 right-10 z-50 w-[420px] max-w-full h-[600px] max-h-[80vh] flex flex-col shadow-2xl rounded-2xl bg-zinc-900 border border-zinc-800"
-          style={{ borderRadius: '1rem', overflow: 'hidden' }}
+          className="fixed top-24 right-6 z-50 w-[420px] max-w-full h-[600px] max-h-[80vh] flex flex-col shadow-2xl rounded-xl bg-gradient-to-b from-slate-900 to-slate-800 border border-slate-700/50 backdrop-blur-sm"
+          style={{ borderRadius: '0.75rem', overflow: 'hidden' }}
         >
           <div className="w-full h-full flex flex-col overflow-hidden">
-            <div className="flex items-center justify-between p-3 border-b border-zinc-800 bg-zinc-900 rounded-t-2xl cursor-move">
-              <span className="font-semibold text-white text-lg flex items-center gap-2">
-                <span style={{fontSize: '1.5rem', lineHeight: 1}}>🚀</span>
-                SPLI Chat
+            <div className="flex items-center justify-between p-4 border-b border-slate-700/50 bg-gradient-to-r from-slate-800 to-slate-700 rounded-t-xl">
+              <span className="font-semibold text-white text-lg flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                  </svg>
+                </div>
+                <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent font-bold">SPLI Assistant</span>
               </span>
               <button
-                className="text-zinc-400 hover:text-white text-xl px-2 py-1 rounded"
+                className="text-slate-400 hover:text-white hover:bg-slate-700/50 text-lg px-2 py-1 rounded-lg transition-all duration-200"
                 onClick={() => setShowFloatingChat(false)}
                 title="Close chat"
               >
-                ×
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
             </div>
             <div className="flex-1 min-h-0 flex flex-col">
