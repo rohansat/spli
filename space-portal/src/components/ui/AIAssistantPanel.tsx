@@ -11,10 +11,18 @@ interface Message {
   sender: "user" | "ai";
   content: string;
   timestamp: number;
+  type?: "text" | "diff" | "change";
+  diffData?: {
+    oldContent: string;
+    newContent: string;
+    filePath: string;
+    description: string;
+  };
 }
 
 export interface AIAssistantPanelHandle {
   addAIMsg: (msg: string) => void;
+  addDiffMsg: (msg: string, oldContent: string, newContent: string, filePath: string, description: string) => void;
 }
 
 interface AIAssistantPanelProps {
@@ -43,6 +51,24 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
         setMessages((msgs) => [
           ...msgs,
           { id: Date.now(), sender: "ai", content: msg, timestamp: Date.now() }
+        ]);
+      },
+      addDiffMsg: (msg: string, oldContent: string, newContent: string, filePath: string, description: string) => {
+        setMessages((msgs) => [
+          ...msgs,
+          { 
+            id: Date.now(), 
+            sender: "ai", 
+            content: msg, 
+            timestamp: Date.now(),
+            type: "diff",
+            diffData: {
+              oldContent,
+              newContent,
+              filePath,
+              description
+            }
+          }
         ]);
       }
     }), []);
@@ -128,10 +154,93 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
       }
     };
 
+    const renderDiff = (oldContent: string, newContent: string) => {
+      const oldLines = oldContent.split('\n');
+      const newLines = newContent.split('\n');
+      
+      const diffLines: Array<{
+        type: 'unchanged' | 'added' | 'removed';
+        content: string;
+        lineNumber?: number;
+      }> = [];
+
+      // Simple diff algorithm
+      const maxLines = Math.max(oldLines.length, newLines.length);
+      
+      for (let i = 0; i < maxLines; i++) {
+        const oldLine = oldLines[i] || '';
+        const newLine = newLines[i] || '';
+        
+        if (oldLine === newLine) {
+          diffLines.push({
+            type: 'unchanged',
+            content: oldLine,
+            lineNumber: i + 1
+          });
+        } else {
+          if (oldLine) {
+            diffLines.push({
+              type: 'removed',
+              content: oldLine,
+              lineNumber: i + 1
+            });
+          }
+          if (newLine) {
+            diffLines.push({
+              type: 'added',
+              content: newLine,
+              lineNumber: i + 1
+            });
+          }
+        }
+      }
+
+      return (
+        <div className="font-mono text-xs bg-zinc-800 rounded-lg overflow-hidden border border-zinc-700 mt-2">
+          <div className="bg-zinc-900 px-3 py-2 border-b border-zinc-700">
+            <span className="text-zinc-400">Code Changes</span>
+          </div>
+          <div className="max-h-48 overflow-y-auto">
+            {diffLines.map((line, index) => (
+              <div
+                key={index}
+                className={`px-3 py-1 flex items-start ${
+                  line.type === 'removed' 
+                    ? 'bg-red-900/30 border-l-2 border-red-500' 
+                    : line.type === 'added' 
+                    ? 'bg-green-900/30 border-l-2 border-green-500' 
+                    : 'bg-zinc-800'
+                }`}
+              >
+                <div className="w-8 text-xs text-zinc-500 mr-2 flex-shrink-0">
+                  {line.lineNumber}
+                </div>
+                <div className={`flex-1 ${
+                  line.type === 'removed' 
+                    ? 'text-red-300' 
+                    : line.type === 'added' 
+                    ? 'text-green-300' 
+                    : 'text-zinc-300'
+                }`}>
+                  {line.content}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    };
+
     return (
       <div className="flex flex-col h-full min-h-0">
         {/* Message List */}
-        <div className="flex-1 min-h-0 overflow-y-auto space-y-3 pr-1 pb-2 bg-gradient-to-br from-zinc-900 via-zinc-950 to-zinc-900 rounded-2xl shadow-xl border border-zinc-800 scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-zinc-900">
+        <div 
+          className="flex-1 min-h-0 overflow-y-auto space-y-3 pr-1 pb-2 bg-gradient-to-br from-zinc-900 via-zinc-950 to-zinc-900 rounded-2xl shadow-xl border border-zinc-800 ai-chat-scrollbar"
+          style={{
+            maxHeight: 'calc(100vh - 200px)',
+            overflowY: 'auto'
+          }}
+        >
           {messages.length === 0 ? (
             <div className="text-zinc-500 text-center mt-10">Loading chat...</div>
           ) : (
@@ -154,6 +263,9 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
                   style={{ boxShadow: msg.sender === "user" ? "0 2px 12px 0 rgba(80,80,255,0.10)" : "0 2px 12px 0 rgba(120,80,255,0.10)" }}
                 >
                   <span>{msg.content}</span>
+                  {msg.type === 'diff' && msg.diffData && (
+                    renderDiff(msg.diffData.oldContent, msg.diffData.newContent)
+                  )}
                   <span className={`text-xs mt-1 ${msg.sender === "user" ? "text-blue-100/80" : "text-purple-200/80"}`}>{dayjs(msg.timestamp).format("HH:mm")}</span>
                 </div>
                 {msg.sender === "user" && (

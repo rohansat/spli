@@ -98,6 +98,24 @@
 }
 
 @layer components {
+  /* Custom scrollbar styles for AI chat */
+  .ai-chat-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .ai-chat-scrollbar::-webkit-scrollbar-track {
+    background: #111827;
+    border-radius: 3px;
+  }
+  
+  .ai-chat-scrollbar::-webkit-scrollbar-thumb {
+    background: #374151;
+    border-radius: 3px;
+  }
+  
+  .ai-chat-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #4B5563;
+  }
   .space-container {
     @apply container mx-auto px-4 sm:px-6 lg:px-8;
   }
