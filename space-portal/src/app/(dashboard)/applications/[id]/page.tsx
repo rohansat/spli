@@ -257,8 +257,8 @@ export default function ApplicationPage() {
   };
 
   return (
-    <div className="relative max-w-[1500px] mx-auto bg-black py-8 min-h-[80vh] flex flex-row gap-6">
-      <div style={{ flex: showFloatingChat ? '0 1 calc(100% - 432px)' : '1 1 100%' }} className="min-w-0 transition-all duration-300">
+    <div className="relative max-w-[1400px] mx-auto bg-black py-8 min-h-[80vh] flex flex-row gap-6">
+      <div style={{ flex: showFloatingChat ? '0 1 calc(100% - 392px)' : '1 1 100%' }} className="min-w-0 transition-all duration-300">
         <div className="mb-8">
           <Link href="/dashboard" className="flex items-center text-white/70 hover:text-white transition-colors">
             <ChevronLeft className="mr-1 h-4 w-4" />
@@ -390,7 +390,7 @@ export default function ApplicationPage() {
           </div>
           
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex gap-6 mt-8 items-start">
-            <div className="w-[300px] mt-20">
+            <div className="w-[280px] mt-20">
               <TabsList className="flex flex-col w-full min-h-[500px] gap-4 bg-black">
                 {part450FormTemplate.sections.map((section, index) => (
                   <TabsTrigger
@@ -398,7 +398,7 @@ export default function ApplicationPage() {
                     value={`section-${index}`}
                     className="relative flex items-start gap-4 w-full bg-transparent hover:bg-zinc-900/50
                       data-[state=active]:bg-zinc-900 data-[state=active]:text-white
-                      px-4 py-6 text-white/70 justify-start text-left rounded-lg
+                      px-4 py-4 text-white/70 justify-start text-left rounded-lg
                       hover:text-white transition-all duration-200 border border-transparent
                       data-[state=active]:border-white/10"
                   >
@@ -409,8 +409,8 @@ export default function ApplicationPage() {
                         <span className="text-sm font-medium">{index + 1}</span>
                       </div>
                       <div className="flex flex-col min-w-0 flex-1">
-                        <span className="font-medium text-sm leading-relaxed break-words whitespace-normal min-h-[2.5rem] flex items-start">{section.title}</span>
-                        <span className="text-xs text-white/50 mt-2">Section {index + 1} of {part450FormTemplate.sections.length}</span>
+                        <span className="font-medium text-sm leading-tight break-words">{section.title}</span>
+                        <span className="text-xs text-white/50 mt-1">Section {index + 1} of {part450FormTemplate.sections.length}</span>
                       </div>
                     </div>
                   </TabsTrigger>
