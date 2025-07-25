@@ -188,6 +188,25 @@ You can execute these specific commands when users request them:
 - "delete application" - Delete the current application
 - "upload document" - Help with document uploads
 
+COMMAND PARSING MODE:
+When in command parsing mode, your job is to:
+1. Understand the user's intent from their command
+2. Extract the field name and new value from the command
+3. Respond with the exact format: "FIELD: [field name] VALUE: [new value]"
+4. Handle variations in field names (e.g., "mission objective section" = "mission objective")
+5. Clean up field names by removing words like "section", "field", "area", "part", "form"
+6. Map field names to the correct internal field names
+
+Examples of command parsing:
+- Input: "replace mission objective section with Launch a rocket payload to low Earth orbit"
+- Output: "FIELD: mission objective VALUE: Launch a rocket payload to low Earth orbit"
+
+- Input: "update vehicle description with Two-stage rocket with solid fuel boosters"
+- Output: "FIELD: vehicle description VALUE: Two-stage rocket with solid fuel boosters"
+
+- Input: "change safety considerations to include emergency procedures"
+- Output: "FIELD: safety considerations VALUE: include emergency procedures"
+
 Available field names for replacement:
 - mission objective, vehicle description, launch reentry sequence, trajectory overview
 - safety considerations, ground operations, technical summary, dimensions mass stages
@@ -357,6 +376,16 @@ UNIQUE TECH/INTERNATIONAL
     });
 
     const aiResponse = response.content[0].type === 'text' ? response.content[0].text : '';
+
+    // For command execution mode, parse and execute commands
+    if (mode === 'command') {
+      const commandResult = parseAndExecuteCommand(userInput, aiResponse);
+      return NextResponse.json({ 
+        message: aiResponse,
+        command: commandResult,
+        mode 
+      });
+    }
 
     // For form mode, try to extract structured suggestions
     if (mode === 'form') {
@@ -650,4 +679,37 @@ function extractRelevantText(aiResponse: string, keywords: string[]): string | n
   }
   
   return null;
+}
+
+function parseAndExecuteCommand(userInput: string, aiResponse: string): any {
+  const lowerInput = userInput.toLowerCase();
+  
+  // Check if this is a replace command
+  if (lowerInput.includes('replace') && lowerInput.includes('with')) {
+    // Extract field name and value using AI response or fallback to regex
+    const fieldMatch = aiResponse.match(/field[:\s]+([^,\n]+)/i);
+    const valueMatch = aiResponse.match(/value[:\s]+([^,\n]+)/i) || 
+                      userInput.match(/with\s+(.+)$/i);
+    
+    if (fieldMatch && valueMatch) {
+      return {
+        type: 'replace',
+        field: fieldMatch[1].trim(),
+        value: valueMatch[1].trim()
+      };
+    }
+  }
+  
+  // Check if this is a fill command
+  if (lowerInput.includes('fill') && lowerInput.includes('with')) {
+    return {
+      type: 'fill',
+      content: userInput.match(/with\s+(.+)$/i)?.[1]?.trim() || ''
+    };
+  }
+  
+  return {
+    type: 'unknown',
+    message: 'Command not recognized'
+  };
 } 
