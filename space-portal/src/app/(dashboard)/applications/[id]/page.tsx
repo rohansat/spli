@@ -55,9 +55,15 @@ export default function ApplicationPage() {
     body: ""
   });
   const [isSendingMessage, setIsSendingMessage] = useState(false);
+  const [aiLastUpdated, setAiLastUpdated] = useState<string | null>(null);
 
   const applicationId = params?.id as string;
   const application = applicationId ? getApplicationById(applicationId) : undefined;
+
+  // Debug: Log form data changes
+  useEffect(() => {
+    console.log('Form data changed:', formData);
+  }, [formData]);
 
   // Comprehensive command registry for AI
   const commandRegistry: Record<string, {
@@ -159,8 +165,26 @@ export default function ApplicationPage() {
         };
 
         const actualFieldName = fieldMapping[params.field.toLowerCase()];
+        console.log('replace_field command:', {
+          inputField: params.field,
+          inputValue: params.value,
+          mappedField: actualFieldName,
+          availableFields: Object.keys(fieldMapping)
+        });
+        
         if (actualFieldName) {
-          setFormData((prev) => ({ ...prev, [actualFieldName]: params.value }));
+          setFormData((prev) => {
+            const updated = { ...prev, [actualFieldName]: params.value };
+            console.log('Form data updated:', {
+              previous: prev,
+              updated: updated,
+              changedField: actualFieldName,
+              newValue: params.value
+            });
+            return updated;
+          });
+          setAiLastUpdated(actualFieldName);
+          setTimeout(() => setAiLastUpdated(null), 3000); // Clear after 3 seconds
           return { success: true, message: `Updated ${params.field} with: "${params.value}"` };
         } else {
           return { success: false, message: `Field "${params.field}" not found. Available fields: ${Object.keys(fieldMapping).join(', ')}` };
@@ -462,45 +486,74 @@ export default function ApplicationPage() {
   };
 
   const renderField = (field: FormField) => {
+    const isRecentlyUpdated = aiLastUpdated === field.name;
+    
     switch (field.type) {
       case "text":
       case "email":
         return (
-          <Input
-            id={field.name}
-            type={field.type}
-            value={formData[field.name] || ""}
-            onChange={(e) => handleInputChange(field.name, e.target.value)}
-            placeholder={field.label}
-            className="bg-white/10 border-white/20 text-white"
-          />
+          <div className="relative">
+            <Input
+              id={field.name}
+              type={field.type}
+              value={formData[field.name] || ""}
+              onChange={(e) => handleInputChange(field.name, e.target.value)}
+              placeholder={field.label}
+              className={`bg-white/10 border-white/20 text-white transition-all duration-300 ${
+                isRecentlyUpdated ? 'border-green-400 bg-green-900/20' : ''
+              }`}
+            />
+            {isRecentlyUpdated && (
+              <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full animate-pulse">
+                AI Updated
+              </div>
+            )}
+          </div>
         );
       case "textarea":
         return (
-          <Textarea
-            id={field.name}
-            value={formData[field.name] || ""}
-            onChange={(e) => handleInputChange(field.name, e.target.value)}
-            placeholder={field.label}
-            rows={4}
-            className="bg-white/10 border-white/20 text-white max-h-[300px] overflow-y-auto"
-          />
+          <div className="relative">
+            <Textarea
+              id={field.name}
+              value={formData[field.name] || ""}
+              onChange={(e) => handleInputChange(field.name, e.target.value)}
+              placeholder={field.label}
+              rows={4}
+              className={`bg-white/10 border-white/20 text-white max-h-[300px] overflow-y-auto transition-all duration-300 ${
+                isRecentlyUpdated ? 'border-green-400 bg-green-900/20' : ''
+              }`}
+            />
+            {isRecentlyUpdated && (
+              <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full animate-pulse">
+                AI Updated
+              </div>
+            )}
+          </div>
         );
       case "select":
         return (
-          <select
-            id={field.name}
-            value={formData[field.name] || ""}
-            onChange={(e) => handleInputChange(field.name, e.target.value)}
-            className="w-full p-2 rounded-md bg-white/10 border border-white/20 text-white"
-          >
-            <option value="">Select {field.label}</option>
-            {field.options?.map((option: string) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
+          <div className="relative">
+            <select
+              id={field.name}
+              value={formData[field.name] || ""}
+              onChange={(e) => handleInputChange(field.name, e.target.value)}
+              className={`w-full p-2 rounded-md bg-white/10 border border-white/20 text-white transition-all duration-300 ${
+                isRecentlyUpdated ? 'border-green-400 bg-green-900/20' : ''
+              }`}
+            >
+              <option value="">Select {field.label}</option>
+              {field.options?.map((option: string) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+            {isRecentlyUpdated && (
+              <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full animate-pulse">
+                AI Updated
+              </div>
+            )}
+          </div>
         );
       default:
         return null;
