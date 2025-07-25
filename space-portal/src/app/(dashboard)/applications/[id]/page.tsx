@@ -713,39 +713,103 @@ export default function ApplicationPage() {
                   // Replace section command: e.g., replace mission objective with Launch satellite
                   const replaceMatch = lower.match(/^replace (.+) with (.+)$/);
                   if (replaceMatch) {
-                    const fieldName = replaceMatch[1].toLowerCase().replace(/\s+/g, '');
+                    const fieldNameInput = replaceMatch[1].toLowerCase().trim();
                     const newValue = replaceMatch[2];
                     
+                    // Enhanced field mapping that handles various input formats
                     const fieldMapping: Record<string, string> = {
+                      // Handle both with and without spaces, plus common variations
+                      'mission objective': 'missionObjective',
                       'missionobjective': 'missionObjective',
+                      'mission': 'missionObjective',
+                      'objective': 'missionObjective',
+                      'vehicle description': 'vehicleDescription',
                       'vehicledescription': 'vehicleDescription',
+                      'vehicle': 'vehicleDescription',
+                      'launch reentry sequence': 'launchReentrySequence',
                       'launchreentrysequence': 'launchReentrySequence',
+                      'launch sequence': 'launchReentrySequence',
+                      'reentry sequence': 'launchReentrySequence',
+                      'trajectory overview': 'trajectoryOverview',
                       'trajectoryoverview': 'trajectoryOverview',
+                      'trajectory': 'trajectoryOverview',
+                      'safety considerations': 'safetyConsiderations',
                       'safetyconsiderations': 'safetyConsiderations',
+                      'safety': 'safetyConsiderations',
+                      'ground operations': 'groundOperations',
                       'groundoperations': 'groundOperations',
+                      'ground ops': 'groundOperations',
+                      'technical summary': 'technicalSummary',
                       'technicalsummary': 'technicalSummary',
+                      'technical': 'technicalSummary',
+                      'dimensions mass stages': 'dimensionsMassStages',
                       'dimensionsmassstages': 'dimensionsMassStages',
+                      'dimensions': 'dimensionsMassStages',
+                      'mass stages': 'dimensionsMassStages',
+                      'propulsion types': 'propulsionTypes',
                       'propulsiontypes': 'propulsionTypes',
+                      'propulsion': 'propulsionTypes',
+                      'recovery systems': 'recoverySystems',
                       'recoverysystems': 'recoverySystems',
+                      'recovery': 'recoverySystems',
+                      'ground support equipment': 'groundSupportEquipment',
                       'groundsupportequipment': 'groundSupportEquipment',
+                      'ground support': 'groundSupportEquipment',
+                      'site names coordinates': 'siteNamesCoordinates',
                       'sitenamescoordinates': 'siteNamesCoordinates',
+                      'site coordinates': 'siteNamesCoordinates',
+                      'coordinates': 'siteNamesCoordinates',
+                      'site operator': 'siteOperator',
                       'siteoperator': 'siteOperator',
+                      'operator': 'siteOperator',
+                      'airspace maritime notes': 'airspaceMaritimeNotes',
                       'airspacemaritimenotes': 'airspaceMaritimeNotes',
+                      'airspace notes': 'airspaceMaritimeNotes',
+                      'maritime notes': 'airspaceMaritimeNotes',
+                      'launch site': 'launchSite',
                       'launchsite': 'launchSite',
+                      'launch location': 'launchSite',
+                      'launch window': 'launchWindow',
                       'launchwindow': 'launchWindow',
+                      'window': 'launchWindow',
+                      'flight path': 'flightPath',
                       'flightpath': 'flightPath',
+                      'path': 'flightPath',
+                      'landing site': 'landingSite',
                       'landingsite': 'landingSite',
+                      'landing location': 'landingSite',
+                      'early risk assessments': 'earlyRiskAssessments',
                       'earlyriskassessments': 'earlyRiskAssessments',
+                      'risk assessments': 'earlyRiskAssessments',
+                      'public safety challenges': 'publicSafetyChallenges',
                       'publicsafetychallenges': 'publicSafetyChallenges',
+                      'safety challenges': 'publicSafetyChallenges',
+                      'planned safety tools': 'plannedSafetyTools',
                       'plannedsafetytools': 'plannedSafetyTools',
+                      'safety tools': 'plannedSafetyTools',
+                      'full application timeline': 'fullApplicationTimeline',
                       'fullapplicationtimeline': 'fullApplicationTimeline',
+                      'application timeline': 'fullApplicationTimeline',
+                      'timeline': 'fullApplicationTimeline',
+                      'intended window': 'intendedWindow',
                       'intendedwindow': 'intendedWindow',
+                      'intended': 'intendedWindow',
+                      'license type intent': 'licenseTypeIntent',
                       'licensetypeintent': 'licenseTypeIntent',
+                      'license intent': 'licenseTypeIntent',
+                      'license type': 'licenseTypeIntent',
+                      'clarify part450': 'clarifyPart450',
                       'clarifypart450': 'clarifyPart450',
-                      'uniquetechinternational': 'uniqueTechInternational'
+                      'part450': 'clarifyPart450',
+                      'part 450': 'clarifyPart450',
+                      'unique tech international': 'uniqueTechInternational',
+                      'uniquetechinternational': 'uniqueTechInternational',
+                      'unique tech': 'uniqueTechInternational',
+                      'international': 'uniqueTechInternational'
                     };
                     
-                    const actualFieldName = fieldMapping[fieldName];
+                    const actualFieldName = fieldMapping[fieldNameInput];
+                    console.log('Field name input:', fieldNameInput);
                     console.log('Actual field name:', actualFieldName);
                     
                     if (actualFieldName) {
@@ -758,7 +822,17 @@ export default function ApplicationPage() {
                       aiPanelRef.current?.addAIMsg(`I've replaced the ${replaceMatch[1]} section with: "${newValue}"`);
                       return;
                     } else {
-                      aiPanelRef.current?.addAIMsg(`Field "${replaceMatch[1]}" not found. Available fields: ${Object.keys(fieldMapping).join(', ')}`);
+                      // Provide a more helpful error message with available field names
+                      const availableFields = [
+                        'mission objective', 'vehicle description', 'launch reentry sequence', 'trajectory overview',
+                        'safety considerations', 'ground operations', 'technical summary', 'dimensions mass stages',
+                        'propulsion types', 'recovery systems', 'ground support equipment', 'site names coordinates',
+                        'site operator', 'airspace maritime notes', 'launch site', 'launch window', 'flight path',
+                        'landing site', 'early risk assessments', 'public safety challenges', 'planned safety tools',
+                        'full application timeline', 'intended window', 'license type intent', 'clarify part450',
+                        'unique tech international'
+                      ];
+                      aiPanelRef.current?.addAIMsg(`Field "${replaceMatch[1]}" not found. Available fields: ${availableFields.join(', ')}`);
                       return;
                     }
                   }
