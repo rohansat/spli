@@ -395,105 +395,64 @@ export default function ApplicationPage() {
       'uniquetechinternational': 'uniqueTechInternational'
     };
     
-    // Try to parse single-line format first (like your example)
-    const singleLineMatch = response.match(/MISSION OBJECTIVE\s+(.*?)\s+VEHICLE DESCRIPTION\s+(.*?)\s+LAUNCH\/REENTRY SEQUENCE\s+(.*?)\s+TRAJECTORY OVERVIEW\s+(.*?)\s+SAFETY CONSIDERATIONS\s+(.*?)\s+GROUND OPERATIONS\s+(.*?)\s+TECHNICAL SUMMARY\s+(.*?)\s+DIMENSIONS\/MASS\/STAGES\s+(.*?)\s+PROPULSION TYPES\s+(.*?)\s+RECOVERY SYSTEMS\s+(.*?)\s+GROUND SUPPORT EQUIPMENT\s+(.*?)\s+SITE NAMES\/COORDINATES\s+(.*?)\s+SITE OPERATOR\s+(.*?)\s+AIRSPACE\/MARITIME NOTES\s+(.*?)\s+LAUNCH SITE\s+(.*?)\s+LAUNCH WINDOW\s+(.*?)\s+FLIGHT PATH\s+(.*?)\s+LANDING SITE\s+(.*?)\s+EARLY RISK ASSESSMENTS\s+(.*?)\s+PUBLIC SAFETY CHALLENGES\s+(.*?)\s+PLANNED SAFETY TOOLS\s+(.*?)\s+FULL APPLICATION TIMELINE\s+(.*?)\s+INTENDED WINDOW\s+(.*?)\s+LICENSE TYPE INTENT\s+(.*?)\s+CLARIFY PART 450\s+(.*?)\s+UNIQUE TECH\/INTERNATIONAL\s+(.*)/);
+    // Split the response by section headers and extract content
+    const sectionHeaders = [
+      'MISSION OBJECTIVE',
+      'VEHICLE DESCRIPTION', 
+      'LAUNCH/REENTRY SEQUENCE',
+      'TRAJECTORY OVERVIEW',
+      'SAFETY CONSIDERATIONS',
+      'GROUND OPERATIONS',
+      'TECHNICAL SUMMARY',
+      'DIMENSIONS/MASS/STAGES',
+      'PROPULSION TYPES',
+      'RECOVERY SYSTEMS',
+      'GROUND SUPPORT EQUIPMENT',
+      'SITE NAMES/COORDINATES',
+      'SITE OPERATOR',
+      'AIRSPACE/MARITIME NOTES',
+      'LAUNCH SITE',
+      'LAUNCH WINDOW',
+      'FLIGHT PATH',
+      'LANDING SITE',
+      'EARLY RISK ASSESSMENTS',
+      'PUBLIC SAFETY CHALLENGES',
+      'PLANNED SAFETY TOOLS',
+      'FULL APPLICATION TIMELINE',
+      'INTENDED WINDOW',
+      'LICENSE TYPE INTENT',
+      'CLARIFY PART 450',
+      'UNIQUE TECH/INTERNATIONAL'
+    ];
     
-    if (singleLineMatch) {
-      const [
-        _, // full match
-        missionObjective,
-        vehicleDescription,
-        launchReentrySequence,
-        trajectoryOverview,
-        safetyConsiderations,
-        groundOperations,
-        technicalSummary,
-        dimensionsMassStages,
-        propulsionTypes,
-        recoverySystems,
-        groundSupportEquipment,
-        siteNamesCoordinates,
-        siteOperator,
-        airspaceMaritimeNotes,
-        launchSite,
-        launchWindow,
-        flightPath,
-        landingSite,
-        earlyRiskAssessments,
-        publicSafetyChallenges,
-        plannedSafetyTools,
-        fullApplicationTimeline,
-        intendedWindow,
-        licenseTypeIntent,
-        clarifyPart450,
-        uniqueTechInternational
-      ] = singleLineMatch;
+    // Find each section and extract its content
+    for (let i = 0; i < sectionHeaders.length; i++) {
+      const currentHeader = sectionHeaders[i];
+      const nextHeader = sectionHeaders[i + 1];
       
-      if (missionObjective) sections.missionObjective = missionObjective.trim();
-      if (vehicleDescription) sections.vehicleDescription = vehicleDescription.trim();
-      if (launchReentrySequence) sections.launchReentrySequence = launchReentrySequence.trim();
-      if (trajectoryOverview) sections.trajectoryOverview = trajectoryOverview.trim();
-      if (safetyConsiderations) sections.safetyConsiderations = safetyConsiderations.trim();
-      if (groundOperations) sections.groundOperations = groundOperations.trim();
-      if (technicalSummary) sections.technicalSummary = technicalSummary.trim();
-      if (dimensionsMassStages) sections.dimensionsMassStages = dimensionsMassStages.trim();
-      if (propulsionTypes) sections.propulsionTypes = propulsionTypes.trim();
-      if (recoverySystems) sections.recoverySystems = recoverySystems.trim();
-      if (groundSupportEquipment) sections.groundSupportEquipment = groundSupportEquipment.trim();
-      if (siteNamesCoordinates) sections.siteNamesCoordinates = siteNamesCoordinates.trim();
-      if (siteOperator) sections.siteOperator = siteOperator.trim();
-      if (airspaceMaritimeNotes) sections.airspaceMaritimeNotes = airspaceMaritimeNotes.trim();
-      if (launchSite) sections.launchSite = launchSite.trim();
-      if (launchWindow) sections.launchWindow = launchWindow.trim();
-      if (flightPath) sections.flightPath = flightPath.trim();
-      if (landingSite) sections.landingSite = landingSite.trim();
-      if (earlyRiskAssessments) sections.earlyRiskAssessments = earlyRiskAssessments.trim();
-      if (publicSafetyChallenges) sections.publicSafetyChallenges = publicSafetyChallenges.trim();
-      if (plannedSafetyTools) sections.plannedSafetyTools = plannedSafetyTools.trim();
-      if (fullApplicationTimeline) sections.fullApplicationTimeline = fullApplicationTimeline.trim();
-      if (intendedWindow) sections.intendedWindow = intendedWindow.trim();
-      if (licenseTypeIntent) sections.licenseTypeIntent = licenseTypeIntent.trim();
-      if (clarifyPart450) sections.clarifyPart450 = clarifyPart450.trim();
-      if (uniqueTechInternational) sections.uniqueTechInternational = uniqueTechInternational.trim();
-    } else {
-      // Fallback to multi-line parsing
-      const lines = response.split('\n');
-      let currentSection = '';
-      let currentContent: string[] = [];
-      
-      for (const line of lines) {
-        const trimmed = line.trim();
-        if (!trimmed) continue;
-        
-        // Check if this is a section header (all caps with spaces and slashes)
-        if (trimmed.match(/^[A-Z\s\/]+$/) && trimmed.length > 3) {
-          // Save previous section content
-          if (currentSection && currentContent.length > 0) {
-            const fieldName = fieldMapping[currentSection];
-            if (fieldName) {
-              sections[fieldName] = currentContent.join(' ').trim();
-            }
-          }
-          
-          // Start new section
-          currentSection = trimmed.toLowerCase().replace(/[^a-z]/g, '');
-          currentContent = [];
-        } else if (currentSection) {
-          // Add content to current section
-          currentContent.push(trimmed);
-        }
+      // Create regex to find content between current header and next header
+      let regexPattern;
+      if (nextHeader) {
+        regexPattern = new RegExp(`${currentHeader}\\s+(.*?)\\s+${nextHeader}`, 's');
+      } else {
+        // For the last section, match until the end
+        regexPattern = new RegExp(`${currentHeader}\\s+(.*?)$`, 's');
       }
       
-      // Handle the last section
-      if (currentSection && currentContent.length > 0) {
-        const fieldName = fieldMapping[currentSection];
-        if (fieldName) {
-          sections[fieldName] = currentContent.join(' ').trim();
+      const match = response.match(regexPattern);
+      if (match && match[1]) {
+        const content = match[1].trim();
+        const sectionKey = currentHeader.toLowerCase().replace(/[^a-z]/g, '');
+        const fieldName = fieldMapping[sectionKey];
+        
+        if (fieldName && content) {
+          sections[fieldName] = content;
+          console.log(`Extracted ${fieldName}:`, content.substring(0, 100) + '...');
         }
       }
     }
     
-    console.log('Parsed sections:', sections);
+    console.log('Final parsed sections:', sections);
     return sections;
   };
 
