@@ -37,44 +37,8 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
       {
         id: 1,
         sender: "ai",
-        content: "Hi! I'm SPLI Chat, your AI assistant for aerospace compliance and FAA applications. How can I help you today?",
+        content: "Hi! I'm SPLI Chat, your AI assistant for aerospace compliance and FAA applications. I can help you fill out forms, analyze your application, and answer questions. What would you like to do?",
         timestamp: Date.now()
-      },
-      {
-        id: 2,
-        sender: "ai",
-        content: "I can help you with:\n• Filling out FAA Part 450 applications\n• Analyzing your application for compliance\n• Suggesting improvements\n• Submitting your application\n• Answering questions about aerospace regulations",
-        timestamp: Date.now() + 1000
-      },
-      {
-        id: 3,
-        sender: "ai",
-        content: "You can also ask me to show you changes I make to your application with a visual diff view, just like in Cursor!",
-        timestamp: Date.now() + 2000
-      },
-      {
-        id: 4,
-        sender: "user",
-        content: "Can you help me with Part 450 requirements?",
-        timestamp: Date.now() + 3000
-      },
-      {
-        id: 5,
-        sender: "ai",
-        content: "Absolutely! Part 450 covers commercial space launch and reentry operations. Key requirements include:\n\n• Safety analysis and risk assessment\n• Launch site and vehicle information\n• Flight safety analysis\n• Environmental compliance\n• Financial responsibility\n• Insurance requirements\n\nWhat specific aspect would you like to know more about?",
-        timestamp: Date.now() + 4000
-      },
-      {
-        id: 6,
-        sender: "user",
-        content: "What about safety considerations?",
-        timestamp: Date.now() + 5000
-      },
-      {
-        id: 7,
-        sender: "ai",
-        content: "Safety considerations for Part 450 applications include:\n\n• Public safety analysis\n• Risk assessment for launch and reentry\n• Emergency response procedures\n• Flight termination systems\n• Ground safety measures\n• Environmental impact assessment\n• Insurance and liability coverage\n\nI can help you fill out the safety section of your application with detailed information about your specific mission.",
-        timestamp: Date.now() + 6000
       }
     ]);
     const messagesEndRef = useRef<HTMLDivElement>(null);

@@ -203,7 +203,7 @@ AVAILABLE COMMANDS:
 9. delete_application - Delete the application
 
 COMMAND EXECUTION FORMAT:
-When executing commands, respond with:
+When executing commands, respond with ONLY the command and parameters (no additional text):
 COMMAND: [command_name]
 PARAMS: [JSON parameters]
 
@@ -219,6 +219,8 @@ Examples:
 
 - User: "analyze my application"
 - Response: "COMMAND: analyze_application\nPARAMS: {}"
+
+IMPORTANT: Do not include any explanatory text, just the COMMAND and PARAMS lines.
 
 INTELLIGENT COMMAND DETECTION:
 - Understand natural language requests

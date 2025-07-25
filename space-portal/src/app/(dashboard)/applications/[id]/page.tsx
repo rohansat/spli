@@ -1073,19 +1073,22 @@ export default function ApplicationPage() {
                       const commandMatch = data.message.match(/COMMAND:\s*([^\n]+)/i);
                       const paramsMatch = data.message.match(/PARAMS:\s*(\{.*\})/i);
                       
-                      if (commandMatch && paramsMatch) {
-                        const commandName = commandMatch[1].trim();
-                        const params = JSON.parse(paramsMatch[1]);
-                        
-                        console.log('Executing command:', commandName, 'with params:', params);
-                        const result = await executeCommand(commandName, params);
-                        aiPanelRef.current?.addAIMsg(result.message);
-                        return;
-                      } else {
-                        // If AI didn't return structured command, treat as regular response
-                        aiPanelRef.current?.addAIMsg(data.message);
-                        return;
-                      }
+                                             if (commandMatch && paramsMatch) {
+                         const commandName = commandMatch[1].trim();
+                         const params = JSON.parse(paramsMatch[1]);
+                         
+                         console.log('Executing command:', commandName, 'with params:', params);
+                         const result = await executeCommand(commandName, params);
+                         aiPanelRef.current?.addAIMsg(result.message);
+                         return;
+                       } else {
+                         // If AI didn't return structured command, check if it's a regular response
+                         // Only show the response if it doesn't contain command-like text
+                         if (!data.message.includes('COMMAND:') && !data.message.includes('PARAMS:')) {
+                           aiPanelRef.current?.addAIMsg(data.message);
+                         }
+                         return;
+                       }
                     }
                   } catch (error) {
                     console.error('AI command execution error:', error);
