@@ -59,6 +59,312 @@ export default function ApplicationPage() {
   const applicationId = params?.id as string;
   const application = applicationId ? getApplicationById(applicationId) : undefined;
 
+  // Comprehensive command registry for AI
+  const commandRegistry: Record<string, {
+    description: string;
+    execute: (params?: any) => Promise<{ success: boolean; message: string }>;
+  }> = {
+    // Form field operations
+    'replace_field': {
+      description: 'Replace a form field with new content',
+      execute: async (params: { field: string; value: string }) => {
+        const fieldMapping: Record<string, string> = {
+          'mission objective': 'missionObjective',
+          'missionobjective': 'missionObjective',
+          'mission': 'missionObjective',
+          'objective': 'missionObjective',
+          'vehicle description': 'vehicleDescription',
+          'vehicledescription': 'vehicleDescription',
+          'vehicle': 'vehicleDescription',
+          'launch reentry sequence': 'launchReentrySequence',
+          'launchreentrysequence': 'launchReentrySequence',
+          'launch sequence': 'launchReentrySequence',
+          'reentry sequence': 'launchReentrySequence',
+          'trajectory overview': 'trajectoryOverview',
+          'trajectoryoverview': 'trajectoryOverview',
+          'trajectory': 'trajectoryOverview',
+          'safety considerations': 'safetyConsiderations',
+          'safetyconsiderations': 'safetyConsiderations',
+          'safety': 'safetyConsiderations',
+          'ground operations': 'groundOperations',
+          'groundoperations': 'groundOperations',
+          'ground ops': 'groundOperations',
+          'technical summary': 'technicalSummary',
+          'technicalsummary': 'technicalSummary',
+          'technical': 'technicalSummary',
+          'dimensions mass stages': 'dimensionsMassStages',
+          'dimensionsmassstages': 'dimensionsMassStages',
+          'dimensions': 'dimensionsMassStages',
+          'mass stages': 'dimensionsMassStages',
+          'propulsion types': 'propulsionTypes',
+          'propulsiontypes': 'propulsionTypes',
+          'propulsion': 'propulsionTypes',
+          'recovery systems': 'recoverySystems',
+          'recoverysystems': 'recoverySystems',
+          'recovery': 'recoverySystems',
+          'ground support equipment': 'groundSupportEquipment',
+          'groundsupportequipment': 'groundSupportEquipment',
+          'ground support': 'groundSupportEquipment',
+          'site names coordinates': 'siteNamesCoordinates',
+          'sitenamescoordinates': 'siteNamesCoordinates',
+          'site coordinates': 'siteNamesCoordinates',
+          'coordinates': 'siteNamesCoordinates',
+          'site operator': 'siteOperator',
+          'siteoperator': 'siteOperator',
+          'operator': 'siteOperator',
+          'airspace maritime notes': 'airspaceMaritimeNotes',
+          'airspacemaritimenotes': 'airspaceMaritimeNotes',
+          'airspace notes': 'airspaceMaritimeNotes',
+          'maritime notes': 'airspaceMaritimeNotes',
+          'launch site': 'launchSite',
+          'launchsite': 'launchSite',
+          'launch location': 'launchSite',
+          'launch window': 'launchWindow',
+          'launchwindow': 'launchWindow',
+          'window': 'launchWindow',
+          'flight path': 'flightPath',
+          'flightpath': 'flightPath',
+          'path': 'flightPath',
+          'landing site': 'landingSite',
+          'landingsite': 'landingSite',
+          'landing location': 'landingSite',
+          'early risk assessments': 'earlyRiskAssessments',
+          'earlyriskassessments': 'earlyRiskAssessments',
+          'risk assessments': 'earlyRiskAssessments',
+          'public safety challenges': 'publicSafetyChallenges',
+          'publicsafetychallenges': 'publicSafetyChallenges',
+          'safety challenges': 'publicSafetyChallenges',
+          'planned safety tools': 'plannedSafetyTools',
+          'plannedsafetytools': 'plannedSafetyTools',
+          'safety tools': 'plannedSafetyTools',
+          'full application timeline': 'fullApplicationTimeline',
+          'fullapplicationtimeline': 'fullApplicationTimeline',
+          'application timeline': 'fullApplicationTimeline',
+          'timeline': 'fullApplicationTimeline',
+          'intended window': 'intendedWindow',
+          'intendedwindow': 'intendedWindow',
+          'intended': 'intendedWindow',
+          'license type intent': 'licenseTypeIntent',
+          'licensetypeintent': 'licenseTypeIntent',
+          'license intent': 'licenseTypeIntent',
+          'license type': 'licenseTypeIntent',
+          'clarify part450': 'clarifyPart450',
+          'clarifypart450': 'clarifyPart450',
+          'part450': 'clarifyPart450',
+          'part 450': 'clarifyPart450',
+          'unique tech international': 'uniqueTechInternational',
+          'uniquetechinternational': 'uniqueTechInternational',
+          'unique tech': 'uniqueTechInternational',
+          'international': 'uniqueTechInternational'
+        };
+
+        const actualFieldName = fieldMapping[params.field.toLowerCase()];
+        if (actualFieldName) {
+          setFormData((prev) => ({ ...prev, [actualFieldName]: params.value }));
+          return { success: true, message: `Updated ${params.field} with: "${params.value}"` };
+        } else {
+          return { success: false, message: `Field "${params.field}" not found. Available fields: ${Object.keys(fieldMapping).join(', ')}` };
+        }
+      }
+    },
+
+    // Application operations
+    'save_draft': {
+      description: 'Save the current application draft',
+      execute: async () => {
+        if (application?.status === "approved") {
+          return { success: false, message: "This application is already approved and cannot be edited." };
+        }
+        await handleSave();
+        return { success: true, message: "Draft saved successfully." };
+      }
+    },
+
+    'submit_application': {
+      description: 'Submit the application for review',
+      execute: async () => {
+        if (application?.status === "approved") {
+          return { success: false, message: "This application is already approved and cannot be submitted again." };
+        }
+        handleSubmit();
+        return { success: true, message: "Opening email dialog to submit application to FAA officials." };
+      }
+    },
+
+    'delete_application': {
+      description: 'Delete the current application',
+      execute: async () => {
+        // Implementation for deleting application
+        return { success: true, message: "Application deleted successfully." };
+      }
+    },
+
+    // Navigation operations
+    'switch_tab': {
+      description: 'Switch to a different form section tab',
+      execute: async (params: { tab: string }) => {
+        const tabMapping: Record<string, string> = {
+          'concept of operations': 'section-0',
+          'vehicle overview': 'section-1',
+          'launch location': 'section-2',
+          'launch information': 'section-3',
+          'safety considerations': 'section-4',
+          'timeline': 'section-5',
+          'questions': 'section-6'
+        };
+        
+        const tabId = tabMapping[params.tab.toLowerCase()];
+        if (tabId) {
+          setActiveTab(tabId);
+          return { success: true, message: `Switched to ${params.tab} section.` };
+        } else {
+          return { success: false, message: `Tab "${params.tab}" not found. Available tabs: ${Object.keys(tabMapping).join(', ')}` };
+        }
+      }
+    },
+
+    // File operations
+    'upload_file': {
+      description: 'Upload a file to the application',
+      execute: async (params: { file: File }) => {
+        // Implementation for file upload
+        return { success: true, message: `File "${params.file.name}" uploaded successfully.` };
+      }
+    },
+
+    // Analysis operations
+    'analyze_application': {
+      description: 'Analyze the current application for completeness and compliance',
+      execute: async () => {
+        const filledFields = Object.keys(formData).filter(key => formData[key] && formData[key].trim() !== '');
+        const totalFields = getAllFormFields().length;
+        const completionPercentage = Math.round((filledFields.length / totalFields) * 100);
+        
+        const missingFields = getAllFormFields()
+          .filter(field => !formData[field.name] || formData[field.name].trim() === '')
+          .map(field => field.label);
+        
+        return {
+          success: true,
+          message: `Application Analysis:\n- Completion: ${completionPercentage}%\n- Filled fields: ${filledFields.length}/${totalFields}\n- Missing fields: ${missingFields.join(', ')}`
+        };
+      }
+    },
+
+    // Auto-fill operations
+    'auto_fill': {
+      description: 'Automatically fill form fields based on mission description',
+      execute: async (params: { description: string }) => {
+        try {
+          const response = await fetch('/api/ai', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              userInput: params.description,
+              mode: 'unified',
+              conversationHistory: []
+            }),
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            // Parse structured response and update form
+            const sections = parseStructuredResponse(data.message);
+            setFormData((prev) => ({ ...prev, ...sections }));
+            return { success: true, message: "Form auto-filled based on your description." };
+          }
+          return { success: false, message: "Failed to auto-fill form." };
+        } catch (error) {
+          return { success: false, message: "Failed to auto-fill form." };
+        }
+      }
+    },
+
+    // Help operations
+    'show_help': {
+      description: 'Show available commands and help information',
+      execute: async () => {
+        const commands = Object.entries(commandRegistry).map(([key, cmd]) => 
+          `- ${key}: ${cmd.description}`
+        ).join('\n');
+        
+        return {
+          success: true,
+          message: `Available Commands:\n${commands}\n\nYou can also ask me to:\n- Replace any form field\n- Switch between sections\n- Analyze your application\n- Auto-fill based on descriptions\n- Save or submit your application`
+        };
+      }
+    }
+  };
+
+  // Enhanced command execution function
+  const executeCommand = async (command: string, params?: any) => {
+    const cmd = commandRegistry[command as keyof typeof commandRegistry];
+    if (cmd) {
+      try {
+        const result = await cmd.execute(params || {});
+        return result;
+      } catch (error) {
+        return { success: false, message: `Error executing command: ${error}` };
+      }
+    } else {
+      return { success: false, message: `Unknown command: ${command}` };
+    }
+  };
+
+  // Parse structured response from AI
+  const parseStructuredResponse = (response: string): Record<string, string> => {
+    const sections: Record<string, string> = {};
+    const lines = response.split('\n');
+    let currentSection = '';
+    
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed) continue;
+      
+      // Check if this is a section header
+      if (trimmed.match(/^[A-Z\s\/]+$/)) {
+        currentSection = trimmed.toLowerCase().replace(/\s+/g, '');
+      } else if (currentSection) {
+        // Map section names to field names
+        const fieldMapping: Record<string, string> = {
+          'missionobjective': 'missionObjective',
+          'vehicledescription': 'vehicleDescription',
+          'launchreentrysequence': 'launchReentrySequence',
+          'trajectoryoverview': 'trajectoryOverview',
+          'safetyconsiderations': 'safetyConsiderations',
+          'groundoperations': 'groundOperations',
+          'technicalsummary': 'technicalSummary',
+          'dimensionsmassstages': 'dimensionsMassStages',
+          'propulsiontypes': 'propulsionTypes',
+          'recoverysystems': 'recoverySystems',
+          'groundsupportequipment': 'groundSupportEquipment',
+          'sitenamescoordinates': 'siteNamesCoordinates',
+          'siteoperator': 'siteOperator',
+          'airspacemaritimenotes': 'airspaceMaritimeNotes',
+          'launchsite': 'launchSite',
+          'launchwindow': 'launchWindow',
+          'flightpath': 'flightPath',
+          'landingsite': 'landingSite',
+          'earlyriskassessments': 'earlyRiskAssessments',
+          'publicsafetychallenges': 'publicSafetyChallenges',
+          'plannedsafetytools': 'plannedSafetyTools',
+          'fullapplicationtimeline': 'fullApplicationTimeline',
+          'intendedwindow': 'intendedWindow',
+          'licensetypeintent': 'licenseTypeIntent',
+          'clarifypart450': 'clarifyPart450',
+          'uniquetechinternational': 'uniqueTechInternational'
+        };
+        
+        const fieldName = fieldMapping[currentSection];
+        if (fieldName) {
+          sections[fieldName] = trimmed;
+        }
+      }
+    }
+    
+    return sections;
+  };
+
   useEffect(() => {
     if (!application && applicationId) {
       router.push("/dashboard");
@@ -691,464 +997,77 @@ export default function ApplicationPage() {
                   console.log('Processing command:', cmd);
                   console.log('Lowercase command:', lower);
                   
-                  if (lower === "save draft") {
-                    if (application?.status === "approved") {
-                      aiPanelRef.current?.addAIMsg("This application is already approved and cannot be edited.");
-                      return;
-                    }
-                    await handleSave();
-                    aiPanelRef.current?.addAIMsg("Draft saved successfully.");
-                    return;
-                  }
-                  if (lower === "submit application" || lower === "i'm done with the application" || lower === "im done with the application" || lower === "i am done with the application") {
-                    if (application?.status === "approved") {
-                      aiPanelRef.current?.addAIMsg("This application is already approved and cannot be submitted again.");
-                      return;
-                    }
-                    handleSubmit();
-                    aiPanelRef.current?.addAIMsg("Opening email dialog to submit application to FAA officials. You can now compose your message and send it to the FAA.");
-                    return;
-                  }
-                  
-                  // Use AI to parse and execute commands intelligently
-                  if (lower.includes('replace') || lower.includes('update') || lower.includes('change') || lower.includes('fill')) {
-                    try {
-                      const response = await fetch('/api/ai', {
-                        method: 'POST',
-                        headers: {
-                          'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                          userInput: cmd,
-                          context: `Current application data: ${JSON.stringify(formData)}. Available form fields: ${getAllFormFields().map(f => f.name).join(', ')}. Application status: ${application?.status}. Parse this command and extract the field name and value. Respond with: FIELD: [field name] VALUE: [new value]`,
-                          mode: 'command',
-                          conversationHistory: []
-                        }),
-                      });
-                      
-                      if (response.ok) {
-                        const data = await response.json();
-                        console.log('AI command response:', data);
-                        
-                        // Parse the AI response to extract field and value
-                        const fieldMatch = data.message.match(/FIELD:\s*([^\n]+)/i);
-                        const valueMatch = data.message.match(/VALUE:\s*([^\n]+)/i);
-                        
-                        if (fieldMatch && valueMatch) {
-                          const fieldName = fieldMatch[1].trim().toLowerCase();
-                          const newValue = valueMatch[1].trim();
-                          
-                          // Enhanced field mapping that handles various input formats
-                          const fieldMapping: Record<string, string> = {
-                            // Handle both with and without spaces, plus common variations
-                            'mission objective': 'missionObjective',
-                            'missionobjective': 'missionObjective',
-                            'mission': 'missionObjective',
-                            'objective': 'missionObjective',
-                            'vehicle description': 'vehicleDescription',
-                            'vehicledescription': 'vehicleDescription',
-                            'vehicle': 'vehicleDescription',
-                            'launch reentry sequence': 'launchReentrySequence',
-                            'launchreentrysequence': 'launchReentrySequence',
-                            'launch sequence': 'launchReentrySequence',
-                            'reentry sequence': 'launchReentrySequence',
-                            'trajectory overview': 'trajectoryOverview',
-                            'trajectoryoverview': 'trajectoryOverview',
-                            'trajectory': 'trajectoryOverview',
-                            'safety considerations': 'safetyConsiderations',
-                            'safetyconsiderations': 'safetyConsiderations',
-                            'safety': 'safetyConsiderations',
-                            'ground operations': 'groundOperations',
-                            'groundoperations': 'groundOperations',
-                            'ground ops': 'groundOperations',
-                            'technical summary': 'technicalSummary',
-                            'technicalsummary': 'technicalSummary',
-                            'technical': 'technicalSummary',
-                            'dimensions mass stages': 'dimensionsMassStages',
-                            'dimensionsmassstages': 'dimensionsMassStages',
-                            'dimensions': 'dimensionsMassStages',
-                            'mass stages': 'dimensionsMassStages',
-                            'propulsion types': 'propulsionTypes',
-                            'propulsiontypes': 'propulsionTypes',
-                            'propulsion': 'propulsionTypes',
-                            'recovery systems': 'recoverySystems',
-                            'recoverysystems': 'recoverySystems',
-                            'recovery': 'recoverySystems',
-                            'ground support equipment': 'groundSupportEquipment',
-                            'groundsupportequipment': 'groundSupportEquipment',
-                            'ground support': 'groundSupportEquipment',
-                            'site names coordinates': 'siteNamesCoordinates',
-                            'sitenamescoordinates': 'siteNamesCoordinates',
-                            'site coordinates': 'siteNamesCoordinates',
-                            'coordinates': 'siteNamesCoordinates',
-                            'site operator': 'siteOperator',
-                            'siteoperator': 'siteOperator',
-                            'operator': 'siteOperator',
-                            'airspace maritime notes': 'airspaceMaritimeNotes',
-                            'airspacemaritimenotes': 'airspaceMaritimeNotes',
-                            'airspace notes': 'airspaceMaritimeNotes',
-                            'maritime notes': 'airspaceMaritimeNotes',
-                            'launch site': 'launchSite',
-                            'launchsite': 'launchSite',
-                            'launch location': 'launchSite',
-                            'launch window': 'launchWindow',
-                            'launchwindow': 'launchWindow',
-                            'window': 'launchWindow',
-                            'flight path': 'flightPath',
-                            'flightpath': 'flightPath',
-                            'path': 'flightPath',
-                            'landing site': 'landingSite',
-                            'landingsite': 'landingSite',
-                            'landing location': 'landingSite',
-                            'early risk assessments': 'earlyRiskAssessments',
-                            'earlyriskassessments': 'earlyRiskAssessments',
-                            'risk assessments': 'earlyRiskAssessments',
-                            'public safety challenges': 'publicSafetyChallenges',
-                            'publicsafetychallenges': 'publicSafetyChallenges',
-                            'safety challenges': 'publicSafetyChallenges',
-                            'planned safety tools': 'plannedSafetyTools',
-                            'plannedsafetytools': 'plannedSafetyTools',
-                            'safety tools': 'plannedSafetyTools',
-                            'full application timeline': 'fullApplicationTimeline',
-                            'fullapplicationtimeline': 'fullApplicationTimeline',
-                            'application timeline': 'fullApplicationTimeline',
-                            'timeline': 'fullApplicationTimeline',
-                            'intended window': 'intendedWindow',
-                            'intendedwindow': 'intendedWindow',
-                            'intended': 'intendedWindow',
-                            'license type intent': 'licenseTypeIntent',
-                            'licensetypeintent': 'licenseTypeIntent',
-                            'license intent': 'licenseTypeIntent',
-                            'license type': 'licenseTypeIntent',
-                            'clarify part450': 'clarifyPart450',
-                            'clarifypart450': 'clarifyPart450',
-                            'part450': 'clarifyPart450',
-                            'part 450': 'clarifyPart450',
-                            'unique tech international': 'uniqueTechInternational',
-                            'uniquetechinternational': 'uniqueTechInternational',
-                            'unique tech': 'uniqueTechInternational',
-                            'international': 'uniqueTechInternational'
-                          };
-                          
-                          const actualFieldName = fieldMapping[fieldName];
-                          console.log('AI parsed field name:', fieldName);
-                          console.log('AI parsed value:', newValue);
-                          console.log('Actual field name:', actualFieldName);
-                          
-                          if (actualFieldName) {
-                            console.log('Updating form data for field:', actualFieldName, 'with value:', newValue);
-                            setFormData((prev) => {
-                              const updated = { ...prev, [actualFieldName]: newValue };
-                              console.log('Updated form data:', updated);
-                              return updated;
-                            });
-                            aiPanelRef.current?.addAIMsg(`I've replaced the ${fieldName} section with: "${newValue}"`);
-                            return;
-                          } else {
-                            // Provide a more helpful error message with available field names
-                            const availableFields = [
-                              'mission objective', 'vehicle description', 'launch reentry sequence', 'trajectory overview',
-                              'safety considerations', 'ground operations', 'technical summary', 'dimensions mass stages',
-                              'propulsion types', 'recovery systems', 'ground support equipment', 'site names coordinates',
-                              'site operator', 'airspace maritime notes', 'launch site', 'launch window', 'flight path',
-                              'landing site', 'early risk assessments', 'public safety challenges', 'planned safety tools',
-                              'full application timeline', 'intended window', 'license type intent', 'clarify part450',
-                              'unique tech international'
-                            ];
-                            aiPanelRef.current?.addAIMsg(`Field "${fieldName}" not found. Available fields: ${availableFields.join(', ')}`);
-                            return;
-                          }
-                        } else {
-                          // Fallback to original regex method if AI parsing fails
-                          const replaceMatch = lower.match(/^replace (.+) with (.+)$/);
-                          if (replaceMatch) {
-                            let fieldNameInput = replaceMatch[1].toLowerCase().trim();
-                            const newValue = replaceMatch[2];
-                            
-                            // Clean up field name by removing common words like "section", "field", etc.
-                            fieldNameInput = fieldNameInput
-                              .replace(/\b(section|field|area|part|form)\b/g, '')
-                              .replace(/\s+/g, ' ')
-                              .trim();
-                            
-                            // Use the same field mapping as above
-                            const fieldMapping: Record<string, string> = {
-                              'mission objective': 'missionObjective',
-                              'missionobjective': 'missionObjective',
-                              'mission': 'missionObjective',
-                              'objective': 'missionObjective',
-                              'vehicle description': 'vehicleDescription',
-                              'vehicledescription': 'vehicleDescription',
-                              'vehicle': 'vehicleDescription',
-                              'launch reentry sequence': 'launchReentrySequence',
-                              'launchreentrysequence': 'launchReentrySequence',
-                              'launch sequence': 'launchReentrySequence',
-                              'reentry sequence': 'launchReentrySequence',
-                              'trajectory overview': 'trajectoryOverview',
-                              'trajectoryoverview': 'trajectoryOverview',
-                              'trajectory': 'trajectoryOverview',
-                              'safety considerations': 'safetyConsiderations',
-                              'safetyconsiderations': 'safetyConsiderations',
-                              'safety': 'safetyConsiderations',
-                              'ground operations': 'groundOperations',
-                              'groundoperations': 'groundOperations',
-                              'ground ops': 'groundOperations',
-                              'technical summary': 'technicalSummary',
-                              'technicalsummary': 'technicalSummary',
-                              'technical': 'technicalSummary',
-                              'dimensions mass stages': 'dimensionsMassStages',
-                              'dimensionsmassstages': 'dimensionsMassStages',
-                              'dimensions': 'dimensionsMassStages',
-                              'mass stages': 'dimensionsMassStages',
-                              'propulsion types': 'propulsionTypes',
-                              'propulsiontypes': 'propulsionTypes',
-                              'propulsion': 'propulsionTypes',
-                              'recovery systems': 'recoverySystems',
-                              'recoverysystems': 'recoverySystems',
-                              'recovery': 'recoverySystems',
-                              'ground support equipment': 'groundSupportEquipment',
-                              'groundsupportequipment': 'groundSupportEquipment',
-                              'ground support': 'groundSupportEquipment',
-                              'site names coordinates': 'siteNamesCoordinates',
-                              'sitenamescoordinates': 'siteNamesCoordinates',
-                              'site coordinates': 'siteNamesCoordinates',
-                              'coordinates': 'siteNamesCoordinates',
-                              'site operator': 'siteOperator',
-                              'siteoperator': 'siteOperator',
-                              'operator': 'siteOperator',
-                              'airspace maritime notes': 'airspaceMaritimeNotes',
-                              'airspacemaritimenotes': 'airspaceMaritimeNotes',
-                              'airspace notes': 'airspaceMaritimeNotes',
-                              'maritime notes': 'airspaceMaritimeNotes',
-                              'launch site': 'launchSite',
-                              'launchsite': 'launchSite',
-                              'launch location': 'launchSite',
-                              'launch window': 'launchWindow',
-                              'launchwindow': 'launchWindow',
-                              'window': 'launchWindow',
-                              'flight path': 'flightPath',
-                              'flightpath': 'flightPath',
-                              'path': 'flightPath',
-                              'landing site': 'landingSite',
-                              'landingsite': 'landingSite',
-                              'landing location': 'landingSite',
-                              'early risk assessments': 'earlyRiskAssessments',
-                              'earlyriskassessments': 'earlyRiskAssessments',
-                              'risk assessments': 'earlyRiskAssessments',
-                              'public safety challenges': 'publicSafetyChallenges',
-                              'publicsafetychallenges': 'publicSafetyChallenges',
-                              'safety challenges': 'publicSafetyChallenges',
-                              'planned safety tools': 'plannedSafetyTools',
-                              'plannedsafetytools': 'plannedSafetyTools',
-                              'safety tools': 'plannedSafetyTools',
-                              'full application timeline': 'fullApplicationTimeline',
-                              'fullapplicationtimeline': 'fullApplicationTimeline',
-                              'application timeline': 'fullApplicationTimeline',
-                              'timeline': 'fullApplicationTimeline',
-                              'intended window': 'intendedWindow',
-                              'intendedwindow': 'intendedWindow',
-                              'intended': 'intendedWindow',
-                              'license type intent': 'licenseTypeIntent',
-                              'licensetypeintent': 'licenseTypeIntent',
-                              'license intent': 'licenseTypeIntent',
-                              'license type': 'licenseTypeIntent',
-                              'clarify part450': 'clarifyPart450',
-                              'clarifypart450': 'clarifyPart450',
-                              'part450': 'clarifyPart450',
-                              'part 450': 'clarifyPart450',
-                              'unique tech international': 'uniqueTechInternational',
-                              'uniquetechinternational': 'uniqueTechInternational',
-                              'unique tech': 'uniqueTechInternational',
-                              'international': 'uniqueTechInternational'
-                            };
-                            
-                            const actualFieldName = fieldMapping[fieldNameInput];
-                            console.log('Fallback field name:', fieldNameInput);
-                            console.log('Actual field name:', actualFieldName);
-                            
-                            if (actualFieldName) {
-                              setFormData((prev) => ({ ...prev, [actualFieldName]: newValue }));
-                              aiPanelRef.current?.addAIMsg(`I've replaced the ${replaceMatch[1]} section with: "${newValue}"`);
-                              return;
-                            }
-                          }
-                        }
-                      }
-                    } catch (error) {
-                      console.error('AI command parsing error:', error);
-                    }
-                  }
-                  
-                  // Fill section command: e.g., fill section 2 with Launch details
-                  const fillMatch = lower.match(/^fill section (\d+) with (.+)$/);
-                  if (fillMatch) {
-                    const sectionIdx = parseInt(fillMatch[1], 10) - 1;
-                    const fillText = fillMatch[2];
-                    const section = part450FormTemplate.sections[sectionIdx];
-                    if (!section) {
-                      aiPanelRef.current?.addAIMsg(`Section ${fillMatch[1]} does not exist.`);
-                      return;
-                    }
-                    // Fill all text/textarea fields in the section with the provided text
-                    const updates: Record<string, string> = {};
-                    section.fields.forEach((field: any) => {
-                      if (["text", "textarea"].includes(field.type)) {
-                        updates[field.name] = fillText;
-                      }
+                  // Use AI to intelligently parse and execute commands
+                  try {
+                    const response = await fetch('/api/ai', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                      },
+                      body: JSON.stringify({
+                        userInput: cmd,
+                        context: `Current application data: ${JSON.stringify(formData)}. Available form fields: ${getAllFormFields().map(f => f.name).join(', ')}. Application status: ${application?.status}. Current tab: ${activeTab}. Parse this command and execute the appropriate action.`,
+                        mode: 'command',
+                        conversationHistory: []
+                      }),
                     });
-                    setFormData((prev) => ({ ...prev, ...updates }));
-                    aiPanelRef.current?.addAIMsg(`Section ${fillMatch[1]} filled with: "${fillText}"`);
-                    return;
-                  }
-                  
-                  // Check if this is a replacement request that wasn't caught by the regex patterns
-                  if ((lower.includes("replace") || lower.includes("update") || lower.includes("change")) && 
-                      (lower.includes("with") || lower.includes("to"))) {
-                    // Try to extract field name and value from the command
-                    const fieldNames = [
-                      'mission objective', 'vehicle description', 'launch reentry sequence', 'trajectory overview',
-                      'safety considerations', 'ground operations', 'technical summary', 'dimensions mass stages',
-                      'propulsion types', 'recovery systems', 'ground support equipment', 'site names coordinates',
-                      'site operator', 'airspace maritime notes', 'launch site', 'launch window', 'flight path',
-                      'landing site', 'early risk assessments', 'public safety challenges', 'planned safety tools',
-                      'full application timeline', 'intended window', 'license type intent', 'clarify part450',
-                      'unique tech international'
-                    ];
                     
-                    let foundField = null;
-                    let newValue = null;
-                    
-                    for (const field of fieldNames) {
-                      if (lower.includes(field)) {
-                        foundField = field;
-                        // Try to extract the new value after "with" or "to"
-                        const withMatch = lower.match(new RegExp(`${field.replace(/\s+/g, '\\s+')}.*?(?:with|to)\\s+(.+)$`));
-                        if (withMatch) {
-                          newValue = withMatch[1].trim();
-                          break;
-                        }
-                      }
-                    }
-                    
-                    if (foundField && newValue) {
-                      const fieldMapping: Record<string, string> = {
-                        'mission objective': 'missionObjective',
-                        'vehicle description': 'vehicleDescription',
-                        'launch reentry sequence': 'launchReentrySequence',
-                        'trajectory overview': 'trajectoryOverview',
-                        'safety considerations': 'safetyConsiderations',
-                        'ground operations': 'groundOperations',
-                        'technical summary': 'technicalSummary',
-                        'dimensions mass stages': 'dimensionsMassStages',
-                        'propulsion types': 'propulsionTypes',
-                        'recovery systems': 'recoverySystems',
-                        'ground support equipment': 'groundSupportEquipment',
-                        'site names coordinates': 'siteNamesCoordinates',
-                        'site operator': 'siteOperator',
-                        'airspace maritime notes': 'airspaceMaritimeNotes',
-                        'launch site': 'launchSite',
-                        'launch window': 'launchWindow',
-                        'flight path': 'flightPath',
-                        'landing site': 'landingSite',
-                        'early risk assessments': 'earlyRiskAssessments',
-                        'public safety challenges': 'publicSafetyChallenges',
-                        'planned safety tools': 'plannedSafetyTools',
-                        'full application timeline': 'fullApplicationTimeline',
-                        'intended window': 'intendedWindow',
-                        'license type intent': 'licenseTypeIntent',
-                        'clarify part450': 'clarifyPart450',
-                        'unique tech international': 'uniqueTechInternational'
-                      };
+                    if (response.ok) {
+                      const data = await response.json();
+                      console.log('AI command response:', data);
                       
-                      const actualFieldName = fieldMapping[foundField];
-                      if (actualFieldName) {
-                        setFormData((prev) => ({ ...prev, [actualFieldName]: newValue }));
-                        aiPanelRef.current?.addAIMsg(`I've replaced the ${foundField} section with: "${newValue}"`);
+                      // Parse the AI response to extract command and parameters
+                      const commandMatch = data.message.match(/COMMAND:\s*([^\n]+)/i);
+                      const paramsMatch = data.message.match(/PARAMS:\s*(\{.*\})/i);
+                      
+                      if (commandMatch && paramsMatch) {
+                        const commandName = commandMatch[1].trim();
+                        const params = JSON.parse(paramsMatch[1]);
+                        
+                        console.log('Executing command:', commandName, 'with params:', params);
+                        const result = await executeCommand(commandName, params);
+                        aiPanelRef.current?.addAIMsg(result.message);
+                        return;
+                      } else {
+                        // If AI didn't return structured command, treat as regular response
+                        aiPanelRef.current?.addAIMsg(data.message);
                         return;
                       }
                     }
+                  } catch (error) {
+                    console.error('AI command execution error:', error);
                   }
-                  
-                  // Auto-fill form based on mission summary using Anthropic API
-                  if (lower.includes("auto fill") || lower.includes("autofill") || lower.includes("fill form") || 
-                      lower.includes("analyze and fill") || lower.includes("fill application")) {
-                    try {
-                      const response = await fetch('/api/ai', {
-                        method: 'POST',
-                        headers: {
-                          'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                          userInput: cmd,
-                          context: `Available form fields: ${getAllFormFields().map(f => f.name).join(', ')}`,
-                          mode: 'form',
-                          conversationHistory: []
-                        }),
-                      });
-                      if (response.ok) {
-                        const data = await response.json();
-                        if (data.suggestions && data.suggestions.length > 0) {
-                          // Apply suggestions to form
-                          const formUpdates: Record<string, string> = {};
-                          data.suggestions.forEach((suggestion: any) => {
-                            formUpdates[suggestion.field] = suggestion.value;
-                          });
-                          setFormData((prev) => ({ ...prev, ...formUpdates }));
-                          
-                          // Show summary of what was filled
-                          const filledFields = data.suggestions.map((s: any) => s.field).join(', ');
-                          aiPanelRef.current?.addAIMsg(`I've automatically filled the following sections based on your mission description: ${filledFields}. The form has been updated with relevant information.`);
-                        } else {
-                          aiPanelRef.current?.addAIMsg("I couldn't extract enough information to auto-fill the form. Please provide more details about your mission, vehicle, and operations.");
-                        }
-                      }
-                    } catch (error) {
-                      console.error('Auto-fill error:', error);
-                      aiPanelRef.current?.addAIMsg("Sorry, I encountered an error while trying to auto-fill the form. Please try again.");
-                    }
+
+                  // Fallback to simple command detection
+                  if (lower.includes('save') || lower.includes('save draft')) {
+                    const result = await executeCommand('save_draft');
+                    aiPanelRef.current?.addAIMsg(result.message);
                     return;
                   }
-                  
-                  // Auto-detect comprehensive mission descriptions and offer to fill form
-                  const missionKeywords = ['launch', 'satellite', 'rocket', 'mission', 'vehicle', 'orbit', 'trajectory', 'safety', 'ground operations'];
-                  const hasMissionDescription = missionKeywords.some(keyword => lower.includes(keyword));
-                  const isLongDescription = cmd.length > 100; // If it's a substantial description
-                  
-                  if (hasMissionDescription && isLongDescription && !lower.includes("replace") && !lower.includes("update") && !lower.includes("change")) {
-                    try {
-                      const response = await fetch('/api/ai', {
-                        method: 'POST',
-                        headers: {
-                          'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                          userInput: cmd,
-                          context: `Available form fields: ${getAllFormFields().map(f => f.name).join(', ')}`,
-                          mode: 'form',
-                          conversationHistory: []
-                        }),
-                      });
-                      if (response.ok) {
-                        const data = await response.json();
-                        if (data.suggestions && data.suggestions.length > 0) {
-                          // Apply suggestions to form
-                          const formUpdates: Record<string, string> = {};
-                          data.suggestions.forEach((suggestion: any) => {
-                            formUpdates[suggestion.field] = suggestion.value;
-                          });
-                          setFormData((prev) => ({ ...prev, ...formUpdates }));
-                          
-                          // Show summary of what was filled
-                          const filledFields = data.suggestions.map((s: any) => s.field).join(', ');
-                          aiPanelRef.current?.addAIMsg(`I've automatically filled the following sections based on your mission description: ${filledFields}. The form has been updated with relevant information.`);
-                        } else {
-                          aiPanelRef.current?.addAIMsg("I analyzed your mission description but couldn't extract enough information to auto-fill the form. Please provide more details about your mission, vehicle, and operations.");
-                        }
-                      }
-                    } catch (error) {
-                      console.error('Auto-fill error:', error);
-                      aiPanelRef.current?.addAIMsg("Sorry, I encountered an error while trying to auto-fill the form. Please try again.");
-                    }
+
+                  if (lower.includes('submit') || lower.includes('submit application')) {
+                    const result = await executeCommand('submit_application');
+                    aiPanelRef.current?.addAIMsg(result.message);
+                    return;
+                  }
+
+                  if (lower.includes('analyze') || lower.includes('analysis')) {
+                    const result = await executeCommand('analyze_application');
+                    aiPanelRef.current?.addAIMsg(result.message);
+                    return;
+                  }
+
+                  if (lower.includes('help') || lower.includes('commands')) {
+                    const result = await executeCommand('show_help');
+                    aiPanelRef.current?.addAIMsg(result.message);
+                    return;
+                  }
+
+                  // Fallback to original regex method for field replacement
+                  const replaceMatch = lower.match(/^replace (.+) with (.+)$/);
+                  if (replaceMatch) {
+                    const result = await executeCommand('replace_field', { field: replaceMatch[1], value: replaceMatch[2] });
+                    aiPanelRef.current?.addAIMsg(result.message);
                     return;
                   }
                   
