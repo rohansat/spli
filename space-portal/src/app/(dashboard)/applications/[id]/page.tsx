@@ -65,6 +65,15 @@ export default function ApplicationPage() {
     console.log('Form data changed:', formData);
   }, [formData]);
 
+  // Test parsing function manually
+  const testParsing = () => {
+    const testResponse = `MISSION OBJECTIVE Deploy a 200kg Earth observation satellite to low Earth orbit for environmental monitoring and disaster response capabilities. The mission will provide critical data collection services for environmental assessment and emergency response coordination over a planned 3-year operational period with daily data acquisition cycles. VEHICLE DESCRIPTION Two-stage launch vehicle utilizing solid fuel propulsion systems. The vehicle is designed to deliver a 200kg payload to low Earth orbit at 500km altitude. Configuration optimized for reliable satellite deployment with proven solid rocket motor technology.`;
+    
+    console.log('Testing parsing with:', testResponse);
+    const result = parseStructuredResponse(testResponse);
+    console.log('Parsing result:', result);
+  };
+
   // Comprehensive command registry for AI
   const commandRegistry: Record<string, {
     description: string;
@@ -311,10 +320,11 @@ export default function ApplicationPage() {
               const filledFields = Object.keys(sections).join(', ');
               return { 
                 success: true, 
-                message: `Auto-filled ${Object.keys(sections).length} form sections: ${filledFields}` 
+                message: `Auto-filled ${Object.keys(sections).length} form sections: ${filledFields}. Check the form fields to see the updates!` 
               };
             } else {
               console.log('No sections extracted from AI response');
+              console.log('Raw AI response:', data.message);
               return { 
                 success: false, 
                 message: "Could not extract structured information from your description. Please try being more specific about your mission details." 
@@ -967,6 +977,18 @@ export default function ApplicationPage() {
                       >
                         Next Section
                         <ArrowRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* Test parsing button - only show in development */}
+                  {sectionIndex === 0 && process.env.NODE_ENV === 'development' && (
+                    <div className="flex justify-start pt-4">
+                      <Button
+                        onClick={testParsing}
+                        className="bg-yellow-500 text-black hover:opacity-90 transition-opacity px-6 py-3"
+                      >
+                        Test Parsing
                       </Button>
                     </div>
                   )}
