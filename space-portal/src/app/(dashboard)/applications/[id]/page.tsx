@@ -294,11 +294,24 @@ export default function ApplicationPage() {
             const data = await response.json();
             // Parse structured response and update form
             const sections = parseStructuredResponse(data.message);
-            setFormData((prev) => ({ ...prev, ...sections }));
-            return { success: true, message: "Form auto-filled based on your description." };
+            
+            if (Object.keys(sections).length > 0) {
+              setFormData((prev) => ({ ...prev, ...sections }));
+              const filledFields = Object.keys(sections).join(', ');
+              return { 
+                success: true, 
+                message: `Auto-filled ${Object.keys(sections).length} form sections: ${filledFields}` 
+              };
+            } else {
+              return { 
+                success: false, 
+                message: "Could not extract structured information from your description. Please try being more specific about your mission details." 
+              };
+            }
           }
           return { success: false, message: "Failed to auto-fill form." };
         } catch (error) {
+          console.error('Auto-fill error:', error);
           return { success: false, message: "Failed to auto-fill form." };
         }
       }
@@ -340,52 +353,98 @@ export default function ApplicationPage() {
     const sections: Record<string, string> = {};
     const lines = response.split('\n');
     let currentSection = '';
+    let currentContent: string[] = [];
     
     for (const line of lines) {
       const trimmed = line.trim();
       if (!trimmed) continue;
       
-      // Check if this is a section header
-      if (trimmed.match(/^[A-Z\s\/]+$/)) {
-        currentSection = trimmed.toLowerCase().replace(/\s+/g, '');
-      } else if (currentSection) {
-        // Map section names to field names
-        const fieldMapping: Record<string, string> = {
-          'missionobjective': 'missionObjective',
-          'vehicledescription': 'vehicleDescription',
-          'launchreentrysequence': 'launchReentrySequence',
-          'trajectoryoverview': 'trajectoryOverview',
-          'safetyconsiderations': 'safetyConsiderations',
-          'groundoperations': 'groundOperations',
-          'technicalsummary': 'technicalSummary',
-          'dimensionsmassstages': 'dimensionsMassStages',
-          'propulsiontypes': 'propulsionTypes',
-          'recoverysystems': 'recoverySystems',
-          'groundsupportequipment': 'groundSupportEquipment',
-          'sitenamescoordinates': 'siteNamesCoordinates',
-          'siteoperator': 'siteOperator',
-          'airspacemaritimenotes': 'airspaceMaritimeNotes',
-          'launchsite': 'launchSite',
-          'launchwindow': 'launchWindow',
-          'flightpath': 'flightPath',
-          'landingsite': 'landingSite',
-          'earlyriskassessments': 'earlyRiskAssessments',
-          'publicsafetychallenges': 'publicSafetyChallenges',
-          'plannedsafetytools': 'plannedSafetyTools',
-          'fullapplicationtimeline': 'fullApplicationTimeline',
-          'intendedwindow': 'intendedWindow',
-          'licensetypeintent': 'licenseTypeIntent',
-          'clarifypart450': 'clarifyPart450',
-          'uniquetechinternational': 'uniqueTechInternational'
-        };
-        
-        const fieldName = fieldMapping[currentSection];
-        if (fieldName) {
-          sections[fieldName] = trimmed;
+      // Check if this is a section header (all caps with spaces and slashes)
+      if (trimmed.match(/^[A-Z\s\/]+$/) && trimmed.length > 3) {
+        // Save previous section content
+        if (currentSection && currentContent.length > 0) {
+          const fieldMapping: Record<string, string> = {
+            'missionobjective': 'missionObjective',
+            'vehicledescription': 'vehicleDescription',
+            'launchreentrysequence': 'launchReentrySequence',
+            'trajectoryoverview': 'trajectoryOverview',
+            'safetyconsiderations': 'safetyConsiderations',
+            'groundoperations': 'groundOperations',
+            'technicalsummary': 'technicalSummary',
+            'dimensionsmassstages': 'dimensionsMassStages',
+            'propulsiontypes': 'propulsionTypes',
+            'recoverysystems': 'recoverySystems',
+            'groundsupportequipment': 'groundSupportEquipment',
+            'sitenamescoordinates': 'siteNamesCoordinates',
+            'siteoperator': 'siteOperator',
+            'airspacemaritimenotes': 'airspaceMaritimeNotes',
+            'launchsite': 'launchSite',
+            'launchwindow': 'launchWindow',
+            'flightpath': 'flightPath',
+            'landingsite': 'landingSite',
+            'earlyriskassessments': 'earlyRiskAssessments',
+            'publicsafetychallenges': 'publicSafetyChallenges',
+            'plannedsafetytools': 'plannedSafetyTools',
+            'fullapplicationtimeline': 'fullApplicationTimeline',
+            'intendedwindow': 'intendedWindow',
+            'licensetypeintent': 'licenseTypeIntent',
+            'clarifypart450': 'clarifyPart450',
+            'uniquetechinternational': 'uniqueTechInternational'
+          };
+          
+          const fieldName = fieldMapping[currentSection];
+          if (fieldName) {
+            sections[fieldName] = currentContent.join(' ').trim();
+          }
         }
+        
+        // Start new section
+        currentSection = trimmed.toLowerCase().replace(/[^a-z]/g, '');
+        currentContent = [];
+      } else if (currentSection) {
+        // Add content to current section
+        currentContent.push(trimmed);
       }
     }
     
+    // Handle the last section
+    if (currentSection && currentContent.length > 0) {
+      const fieldMapping: Record<string, string> = {
+        'missionobjective': 'missionObjective',
+        'vehicledescription': 'vehicleDescription',
+        'launchreentrysequence': 'launchReentrySequence',
+        'trajectoryoverview': 'trajectoryOverview',
+        'safetyconsiderations': 'safetyConsiderations',
+        'groundoperations': 'groundOperations',
+        'technicalsummary': 'technicalSummary',
+        'dimensionsmassstages': 'dimensionsMassStages',
+        'propulsiontypes': 'propulsionTypes',
+        'recoverysystems': 'recoverySystems',
+        'groundsupportequipment': 'groundSupportEquipment',
+        'sitenamescoordinates': 'siteNamesCoordinates',
+        'siteoperator': 'siteOperator',
+        'airspacemaritimenotes': 'airspaceMaritimeNotes',
+        'launchsite': 'launchSite',
+        'launchwindow': 'launchWindow',
+        'flightpath': 'flightPath',
+        'landingsite': 'landingSite',
+        'earlyriskassessments': 'earlyRiskAssessments',
+        'publicsafetychallenges': 'publicSafetyChallenges',
+        'plannedsafetytools': 'plannedSafetyTools',
+        'fullapplicationtimeline': 'fullApplicationTimeline',
+        'intendedwindow': 'intendedWindow',
+        'licensetypeintent': 'licenseTypeIntent',
+        'clarifypart450': 'clarifyPart450',
+        'uniquetechinternational': 'uniqueTechInternational'
+      };
+      
+      const fieldName = fieldMapping[currentSection];
+      if (fieldName) {
+        sections[fieldName] = currentContent.join(' ').trim();
+      }
+    }
+    
+    console.log('Parsed sections:', sections);
     return sections;
   };
 
@@ -1115,6 +1174,12 @@ export default function ApplicationPage() {
 
                   if (lower.includes('help') || lower.includes('commands')) {
                     const result = await executeCommand('show_help');
+                    aiPanelRef.current?.addAIMsg(result.message);
+                    return;
+                  }
+
+                  if (lower.includes('auto') || lower.includes('fill') || lower.includes('complete') || lower.includes('fill out')) {
+                    const result = await executeCommand('auto_fill', { description: cmd });
                     aiPanelRef.current?.addAIMsg(result.message);
                     return;
                   }
