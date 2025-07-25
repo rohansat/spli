@@ -122,6 +122,7 @@
     overflow-y: scroll !important;
     scrollbar-width: thin !important;
     scrollbar-color: #374151 #111827 !important;
+    scroll-behavior: smooth !important;
   }
   .space-container {
     @apply container mx-auto px-4 sm:px-6 lg:px-8;

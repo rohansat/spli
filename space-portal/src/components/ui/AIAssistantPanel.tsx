@@ -78,9 +78,33 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
       }
     ]);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const messagesContainerRef = useRef<HTMLDivElement>(null);
     const [input, setInput] = useState("");
     const [isDragging, setIsDragging] = useState(false);
+    const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
+    const [showScrollButton, setShowScrollButton] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Check if user is at the bottom of the chat
+    const isAtBottom = () => {
+      if (!messagesContainerRef.current) return true;
+      const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current;
+      return scrollTop + clientHeight >= scrollHeight - 10; // 10px threshold
+    };
+
+    // Smart auto-scroll that only scrolls if user is at bottom
+    const scrollToBottom = (force = false) => {
+      if (force || shouldAutoScroll) {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      }
+    };
+
+    // Handle scroll events to determine if we should auto-scroll
+    const handleScroll = () => {
+      const atBottom = isAtBottom();
+      setShouldAutoScroll(atBottom);
+      setShowScrollButton(!atBottom);
+    };
 
     useImperativeHandle(ref, () => ({
       addAIMsg: (msg: string) => {
@@ -88,6 +112,8 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
           ...msgs,
           { id: Date.now(), sender: "ai", content: msg, timestamp: Date.now() }
         ]);
+        // Force scroll to bottom for AI messages
+        setTimeout(() => scrollToBottom(true), 100);
       },
       addDiffMsg: (msg: string, oldContent: string, newContent: string, filePath: string, description: string) => {
         setMessages((msgs) => [
@@ -106,12 +132,14 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
             }
           }
         ]);
+        // Force scroll to bottom for AI messages
+        setTimeout(() => scrollToBottom(true), 100);
       }
     }), []);
 
-    // Auto-scroll to latest message
+    // Auto-scroll to latest message only when messages change and user is at bottom
     React.useEffect(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      scrollToBottom();
     }, [messages]);
 
     const handleSend = async (e?: React.FormEvent | React.KeyboardEvent | React.MouseEvent) => {
@@ -124,6 +152,8 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
         { id: Date.now(), sender: "user", content: userMessage, timestamp: Date.now() }
       ]);
       setInput("");
+      // Force scroll to bottom when user sends a message
+      setTimeout(() => scrollToBottom(true), 100);
 
       // Call the unified AI API
       try {
@@ -271,12 +301,26 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
       <div className="flex flex-col h-full min-h-0">
         {/* Message List */}
         <div 
-          className="flex-1 min-h-0 overflow-y-auto space-y-3 pr-1 pb-2 bg-gradient-to-br from-zinc-900 via-zinc-950 to-zinc-900 rounded-2xl shadow-xl border border-zinc-800 ai-chat-scrollbar"
+          className="flex-1 min-h-0 overflow-y-auto space-y-3 pr-1 pb-2 bg-gradient-to-br from-zinc-900 via-zinc-950 to-zinc-900 rounded-2xl shadow-xl border border-zinc-800 ai-chat-scrollbar relative"
           style={{
             height: '400px',
             maxHeight: '400px'
           }}
+          ref={messagesContainerRef}
+          onScroll={handleScroll}
         >
+          {/* Scroll to bottom button */}
+          {showScrollButton && (
+            <button
+              onClick={() => scrollToBottom(true)}
+              className="absolute bottom-4 right-4 z-10 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white p-2 rounded-full shadow-lg transition-all duration-200 hover:scale-110"
+              title="Scroll to bottom"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+              </svg>
+            </button>
+          )}
           {messages.length === 0 ? (
             <div className="text-zinc-500 text-center mt-10">Loading chat...</div>
           ) : (
