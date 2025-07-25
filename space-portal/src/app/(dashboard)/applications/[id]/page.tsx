@@ -351,96 +351,132 @@ export default function ApplicationPage() {
   // Parse structured response from AI
   const parseStructuredResponse = (response: string): Record<string, string> => {
     const sections: Record<string, string> = {};
-    const lines = response.split('\n');
-    let currentSection = '';
-    let currentContent: string[] = [];
     
-    for (const line of lines) {
-      const trimmed = line.trim();
-      if (!trimmed) continue;
+    // Handle both multi-line and single-line formats
+    const fieldMapping: Record<string, string> = {
+      'missionobjective': 'missionObjective',
+      'vehicledescription': 'vehicleDescription',
+      'launchreentrysequence': 'launchReentrySequence',
+      'trajectoryoverview': 'trajectoryOverview',
+      'safetyconsiderations': 'safetyConsiderations',
+      'groundoperations': 'groundOperations',
+      'technicalsummary': 'technicalSummary',
+      'dimensionsmassstages': 'dimensionsMassStages',
+      'propulsiontypes': 'propulsionTypes',
+      'recoverysystems': 'recoverySystems',
+      'groundsupportequipment': 'groundSupportEquipment',
+      'sitenamescoordinates': 'siteNamesCoordinates',
+      'siteoperator': 'siteOperator',
+      'airspacemaritimenotes': 'airspaceMaritimeNotes',
+      'launchsite': 'launchSite',
+      'launchwindow': 'launchWindow',
+      'flightpath': 'flightPath',
+      'landingsite': 'landingSite',
+      'earlyriskassessments': 'earlyRiskAssessments',
+      'publicsafetychallenges': 'publicSafetyChallenges',
+      'plannedsafetytools': 'plannedSafetyTools',
+      'fullapplicationtimeline': 'fullApplicationTimeline',
+      'intendedwindow': 'intendedWindow',
+      'licensetypeintent': 'licenseTypeIntent',
+      'clarifypart450': 'clarifyPart450',
+      'uniquetechinternational': 'uniqueTechInternational'
+    };
+    
+    // Try to parse single-line format first (like your example)
+    const singleLineMatch = response.match(/MISSION OBJECTIVE\s+(.*?)\s+VEHICLE DESCRIPTION\s+(.*?)\s+LAUNCH\/REENTRY SEQUENCE\s+(.*?)\s+TRAJECTORY OVERVIEW\s+(.*?)\s+SAFETY CONSIDERATIONS\s+(.*?)\s+GROUND OPERATIONS\s+(.*?)\s+TECHNICAL SUMMARY\s+(.*?)\s+DIMENSIONS\/MASS\/STAGES\s+(.*?)\s+PROPULSION TYPES\s+(.*?)\s+RECOVERY SYSTEMS\s+(.*?)\s+GROUND SUPPORT EQUIPMENT\s+(.*?)\s+SITE NAMES\/COORDINATES\s+(.*?)\s+SITE OPERATOR\s+(.*?)\s+AIRSPACE\/MARITIME NOTES\s+(.*?)\s+LAUNCH SITE\s+(.*?)\s+LAUNCH WINDOW\s+(.*?)\s+FLIGHT PATH\s+(.*?)\s+LANDING SITE\s+(.*?)\s+EARLY RISK ASSESSMENTS\s+(.*?)\s+PUBLIC SAFETY CHALLENGES\s+(.*?)\s+PLANNED SAFETY TOOLS\s+(.*?)\s+FULL APPLICATION TIMELINE\s+(.*?)\s+INTENDED WINDOW\s+(.*?)\s+LICENSE TYPE INTENT\s+(.*?)\s+CLARIFY PART 450\s+(.*?)\s+UNIQUE TECH\/INTERNATIONAL\s+(.*)/);
+    
+    if (singleLineMatch) {
+      const [
+        _, // full match
+        missionObjective,
+        vehicleDescription,
+        launchReentrySequence,
+        trajectoryOverview,
+        safetyConsiderations,
+        groundOperations,
+        technicalSummary,
+        dimensionsMassStages,
+        propulsionTypes,
+        recoverySystems,
+        groundSupportEquipment,
+        siteNamesCoordinates,
+        siteOperator,
+        airspaceMaritimeNotes,
+        launchSite,
+        launchWindow,
+        flightPath,
+        landingSite,
+        earlyRiskAssessments,
+        publicSafetyChallenges,
+        plannedSafetyTools,
+        fullApplicationTimeline,
+        intendedWindow,
+        licenseTypeIntent,
+        clarifyPart450,
+        uniqueTechInternational
+      ] = singleLineMatch;
       
-      // Check if this is a section header (all caps with spaces and slashes)
-      if (trimmed.match(/^[A-Z\s\/]+$/) && trimmed.length > 3) {
-        // Save previous section content
-        if (currentSection && currentContent.length > 0) {
-          const fieldMapping: Record<string, string> = {
-            'missionobjective': 'missionObjective',
-            'vehicledescription': 'vehicleDescription',
-            'launchreentrysequence': 'launchReentrySequence',
-            'trajectoryoverview': 'trajectoryOverview',
-            'safetyconsiderations': 'safetyConsiderations',
-            'groundoperations': 'groundOperations',
-            'technicalsummary': 'technicalSummary',
-            'dimensionsmassstages': 'dimensionsMassStages',
-            'propulsiontypes': 'propulsionTypes',
-            'recoverysystems': 'recoverySystems',
-            'groundsupportequipment': 'groundSupportEquipment',
-            'sitenamescoordinates': 'siteNamesCoordinates',
-            'siteoperator': 'siteOperator',
-            'airspacemaritimenotes': 'airspaceMaritimeNotes',
-            'launchsite': 'launchSite',
-            'launchwindow': 'launchWindow',
-            'flightpath': 'flightPath',
-            'landingsite': 'landingSite',
-            'earlyriskassessments': 'earlyRiskAssessments',
-            'publicsafetychallenges': 'publicSafetyChallenges',
-            'plannedsafetytools': 'plannedSafetyTools',
-            'fullapplicationtimeline': 'fullApplicationTimeline',
-            'intendedwindow': 'intendedWindow',
-            'licensetypeintent': 'licenseTypeIntent',
-            'clarifypart450': 'clarifyPart450',
-            'uniquetechinternational': 'uniqueTechInternational'
-          };
-          
-          const fieldName = fieldMapping[currentSection];
-          if (fieldName) {
-            sections[fieldName] = currentContent.join(' ').trim();
-          }
-        }
+      if (missionObjective) sections.missionObjective = missionObjective.trim();
+      if (vehicleDescription) sections.vehicleDescription = vehicleDescription.trim();
+      if (launchReentrySequence) sections.launchReentrySequence = launchReentrySequence.trim();
+      if (trajectoryOverview) sections.trajectoryOverview = trajectoryOverview.trim();
+      if (safetyConsiderations) sections.safetyConsiderations = safetyConsiderations.trim();
+      if (groundOperations) sections.groundOperations = groundOperations.trim();
+      if (technicalSummary) sections.technicalSummary = technicalSummary.trim();
+      if (dimensionsMassStages) sections.dimensionsMassStages = dimensionsMassStages.trim();
+      if (propulsionTypes) sections.propulsionTypes = propulsionTypes.trim();
+      if (recoverySystems) sections.recoverySystems = recoverySystems.trim();
+      if (groundSupportEquipment) sections.groundSupportEquipment = groundSupportEquipment.trim();
+      if (siteNamesCoordinates) sections.siteNamesCoordinates = siteNamesCoordinates.trim();
+      if (siteOperator) sections.siteOperator = siteOperator.trim();
+      if (airspaceMaritimeNotes) sections.airspaceMaritimeNotes = airspaceMaritimeNotes.trim();
+      if (launchSite) sections.launchSite = launchSite.trim();
+      if (launchWindow) sections.launchWindow = launchWindow.trim();
+      if (flightPath) sections.flightPath = flightPath.trim();
+      if (landingSite) sections.landingSite = landingSite.trim();
+      if (earlyRiskAssessments) sections.earlyRiskAssessments = earlyRiskAssessments.trim();
+      if (publicSafetyChallenges) sections.publicSafetyChallenges = publicSafetyChallenges.trim();
+      if (plannedSafetyTools) sections.plannedSafetyTools = plannedSafetyTools.trim();
+      if (fullApplicationTimeline) sections.fullApplicationTimeline = fullApplicationTimeline.trim();
+      if (intendedWindow) sections.intendedWindow = intendedWindow.trim();
+      if (licenseTypeIntent) sections.licenseTypeIntent = licenseTypeIntent.trim();
+      if (clarifyPart450) sections.clarifyPart450 = clarifyPart450.trim();
+      if (uniqueTechInternational) sections.uniqueTechInternational = uniqueTechInternational.trim();
+    } else {
+      // Fallback to multi-line parsing
+      const lines = response.split('\n');
+      let currentSection = '';
+      let currentContent: string[] = [];
+      
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed) continue;
         
-        // Start new section
-        currentSection = trimmed.toLowerCase().replace(/[^a-z]/g, '');
-        currentContent = [];
-      } else if (currentSection) {
-        // Add content to current section
-        currentContent.push(trimmed);
+        // Check if this is a section header (all caps with spaces and slashes)
+        if (trimmed.match(/^[A-Z\s\/]+$/) && trimmed.length > 3) {
+          // Save previous section content
+          if (currentSection && currentContent.length > 0) {
+            const fieldName = fieldMapping[currentSection];
+            if (fieldName) {
+              sections[fieldName] = currentContent.join(' ').trim();
+            }
+          }
+          
+          // Start new section
+          currentSection = trimmed.toLowerCase().replace(/[^a-z]/g, '');
+          currentContent = [];
+        } else if (currentSection) {
+          // Add content to current section
+          currentContent.push(trimmed);
+        }
       }
-    }
-    
-    // Handle the last section
-    if (currentSection && currentContent.length > 0) {
-      const fieldMapping: Record<string, string> = {
-        'missionobjective': 'missionObjective',
-        'vehicledescription': 'vehicleDescription',
-        'launchreentrysequence': 'launchReentrySequence',
-        'trajectoryoverview': 'trajectoryOverview',
-        'safetyconsiderations': 'safetyConsiderations',
-        'groundoperations': 'groundOperations',
-        'technicalsummary': 'technicalSummary',
-        'dimensionsmassstages': 'dimensionsMassStages',
-        'propulsiontypes': 'propulsionTypes',
-        'recoverysystems': 'recoverySystems',
-        'groundsupportequipment': 'groundSupportEquipment',
-        'sitenamescoordinates': 'siteNamesCoordinates',
-        'siteoperator': 'siteOperator',
-        'airspacemaritimenotes': 'airspaceMaritimeNotes',
-        'launchsite': 'launchSite',
-        'launchwindow': 'launchWindow',
-        'flightpath': 'flightPath',
-        'landingsite': 'landingSite',
-        'earlyriskassessments': 'earlyRiskAssessments',
-        'publicsafetychallenges': 'publicSafetyChallenges',
-        'plannedsafetytools': 'plannedSafetyTools',
-        'fullapplicationtimeline': 'fullApplicationTimeline',
-        'intendedwindow': 'intendedWindow',
-        'licensetypeintent': 'licenseTypeIntent',
-        'clarifypart450': 'clarifyPart450',
-        'uniquetechinternational': 'uniqueTechInternational'
-      };
       
-      const fieldName = fieldMapping[currentSection];
-      if (fieldName) {
-        sections[fieldName] = currentContent.join(' ').trim();
+      // Handle the last section
+      if (currentSection && currentContent.length > 0) {
+        const fieldName = fieldMapping[currentSection];
+        if (fieldName) {
+          sections[fieldName] = currentContent.join(' ').trim();
+        }
       }
     }
     
