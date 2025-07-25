@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { part450FormTemplate } from "@/lib/mock-data";
-import { ChevronLeft, Save, Send, AlertTriangle, Upload, X, Brain, Mail, Paperclip } from "lucide-react";
+import { ChevronLeft, Save, Send, AlertTriangle, Upload, X, Brain, Mail, Paperclip, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { db } from "@/lib/firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
@@ -280,6 +280,8 @@ export default function ApplicationPage() {
       description: 'Automatically fill form fields based on mission description',
       execute: async (params: { description: string }) => {
         try {
+          console.log('Auto-fill started with description:', params.description);
+          
           const response = await fetch('/api/ai', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -292,23 +294,34 @@ export default function ApplicationPage() {
           
           if (response.ok) {
             const data = await response.json();
+            console.log('AI response received:', data.message);
+            
             // Parse structured response and update form
             const sections = parseStructuredResponse(data.message);
+            console.log('Parsed sections:', sections);
             
             if (Object.keys(sections).length > 0) {
-              setFormData((prev) => ({ ...prev, ...sections }));
+              console.log('Updating form data with sections:', sections);
+              setFormData((prev) => {
+                const updated = { ...prev, ...sections };
+                console.log('Form data updated:', updated);
+                return updated;
+              });
+              
               const filledFields = Object.keys(sections).join(', ');
               return { 
                 success: true, 
                 message: `Auto-filled ${Object.keys(sections).length} form sections: ${filledFields}` 
               };
             } else {
+              console.log('No sections extracted from AI response');
               return { 
                 success: false, 
                 message: "Could not extract structured information from your description. Please try being more specific about your mission details." 
               };
             }
           }
+          console.log('API response not ok:', response.status);
           return { success: false, message: "Failed to auto-fill form." };
         } catch (error) {
           console.error('Auto-fill error:', error);
@@ -985,6 +998,19 @@ export default function ApplicationPage() {
                       </div>
                     ))}
                   </div>
+
+                  {/* Next Section Button - Show for all sections except section 6 (index 6) */}
+                  {sectionIndex < 6 && (
+                    <div className="flex justify-end pt-4">
+                      <Button
+                        onClick={() => setActiveTab(`section-${sectionIndex + 1}`)}
+                        className="bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:opacity-90 transition-opacity px-6 py-3"
+                      >
+                        Next Section
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
 
                   {sectionIndex === 6 && (
                     <div className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 p-6 rounded-xl border border-blue-500/30">
