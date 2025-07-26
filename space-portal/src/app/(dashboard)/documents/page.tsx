@@ -606,6 +606,90 @@ ${Object.entries(doc.emailMetadata.applicationData)
               >
                 TEST REFRESH
               </Button>
+              <Button 
+                onClick={async () => {
+                  console.log('Creating test email document...');
+                  
+                  // Create a test email document
+                  const testEmailDoc = {
+                    name: `Test Email: ${new Date().toLocaleString()}`,
+                    type: 'email' as const,
+                    applicationId: applications[0]?.id || undefined,
+                    applicationName: applications[0]?.name || 'Test Application',
+                    fileSize: '1.2 KB',
+                    url: 'data:text/plain;base64,VGVzdCBlbWFpbCBjb250ZW50',
+                    uploadedAt: new Date().toISOString(),
+                    userId: user?.email || "",
+                    emailMetadata: {
+                      recipient: 'test@example.com',
+                      subject: 'Test Email',
+                      body: 'This is a test email document',
+                      sentAt: new Date().toISOString(),
+                      applicationData: {},
+                      applicationName: 'Test Application'
+                    }
+                  };
+                  
+                  try {
+                    await uploadDocument(testEmailDoc);
+                    console.log('✅ Test email document created successfully');
+                    toast({
+                      title: "Test Email Created",
+                      description: "A test email document has been added to your documents.",
+                    });
+                  } catch (error) {
+                    console.error('❌ Error creating test email document:', error);
+                    toast({
+                      title: "Error",
+                      description: "Failed to create test email document.",
+                    });
+                  }
+                }}
+                variant="outline"
+                className="border-zinc-600 text-zinc-300 hover:bg-zinc-800 gap-2 px-4 py-2 rounded-md flex items-center"
+              >
+                CREATE TEST EMAIL
+              </Button>
+              <Button 
+                onClick={async () => {
+                  console.log('Testing email document API...');
+                  
+                  try {
+                    const response = await fetch('/api/test-email-doc', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                      }
+                    });
+
+                    const data = await response.json();
+                    console.log('Test API response:', data);
+
+                    if (response.ok && data.success) {
+                      console.log('✅ Test email document created via API');
+                      toast({
+                        title: "API Test Success",
+                        description: `Test email document created with ID: ${data.documentId}`,
+                      });
+                      
+                      // Refresh documents to show the new one
+                      await refreshDocuments();
+                    } else {
+                      throw new Error(data.error || 'API test failed');
+                    }
+                  } catch (error) {
+                    console.error('❌ Error testing email document API:', error);
+                    toast({
+                      title: "API Test Failed",
+                      description: "Failed to create test email document via API.",
+                    });
+                  }
+                }}
+                variant="outline"
+                className="border-zinc-600 text-zinc-300 hover:bg-zinc-800 gap-2 px-4 py-2 rounded-md flex items-center"
+              >
+                TEST API
+              </Button>
               <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
                 <DialogTrigger asChild>
                   <Button 

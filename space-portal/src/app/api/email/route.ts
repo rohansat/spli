@@ -113,38 +113,65 @@ Sent from SPLI Application System
 
     // Save email copy to document management system
     try {
-      console.log('Saving email to document management...');
+      console.log('=== SAVING EMAIL DOCUMENT ===');
       console.log('Application ID:', applicationId);
       console.log('User email:', session.user?.email);
-      console.log('Session user:', session.user);
       
+      // Test Firebase connection first
+      console.log('Testing Firebase connection...');
+      const testDoc = {
+        name: 'Test Connection',
+        type: 'email',
+        userId: session.user?.email || "",
+        uploadedAt: new Date().toISOString()
+      };
+      
+      try {
+        const testRef = await addDoc(collection(db, "documents"), testDoc);
+        console.log('✅ Firebase connection test successful, test doc ID:', testRef.id);
+      } catch (testError) {
+        console.error('❌ Firebase connection test failed:', testError);
+        throw testError;
+      }
+      
+      // Create a simple email document
       const emailDocument = {
         name: `Email: ${subject}`,
-        type: 'email' as const,
-        applicationId: applicationId || undefined,
-        applicationName: applicationName || undefined,
+        type: 'email',
+        applicationId: applicationId || null,
+        applicationName: applicationName || 'Part 450 Application',
         fileSize: `${(emailContent.length / 1024).toFixed(2)} KB`,
         url: `data:text/plain;base64,${Buffer.from(emailContent).toString('base64')}`,
         uploadedAt: new Date().toISOString(),
         userId: session.user?.email || "",
         emailMetadata: {
-          recipient,
-          subject,
-          body,
+          recipient: recipient,
+          subject: subject,
+          body: body,
           sentAt: new Date().toISOString(),
           applicationData: applicationData,
           applicationName: applicationName || 'Part 450 Application'
         }
       };
 
-      console.log('Email document to save:', JSON.stringify(emailDocument, null, 2));
+      console.log('Email document structure:', {
+        name: emailDocument.name,
+        type: emailDocument.type,
+        applicationId: emailDocument.applicationId,
+        userId: emailDocument.userId,
+        uploadedAt: emailDocument.uploadedAt
+      });
       
+      // Save to Firebase
       const docRef = await addDoc(collection(db, "documents"), emailDocument);
-      console.log('Email copy saved to document management system with ID:', docRef.id);
-      console.log('Document saved successfully to Firebase');
+      console.log('✅ Email document saved successfully with ID:', docRef.id);
+      console.log('=== EMAIL DOCUMENT SAVED ===');
+      
     } catch (error) {
-      console.error('Error saving email to document management:', error);
-      console.error('Error details:', error instanceof Error ? error.message : 'Unknown error');
+      console.error('❌ ERROR SAVING EMAIL DOCUMENT:', error);
+      console.error('Error name:', error instanceof Error ? error.name : 'Unknown');
+      console.error('Error message:', error instanceof Error ? error.message : 'Unknown');
+      console.error('Error stack:', error instanceof Error ? error.stack : 'Unknown');
       // Don't fail the email send if document save fails
     }
 
