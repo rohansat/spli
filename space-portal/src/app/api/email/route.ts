@@ -113,6 +113,10 @@ Sent from SPLI Application System
 
     // Save email copy to document management system
     try {
+      console.log('Saving email to document management...');
+      console.log('Application ID:', applicationId);
+      console.log('User email:', session.user?.email);
+      
       const emailDocument = {
         name: `Email: ${subject}`,
         type: 'email' as const,
@@ -132,8 +136,10 @@ Sent from SPLI Application System
         }
       };
 
-      await addDoc(collection(db, "documents"), emailDocument);
-      console.log('Email copy saved to document management system');
+      console.log('Email document to save:', emailDocument);
+      
+      const docRef = await addDoc(collection(db, "documents"), emailDocument);
+      console.log('Email copy saved to document management system with ID:', docRef.id);
     } catch (error) {
       console.error('Error saving email to document management:', error);
       // Don't fail the email send if document save fails

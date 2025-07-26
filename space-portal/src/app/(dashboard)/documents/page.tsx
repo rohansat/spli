@@ -31,7 +31,8 @@ import {
   AlertCircle,
   CheckCircle,
   XCircle,
-  MoreHorizontal
+  MoreHorizontal,
+  RefreshCw
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Document } from "@/types";
@@ -540,15 +541,24 @@ ${Object.entries(doc.emailMetadata.applicationData)
                 Manage all documents organized by application folders
               </p>
             </div>
-            <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
-              <DialogTrigger asChild>
-                <Button 
-                  className="bg-white hover:bg-white/90 text-black gap-2 px-4 py-2 rounded-md flex items-center"
-                >
-                  <Upload className="h-4 w-4" />
-                  UPLOAD DOCUMENT
-                </Button>
-              </DialogTrigger>
+            <div className="flex gap-2">
+              <Button 
+                onClick={() => window.location.reload()}
+                variant="outline"
+                className="border-zinc-600 text-zinc-300 hover:bg-zinc-800 gap-2 px-4 py-2 rounded-md flex items-center"
+              >
+                <RefreshCw className="h-4 w-4" />
+                REFRESH
+              </Button>
+              <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button 
+                    className="bg-white hover:bg-white/90 text-black gap-2 px-4 py-2 rounded-md flex items-center"
+                  >
+                    <Upload className="h-4 w-4" />
+                    UPLOAD DOCUMENT
+                  </Button>
+                </DialogTrigger>
               <DialogContent className="bg-black border border-zinc-800 text-white">
                 <DialogHeader>
                   <DialogTitle className="text-2xl font-medium">UPLOAD DOCUMENT</DialogTitle>
@@ -626,6 +636,7 @@ ${Object.entries(doc.emailMetadata.applicationData)
                 </DialogFooter>
               </DialogContent>
             </Dialog>
+            </div>
           </div>
 
           <div className="flex gap-3 mb-8">
