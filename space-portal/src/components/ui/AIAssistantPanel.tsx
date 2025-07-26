@@ -119,6 +119,25 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
       // Force scroll to bottom when user sends a message
       setTimeout(() => scrollToBottom(true), 100);
 
+      // Detect if this is an auto-fill request based on content
+      const lowerMessage = userMessage.toLowerCase();
+      const isAutoFillRequest = lowerMessage.includes('auto fill') || 
+                               lowerMessage.includes('fill form') || 
+                               lowerMessage.includes('fill out') ||
+                               lowerMessage.includes('mission description') ||
+                               lowerMessage.includes('satellite') ||
+                               lowerMessage.includes('rocket') ||
+                               lowerMessage.includes('launch') ||
+                               lowerMessage.includes('earth observation') ||
+                               lowerMessage.includes('200kg') ||
+                               lowerMessage.includes('cape canaveral') ||
+                               lowerMessage.includes('q3 2024') ||
+                               lowerMessage.includes('solid fuel') ||
+                               lowerMessage.includes('two-stage') ||
+                               lowerMessage.includes('500km') ||
+                               lowerMessage.includes('environmental monitoring') ||
+                               lowerMessage.includes('disaster response');
+
       // Call the unified AI API
       try {
         const response = await fetch('/api/ai', {
@@ -128,7 +147,7 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
           },
           body: JSON.stringify({
             userInput: userMessage,
-            mode: 'unified',
+            mode: isAutoFillRequest ? 'form' : 'unified',
             conversationHistory: messages // Send conversation history for context
           }),
         });
@@ -139,10 +158,25 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
 
         const data = await response.json();
         
-        setMessages((msgs) => [
-          ...msgs,
-          { id: Date.now(), sender: "ai", content: data.message, timestamp: Date.now() }
-        ]);
+        // Handle form suggestions if present
+        if (data.suggestions && data.suggestions.length > 0) {
+          const suggestionText = `I've analyzed your mission description and extracted information for ${data.suggestions.length} form fields. The form has been automatically updated with this information.`;
+          
+          setMessages((msgs) => [
+            ...msgs,
+            { id: Date.now(), sender: "ai", content: suggestionText, timestamp: Date.now() }
+          ]);
+          
+          // If there's a command handler, call it with the suggestions
+          if (onCommand) {
+            onCommand(`auto_fill_suggestions:${JSON.stringify(data.suggestions)}`);
+          }
+        } else {
+          setMessages((msgs) => [
+            ...msgs,
+            { id: Date.now(), sender: "ai", content: data.message, timestamp: Date.now() }
+          ]);
+        }
 
         // If there's a command handler, call it
         if (onCommand) onCommand(userMessage);

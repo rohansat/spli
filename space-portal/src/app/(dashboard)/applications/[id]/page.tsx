@@ -1152,6 +1152,33 @@ export default function ApplicationPage() {
                   console.log('Processing command:', cmd);
                   console.log('Lowercase command:', lower);
                   
+                  // Handle auto-fill suggestions from AI Assistant Panel
+                  if (cmd.startsWith('auto_fill_suggestions:')) {
+                    try {
+                      const suggestions = JSON.parse(cmd.replace('auto_fill_suggestions:', ''));
+                      console.log('Received auto-fill suggestions:', suggestions);
+                      
+                      if (suggestions && suggestions.length > 0) {
+                        // Apply the suggestions to the form
+                        const newFormData = { ...formData };
+                        suggestions.forEach((suggestion: any) => {
+                          newFormData[suggestion.field] = suggestion.value;
+                        });
+                        
+                        setFormData(newFormData);
+                        
+                        // Save the updated form data
+                        await handleSave();
+                        
+                        aiPanelRef.current?.addAIMsg(`✅ Successfully applied ${suggestions.length} form field updates from your mission description!`);
+                      }
+                    } catch (error) {
+                      console.error('Error processing auto-fill suggestions:', error);
+                      aiPanelRef.current?.addAIMsg("Sorry, I encountered an error while applying the form suggestions. Please try again.");
+                    }
+                    return;
+                  }
+                  
                   // Use AI to intelligently parse and execute commands
                   try {
                     const response = await fetch('/api/ai', {
@@ -1221,9 +1248,51 @@ export default function ApplicationPage() {
                     return;
                   }
 
-                  if (lower.includes('auto') || lower.includes('fill') || lower.includes('complete') || lower.includes('fill out')) {
-                    const result = await executeCommand('auto_fill', { description: cmd });
-                    aiPanelRef.current?.addAIMsg(result.message);
+                  if (lower.includes('auto') || lower.includes('fill') || lower.includes('complete') || lower.includes('fill out') || lower.includes('mission description')) {
+                    // Enhanced auto-fill functionality
+                    try {
+                      const response = await fetch('/api/ai', {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                          userInput: cmd,
+                          context: `Current application data: ${JSON.stringify(formData)}. Available form fields: ${getAllFormFields().map(f => f.name).join(', ')}. Application status: ${application?.status}. Auto-fill the form based on the mission description provided.`,
+                          mode: 'form',
+                          conversationHistory: []
+                        }),
+                      });
+                      
+                      if (response.ok) {
+                        const data = await response.json();
+                        console.log('AI auto-fill response:', data);
+                        
+                        if (data.suggestions && data.suggestions.length > 0) {
+                          // Apply the suggestions to the form
+                          const newFormData = { ...formData };
+                          data.suggestions.forEach((suggestion: any) => {
+                            newFormData[suggestion.field] = suggestion.value;
+                          });
+                          
+                          setFormData(newFormData);
+                          
+                          // Show success message
+                          const filledFields = data.suggestions.length;
+                          aiPanelRef.current?.addAIMsg(`✅ Auto-filled ${filledFields} form fields based on your mission description! The form has been updated with the extracted information.`);
+                          
+                          // Save the updated form data
+                          await handleSave();
+                        } else {
+                          aiPanelRef.current?.addAIMsg("I analyzed your mission description but couldn't extract specific information for the form fields. Please provide more detailed information about your mission, vehicle, launch site, and timeline.");
+                        }
+                      } else {
+                        aiPanelRef.current?.addAIMsg("Sorry, I encountered an error while processing your mission description. Please try again or provide more specific details about your launch mission.");
+                      }
+                    } catch (error) {
+                      console.error('AI auto-fill error:', error);
+                      aiPanelRef.current?.addAIMsg("Sorry, I encountered an error while processing your mission description. Please try again or provide more specific details about your launch mission.");
+                    }
                     return;
                   }
 

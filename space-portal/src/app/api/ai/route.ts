@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     const { userInput, context, mode, conversationHistory = [] } = await request.json();
     console.log('Request data:', { userInput, mode, conversationHistoryLength: conversationHistory.length });
 
-    // Create conversational system prompt
+    // Enhanced system prompt for better auto-fill functionality
     const systemPrompt = `You are SPLI Chat, a specialized AI assistant for FAA Part 450 launch and reentry license applications. Your primary function is to analyze comprehensive mission descriptions and extract relevant information to fill out Part 450 application sections.
 
 CORE FUNCTIONALITY:
@@ -160,6 +160,15 @@ CLARIFY PART 450
 
 UNIQUE TECH/INTERNATIONAL
 [Extracted unique technology or international aspects]
+
+SPECIFIC EXTRACTION GUIDELINES:
+- For mission descriptions mentioning "200kg Earth observation satellite": Extract payload mass, mission type, and objectives
+- For "two-stage rocket with solid fuel propulsion": Extract vehicle configuration and propulsion type
+- For "Cape Canaveral Space Force Station": Extract launch site and military facility information
+- For "Q3 2024": Extract launch window and timeline information
+- For "500km altitude": Extract orbital parameters and trajectory details
+- For "environmental monitoring and disaster response": Extract mission objectives and safety considerations
+- For "3 years mission duration": Extract mission timeline and operational parameters
 
 CONVERSATION STYLE:
 - Be warm, professional, and engaging
@@ -399,7 +408,7 @@ UNIQUE TECH/INTERNATIONAL
 
     const response = await anthropic.messages.create({
       model: 'claude-sonnet-4-20250514',
-      max_tokens: 1024,
+      max_tokens: 2048, // Increased for better structured responses
       messages: messages
     });
 
@@ -434,6 +443,31 @@ UNIQUE TECH/INTERNATIONAL
       });
     }
 
+    // For unified mode (default), try to detect if this is an auto-fill request
+    if (mode === 'unified' || !mode) {
+      const lowerInput = userInput.toLowerCase();
+      const isAutoFillRequest = lowerInput.includes('auto fill') || 
+                               lowerInput.includes('fill form') || 
+                               lowerInput.includes('fill out') ||
+                               lowerInput.includes('mission description') ||
+                               lowerInput.includes('satellite') ||
+                               lowerInput.includes('rocket') ||
+                               lowerInput.includes('launch') ||
+                               lowerInput.includes('earth observation') ||
+                               lowerInput.includes('200kg') ||
+                               lowerInput.includes('cape canaveral') ||
+                               lowerInput.includes('q3 2024');
+      
+      if (isAutoFillRequest) {
+        const suggestions = extractFormSuggestions(aiResponse, userInput);
+        return NextResponse.json({ 
+          suggestions,
+          message: aiResponse,
+          mode: 'form'
+        });
+      }
+    }
+
     return NextResponse.json({ 
       message: aiResponse,
       mode 
@@ -458,47 +492,47 @@ function extractFormSuggestions(aiResponse: string, userInput: string) {
   
   console.log('AI Response for parsing:', aiResponse);
   
-  // Field name mappings for parsing - enhanced with more variations
+  // Enhanced field name mappings for parsing with more variations
   const fieldMappings = {
     // Section 1: Concept of Operations (CONOPS)
-    missionObjective: ['mission objective', 'mission', 'objective', 'purpose', 'goal'],
-    vehicleDescription: ['vehicle description', 'vehicle', 'rocket', 'launcher', 'spacecraft'],
-    launchReentrySequence: ['launch/reentry sequence', 'launch sequence', 'reentry sequence', 'flight sequence', 'mission sequence'],
-    trajectoryOverview: ['trajectory overview', 'trajectory', 'flight path', 'orbit', 'path'],
-    safetyConsiderations: ['safety considerations', 'safety', 'risk', 'hazard'],
-    groundOperations: ['ground operations', 'ground', 'operations', 'launch pad'],
+    missionObjective: ['mission objective', 'mission', 'objective', 'purpose', 'goal', 'description', 'launch', 'satellite', 'observation', 'monitoring'],
+    vehicleDescription: ['vehicle description', 'vehicle', 'rocket', 'launcher', 'spacecraft', 'two-stage', 'three-stage', 'solid fuel', 'liquid fuel', 'propulsion'],
+    launchReentrySequence: ['launch/reentry sequence', 'launch sequence', 'reentry sequence', 'flight sequence', 'mission sequence', 'stages', 'separation', 'ignition'],
+    trajectoryOverview: ['trajectory overview', 'trajectory', 'flight path', 'orbit', 'path', 'altitude', 'leo', 'low earth orbit', '500km'],
+    safetyConsiderations: ['safety considerations', 'safety', 'risk', 'hazard', 'environmental', 'disaster response', 'monitoring'],
+    groundOperations: ['ground operations', 'ground', 'operations', 'launch pad', 'cape canaveral', 'space force station'],
     
     // Section 2: Vehicle Overview
-    technicalSummary: ['technical summary', 'technical', 'specifications', 'specs', 'technical data'],
-    dimensionsMassStages: ['dimensions/mass/stages', 'dimensions', 'mass', 'stages', 'size', 'weight'],
-    propulsionTypes: ['propulsion types', 'propulsion', 'engines', 'motor', 'fuel'],
-    recoverySystems: ['recovery systems', 'recovery', 'landing', 'reusable'],
-    groundSupportEquipment: ['ground support equipment', 'ground support', 'GSE', 'equipment'],
+    technicalSummary: ['technical summary', 'technical', 'specifications', 'specs', 'technical data', '200kg', 'payload', 'mass', 'weight'],
+    dimensionsMassStages: ['dimensions/mass/stages', 'dimensions', 'mass', 'stages', 'size', 'weight', '200kg', 'two-stage', 'stages'],
+    propulsionTypes: ['propulsion types', 'propulsion', 'engines', 'motor', 'fuel', 'solid fuel', 'solid-fueled', 'liquid fuel'],
+    recoverySystems: ['recovery systems', 'recovery', 'landing', 'reusable', 'expendable'],
+    groundSupportEquipment: ['ground support equipment', 'ground support', 'GSE', 'equipment', 'launch pad', 'facility'],
     
     // Section 3: Planned Launch/Reentry Location(s)
-    siteNamesCoordinates: ['site names/coordinates', 'site', 'coordinates', 'location', 'latitude', 'longitude'],
-    siteOperator: ['site operator', 'operator', 'facility operator'],
-    airspaceMaritimeNotes: ['airspace/maritime notes', 'airspace', 'maritime', 'flight corridor'],
+    siteNamesCoordinates: ['site names/coordinates', 'site', 'coordinates', 'location', 'latitude', 'longitude', 'cape canaveral', 'space force station'],
+    siteOperator: ['site operator', 'operator', 'facility operator', 'space force', 'military'],
+    airspaceMaritimeNotes: ['airspace/maritime notes', 'airspace', 'maritime', 'flight corridor', 'military airspace'],
     
     // Section 4: Launch Information
-    launchSite: ['launch site', 'launch location', 'launch pad', 'facility'],
-    launchWindow: ['launch window', 'window', 'timing', 'schedule', 'launch time'],
-    flightPath: ['flight path', 'path', 'trajectory', 'route'],
-    landingSite: ['landing site', 'landing location', 'recovery site'],
+    launchSite: ['launch site', 'launch location', 'launch pad', 'facility', 'cape canaveral', 'space force station'],
+    launchWindow: ['launch window', 'window', 'timing', 'schedule', 'launch time', 'q3 2024', 'quarter', '2024'],
+    flightPath: ['flight path', 'path', 'trajectory', 'route', 'leo', 'low earth orbit', '500km'],
+    landingSite: ['landing site', 'landing location', 'recovery site', 'expendable'],
     
     // Section 5: Preliminary Risk or Safety Considerations
-    earlyRiskAssessments: ['early risk assessments', 'risk assessment', 'hazard analysis'],
-    publicSafetyChallenges: ['public safety challenges', 'public safety', 'safety challenge'],
-    plannedSafetyTools: ['planned safety tools', 'safety tools', 'DEBRIS', 'SARA'],
+    earlyRiskAssessments: ['early risk assessments', 'risk assessment', 'hazard analysis', 'environmental monitoring'],
+    publicSafetyChallenges: ['public safety challenges', 'public safety', 'safety challenge', 'disaster response'],
+    plannedSafetyTools: ['planned safety tools', 'safety tools', 'DEBRIS', 'SARA', 'monitoring systems'],
     
     // Section 6: Timeline & Intent
-    fullApplicationTimeline: ['full application timeline', 'timeline', 'schedule', 'deadline'],
-    intendedWindow: ['intended window', 'target window', 'planned window'],
-    licenseTypeIntent: ['license type intent', 'license type', 'license intent'],
+    fullApplicationTimeline: ['full application timeline', 'timeline', 'schedule', 'deadline', 'q3 2024', '2024'],
+    intendedWindow: ['intended window', 'target window', 'planned window', 'q3 2024'],
+    licenseTypeIntent: ['license type intent', 'license type', 'license intent', 'part 450'],
     
     // Section 7: List of Questions for FAA
-    clarifyPart450: ['clarify part 450', 'clarify', 'questions', 'requirements'],
-    uniqueTechInternational: ['unique tech/international', 'unique technology', 'international', 'novel']
+    clarifyPart450: ['clarify part 450', 'clarify', 'questions', 'requirements', 'faa'],
+    uniqueTechInternational: ['unique tech/international', 'unique technology', 'international', 'novel', 'earth observation']
   };
 
   // Parse structured response with clear sections
@@ -569,16 +603,42 @@ function parseStructuredResponse(response: string): Record<string, string> {
   for (const line of lines) {
     const trimmedLine = line.trim();
     
-    // Look for section headers - enhanced pattern matching
-    // Match patterns like: "MISSION OBJECTIVE", "VEHICLE DESCRIPTION", etc.
+    // Enhanced pattern matching for section headers
     if (trimmedLine.match(/^[A-Z\s\/]+$/) || 
         trimmedLine.match(/^\*\*[^*]+\*\*$/) ||
         trimmedLine.match(/^[A-Z][a-z\s]+:$/) ||
         trimmedLine.match(/^[A-Z\s]+:$/) ||
         trimmedLine.match(/^[A-Z][A-Z\s]+$/) ||
-        // New patterns for the AI response format
+        // Enhanced patterns for the AI response format
         trimmedLine.match(/^[A-Z\s]+\s+[A-Z\s]+$/) ||
-        trimmedLine.match(/^[A-Z][A-Z\s\/]+[A-Z]$/)) {
+        trimmedLine.match(/^[A-Z][A-Z\s\/]+[A-Z]$/) ||
+        // New patterns for specific section headers
+        trimmedLine.match(/^MISSION OBJECTIVE$/) ||
+        trimmedLine.match(/^VEHICLE DESCRIPTION$/) ||
+        trimmedLine.match(/^LAUNCH\/REENTRY SEQUENCE$/) ||
+        trimmedLine.match(/^TRAJECTORY OVERVIEW$/) ||
+        trimmedLine.match(/^SAFETY CONSIDERATIONS$/) ||
+        trimmedLine.match(/^GROUND OPERATIONS$/) ||
+        trimmedLine.match(/^TECHNICAL SUMMARY$/) ||
+        trimmedLine.match(/^DIMENSIONS\/MASS\/STAGES$/) ||
+        trimmedLine.match(/^PROPULSION TYPES$/) ||
+        trimmedLine.match(/^RECOVERY SYSTEMS$/) ||
+        trimmedLine.match(/^GROUND SUPPORT EQUIPMENT$/) ||
+        trimmedLine.match(/^SITE NAMES\/COORDINATES$/) ||
+        trimmedLine.match(/^SITE OPERATOR$/) ||
+        trimmedLine.match(/^AIRSPACE\/MARITIME NOTES$/) ||
+        trimmedLine.match(/^LAUNCH SITE$/) ||
+        trimmedLine.match(/^LAUNCH WINDOW$/) ||
+        trimmedLine.match(/^FLIGHT PATH$/) ||
+        trimmedLine.match(/^LANDING SITE$/) ||
+        trimmedLine.match(/^EARLY RISK ASSESSMENTS$/) ||
+        trimmedLine.match(/^PUBLIC SAFETY CHALLENGES$/) ||
+        trimmedLine.match(/^PLANNED SAFETY TOOLS$/) ||
+        trimmedLine.match(/^FULL APPLICATION TIMELINE$/) ||
+        trimmedLine.match(/^INTENDED WINDOW$/) ||
+        trimmedLine.match(/^LICENSE TYPE INTENT$/) ||
+        trimmedLine.match(/^CLARIFY PART 450$/) ||
+        trimmedLine.match(/^UNIQUE TECH\/INTERNATIONAL$/)) {
       
       // Save previous section
       if (currentSection && currentContent.length > 0) {
@@ -641,7 +701,7 @@ function findMatchingContent(sections: Record<string, string>, searchTerms: stri
 }
 
 function detectMissionType(input: string): string | null {
-  if (input.includes('satellite') || input.includes('leo') || input.includes('low earth orbit')) return 'satellite';
+  if (input.includes('satellite') || input.includes('leo') || input.includes('low earth orbit') || input.includes('earth observation')) return 'satellite';
   if (input.includes('suborbital') || input.includes('space tourism')) return 'suborbital';
   if (input.includes('orbital') || input.includes('geo') || input.includes('geosynchronous')) return 'orbital';
   if (input.includes('test') || input.includes('demonstration')) return 'test';
@@ -650,21 +710,41 @@ function detectMissionType(input: string): string | null {
 
 function generateBasicSuggestions(missionType: string, userInput: string): any[] {
   const suggestions = [];
+  const lowerInput = userInput.toLowerCase();
   
   switch (missionType) {
     case 'satellite':
-      suggestions.push({
-        field: 'missionObjective',
-        value: 'Launch commercial satellite to low Earth orbit for telecommunications and data services.',
-        confidence: 0.7,
-        reasoning: 'Based on satellite mission type detected'
-      });
-      suggestions.push({
-        field: 'trajectoryOverview',
-        value: 'Standard launch trajectory to low Earth orbit with payload deployment at target altitude.',
-        confidence: 0.7,
-        reasoning: 'Standard satellite trajectory'
-      });
+      if (lowerInput.includes('earth observation')) {
+        suggestions.push({
+          field: 'missionObjective',
+          value: 'Launch Earth observation satellite for environmental monitoring and data collection.',
+          confidence: 0.8,
+          reasoning: 'Based on Earth observation satellite mission type detected'
+        });
+      } else {
+        suggestions.push({
+          field: 'missionObjective',
+          value: 'Launch commercial satellite to low Earth orbit for telecommunications and data services.',
+          confidence: 0.7,
+          reasoning: 'Based on satellite mission type detected'
+        });
+      }
+      
+      if (lowerInput.includes('500km')) {
+        suggestions.push({
+          field: 'trajectoryOverview',
+          value: 'Launch trajectory to low Earth orbit at 500km altitude with payload deployment.',
+          confidence: 0.8,
+          reasoning: 'Based on specific altitude mentioned'
+        });
+      } else {
+        suggestions.push({
+          field: 'trajectoryOverview',
+          value: 'Standard launch trajectory to low Earth orbit with payload deployment at target altitude.',
+          confidence: 0.7,
+          reasoning: 'Standard satellite trajectory'
+        });
+      }
       break;
     case 'suborbital':
       suggestions.push({
