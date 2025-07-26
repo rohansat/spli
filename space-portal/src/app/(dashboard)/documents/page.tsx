@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useApplication } from "@/components/providers/ApplicationProvider";
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
@@ -10,10 +10,45 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { FileUp, FileText, Mail, File, Download, Search, Filter, Trash2, Upload, ExternalLink } from "lucide-react";
+import { 
+  FileUp, 
+  FileText, 
+  Mail, 
+  File, 
+  Download, 
+  Search, 
+  Filter, 
+  Trash2, 
+  Upload, 
+  ExternalLink,
+  Folder,
+  FolderOpen,
+  ChevronRight,
+  ChevronDown,
+  Calendar,
+  Tag,
+  Clock,
+  AlertCircle,
+  CheckCircle,
+  XCircle,
+  MoreHorizontal
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Document } from "@/types";
 import { Footer } from "@/components/Footer";
+
+interface TreeNode {
+  id: string;
+  name: string;
+  type: 'folder' | 'document';
+  children?: TreeNode[];
+  document?: Document;
+  isExpanded?: boolean;
+  status?: 'draft' | 'review' | 'approved' | 'expired';
+  tags?: string[];
+  expirationDate?: string;
+  uploadedAt?: string;
+}
 
 export default function DocumentManagement() {
   const { documents, applications, uploadDocument, removeDocument } = useApplication();
@@ -21,40 +56,156 @@ export default function DocumentManagement() {
   const router = useRouter();
   const user = session?.user;
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState("All Documents");
+  const [activeTab, setActiveTab] = useState("Tree View");
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedApplication, setSelectedApplication] = useState("");
-  const [documentType, setDocumentType] = useState<Document["type"]>("application");
+  const [documentType, setDocumentType] = useState<Document["type"]>("attachment");
+  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
+  const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
+  const [isDocumentDetailsOpen, setIsDocumentDetailsOpen] = useState(false);
 
-  // Filter documents based on active tab
-  const filteredDocuments = documents.filter(doc => {
-    if (activeTab === "All Documents") return true;
-    if (activeTab === "Applications") return doc.type === "application";
-    if (activeTab === "Attachments") return doc.type === "attachment";
-    if (activeTab === "Emails") return doc.type === "email";
-    if (activeTab === "Licenses") return doc.type === "license";
-    return true;
-  });
-
-  // Further filter by search query if present
-  const searchFilteredDocuments = filteredDocuments.filter(doc => 
-    searchQuery ? doc.name.toLowerCase().includes(searchQuery.toLowerCase()) : true
-  );
-
-  // Helper function to get application name by ID
-  const getApplicationName = (applicationId: string | undefined) => {
-    if (!applicationId) return "No application";
-    const app = applications.find(app => app.id === applicationId);
-    return app ? app.name : "Unknown application";
+  // Expand/Collapse all functionality
+  const expandAll = () => {
+    const allFolderIds = new Set<string>();
+    applications.forEach(app => allFolderIds.add(app.id));
+    if (documents.some(doc => !doc.applicationId)) {
+      allFolderIds.add('unassigned');
+    }
+    setExpandedFolders(allFolderIds);
   };
 
-  // Handle document click to navigate to application
-  const handleDocumentClick = (doc: Document) => {
-    if (doc.applicationId) {
-      router.push(`/applications/${doc.applicationId}`);
+  const collapseAll = () => {
+    setExpandedFolders(new Set());
+  };
+
+  // Build tree structure from applications and documents
+  const buildTreeStructure = (): TreeNode[] => {
+    const tree: TreeNode[] = [];
+    
+    // Create folder for each application
+    applications.forEach(app => {
+      const appDocuments = documents.filter(doc => doc.applicationId === app.id);
+      
+      const appNode: TreeNode = {
+        id: app.id,
+        name: app.name,
+        type: 'folder',
+        isExpanded: expandedFolders.has(app.id),
+        children: appDocuments.map(doc => ({
+          id: doc.id,
+          name: doc.name,
+          type: 'document' as const,
+          document: doc,
+          status: getDocumentStatus(doc),
+          tags: getDocumentTags(doc),
+          expirationDate: getDocumentExpiration(doc),
+          uploadedAt: doc.uploadedAt
+        }))
+      };
+      
+      tree.push(appNode);
+    });
+
+    // Add documents without applications to "Unassigned" folder
+    const unassignedDocs = documents.filter(doc => !doc.applicationId);
+    if (unassignedDocs.length > 0) {
+      const unassignedNode: TreeNode = {
+        id: 'unassigned',
+        name: 'Unassigned Documents',
+        type: 'folder',
+        isExpanded: expandedFolders.has('unassigned'),
+        children: unassignedDocs.map(doc => ({
+          id: doc.id,
+          name: doc.name,
+          type: 'document' as const,
+          document: doc,
+          status: getDocumentStatus(doc),
+          tags: getDocumentTags(doc),
+          expirationDate: getDocumentExpiration(doc),
+          uploadedAt: doc.uploadedAt
+        }))
+      };
+      tree.push(unassignedNode);
+    }
+
+    return tree;
+  };
+
+  // Helper functions for document metadata
+  const getDocumentStatus = (doc: Document): 'draft' | 'review' | 'approved' | 'expired' => {
+    // Simple status logic - can be enhanced
+    if (doc.type === 'license') return 'approved';
+    if (doc.type === 'application') return 'review';
+    return 'draft';
+  };
+
+  const getDocumentTags = (doc: Document): string[] => {
+    const tags: string[] = [doc.type];
+    if (doc.applicationId) tags.push('associated');
+    if (doc.type === 'license') tags.push('official');
+    if (doc.type === 'email') tags.push('communication');
+    return tags;
+  };
+
+  const getDocumentExpiration = (doc: Document): string | undefined => {
+    // Add expiration logic - for now, licenses expire in 1 year
+    if (doc.type === 'license') {
+      const uploadDate = new Date(doc.uploadedAt);
+      const expirationDate = new Date(uploadDate);
+      expirationDate.setFullYear(expirationDate.getFullYear() + 1);
+      return expirationDate.toISOString();
+    }
+    return undefined;
+  };
+
+  const toggleFolder = (folderId: string) => {
+    const newExpanded = new Set(expandedFolders);
+    if (newExpanded.has(folderId)) {
+      newExpanded.delete(folderId);
+    } else {
+      newExpanded.add(folderId);
+    }
+    setExpandedFolders(newExpanded);
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'approved': return <CheckCircle className="h-4 w-4 text-green-500" />;
+      case 'review': return <Clock className="h-4 w-4 text-yellow-500" />;
+      case 'expired': return <XCircle className="h-4 w-4 text-red-500" />;
+      default: return <AlertCircle className="h-4 w-4 text-blue-500" />;
     }
   };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'approved': return 'text-green-500';
+      case 'review': return 'text-yellow-500';
+      case 'expired': return 'text-red-500';
+      default: return 'text-blue-500';
+    }
+  };
+
+  const treeStructure = buildTreeStructure();
+
+  // Filter tree based on search query
+  const filterTree = (nodes: TreeNode[], query: string): TreeNode[] => {
+    if (!query) return nodes;
+    
+    return nodes.filter(node => {
+      if (node.type === 'folder') {
+        const filteredChildren = filterTree(node.children || [], query);
+        node.children = filteredChildren;
+        return filteredChildren.length > 0 || node.name.toLowerCase().includes(query.toLowerCase());
+      } else {
+        return node.name.toLowerCase().includes(query.toLowerCase()) ||
+               node.tags?.some(tag => tag.toLowerCase().includes(query.toLowerCase()));
+      }
+    });
+  };
+
+  const filteredTree = filterTree(treeStructure, searchQuery);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -82,7 +233,6 @@ export default function DocumentManagement() {
   };
 
   const handleDownload = (doc: Document) => {
-    // Create an anchor element
     const link = document.createElement('a');
     link.href = doc.url;
     link.download = doc.name;
@@ -92,38 +242,158 @@ export default function DocumentManagement() {
   };
 
   const handleDelete = (docId: string) => {
-    // Filter out the deleted document
-    const updatedDocs = documents.filter(doc => doc.id !== docId);
-    // Update the documents state through the provider
-    // This assumes you have a removeDocument function in your ApplicationProvider
     if (window.confirm('Are you sure you want to delete this document?')) {
       removeDocument(docId);
+    }
+  };
+
+  const handleDocumentClick = (doc: Document) => {
+    setSelectedDocument(doc);
+    setIsDocumentDetailsOpen(true);
+  };
+
+  const renderTreeNode = (node: TreeNode, level: number = 0) => {
+    const indent = level * 20;
+    
+    if (node.type === 'folder') {
+      const isExpanded = expandedFolders.has(node.id);
+      const hasChildren = node.children && node.children.length > 0;
+      
+      return (
+        <div key={node.id}>
+          <div 
+            className={cn(
+              "flex items-center py-2 px-3 hover:bg-zinc-800/50 cursor-pointer transition-colors",
+              "border-l-2 border-transparent hover:border-blue-500"
+            )}
+            style={{ paddingLeft: `${indent + 12}px` }}
+            onClick={() => toggleFolder(node.id)}
+          >
+            <div className="flex items-center gap-2 flex-1">
+              {hasChildren ? (
+                isExpanded ? (
+                  <ChevronDown className="h-4 w-4 text-zinc-400" />
+                ) : (
+                  <ChevronRight className="h-4 w-4 text-zinc-400" />
+                )
+              ) : (
+                <div className="w-4 h-4" />
+              )}
+              {isExpanded ? (
+                <FolderOpen className="h-5 w-5 text-blue-500" />
+              ) : (
+                <Folder className="h-5 w-5 text-blue-400" />
+              )}
+              <span className="text-white font-medium">{node.name}</span>
+              <span className="text-zinc-500 text-sm">({node.children?.length || 0})</span>
+            </div>
+          </div>
+          
+          {isExpanded && node.children && (
+            <div>
+              {node.children.map(child => renderTreeNode(child, level + 1))}
+            </div>
+          )}
+        </div>
+      );
+    } else {
+      const doc = node.document!;
+      const isExpired = node.expirationDate && new Date(node.expirationDate) < new Date();
+      
+      return (
+        <div 
+          key={node.id}
+          className={cn(
+            "flex items-center py-2 px-3 hover:bg-zinc-800/50 cursor-pointer transition-colors",
+            "border-l-2 border-transparent hover:border-green-500"
+          )}
+          style={{ paddingLeft: `${indent + 32}px` }}
+          onClick={() => handleDocumentClick(doc)}
+        >
+          <div className="flex items-center gap-3 flex-1">
+            <FileText className="h-4 w-4 text-zinc-400" />
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="text-white truncate">{node.name}</span>
+                {getStatusIcon(node.status || 'draft')}
+              </div>
+              <div className="flex items-center gap-2 text-xs text-zinc-500">
+                <span>{doc.fileSize}</span>
+                <span>•</span>
+                <span>{new Date(doc.uploadedAt).toLocaleDateString()}</span>
+                {node.expirationDate && (
+                  <>
+                    <span>•</span>
+                    <span className={isExpired ? "text-red-500" : "text-zinc-500"}>
+                      Expires: {new Date(node.expirationDate).toLocaleDateString()}
+                    </span>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-1">
+            {node.tags?.map(tag => (
+              <span 
+                key={tag}
+                className="px-2 py-1 text-xs bg-zinc-700 text-zinc-300 rounded"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+          
+          <div className="flex items-center gap-1 ml-2">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-6 w-6 text-zinc-400 hover:text-white hover:bg-zinc-800"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDownload(doc);
+              }}
+              title="Download"
+            >
+              <Download className="h-3 w-3" />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="icon"
+              className="h-6 w-6 text-zinc-400 hover:text-white hover:bg-zinc-800"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDelete(doc.id);
+              }}
+              title="Delete"
+            >
+              <Trash2 className="h-3 w-3" />
+            </Button>
+          </div>
+        </div>
+      );
     }
   };
 
   return (
     <div className="min-h-screen flex flex-col bg-black">
       <main className="flex-1 px-8 pt-24">
-      <div className="max-w-[1400px] mx-auto">
+        <div className="max-w-[1400px] mx-auto">
           <div className="flex justify-between items-start mb-8">
-          <div>
+            <div>
               <h1 className="text-[28px] font-medium text-white mb-2">DOCUMENT MANAGEMENT</h1>
               <p className="text-zinc-500">
-              Manage all documents related to your aerospace licensing applications
-            </p>
-          </div>
+                Manage all documents organized by application folders
+              </p>
+            </div>
             <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
               <DialogTrigger asChild>
-          <Button 
+                <Button 
                   className="bg-white hover:bg-white/90 text-black gap-2 px-4 py-2 rounded-md flex items-center"
                 >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                    <polyline points="17 8 12 3 7 8" />
-                    <line x1="12" y1="3" x2="12" y2="15" />
-                  </svg>
-            UPLOAD DOCUMENT
-          </Button>
+                  <Upload className="h-4 w-4" />
+                  UPLOAD DOCUMENT
+                </Button>
               </DialogTrigger>
               <DialogContent className="bg-black border border-zinc-800 text-white">
                 <DialogHeader>
@@ -202,124 +472,139 @@ export default function DocumentManagement() {
                 </DialogFooter>
               </DialogContent>
             </Dialog>
-        </div>
+          </div>
 
-        <div className="flex gap-3 mb-8">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-zinc-400" />
-            <input
-              type="text"
-              placeholder="Search documents..."
+          <div className="flex gap-3 mb-8">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-zinc-400" />
+              <input
+                type="text"
+                placeholder="Search documents and folders..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full h-10 bg-[#161616] border border-zinc-800 rounded-md pl-10 pr-4 text-sm text-white placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-white/20"
-            />
+                className="w-full h-10 bg-[#161616] border border-zinc-800 rounded-md pl-10 pr-4 text-sm text-white placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-white/20"
+              />
+            </div>
+            <Button 
+              variant="outline" 
+              className="border-zinc-800 hover:bg-[#161616] text-white gap-2 px-4 h-10"
+            >
+              <Filter className="h-4 w-4" />
+              Filter
+            </Button>
           </div>
-          <Button 
-            variant="outline" 
-            className="border-zinc-800 hover:bg-[#161616] text-white gap-2 px-4 h-10"
-          >
-            <Filter className="h-4 w-4" />
-            Filter
-          </Button>
-        </div>
 
           <div className="bg-[#111111] rounded-lg border border-zinc-800/50 overflow-hidden">
-          <div className="p-6">
-            <h2 className="text-lg font-medium text-white mb-1">Document Library</h2>
-            <p className="text-sm text-zinc-400">View and manage your documents</p>
-            
-              <div className="flex gap-6 mt-6 mb-6">
-                {["All Documents", "Applications", "Attachments", "Emails", "Licenses"].map((tab) => (
-                  <button
-                    key={tab}
-                    onClick={() => setActiveTab(tab)}
-                    className={cn(
-                      "text-sm pb-2 border-b-2",
-                      activeTab === tab
-                        ? "text-white border-white"
-                        : "text-zinc-400 border-transparent hover:text-white"
-                    )}
-                  >
-                    {tab}
-              </button>
-                ))}
-            </div>
-
-              <div className="grid grid-cols-[2fr,1fr,1fr,2fr,0.5fr] gap-4 py-4 text-sm text-zinc-400 border-b border-zinc-800">
-              <div>Document</div>
-              <div>Type</div>
-              <div>Size</div>
-              <div>Associated Application</div>
-              <div className="text-right">Actions</div>
-            </div>
-
-              {searchFilteredDocuments.length === 0 ? (
-            <div className="py-12 text-center">
-              <p className="text-zinc-400 text-sm">No documents found</p>
-            </div>
-              ) : (
-                <div className="divide-y divide-zinc-800">
-                  {searchFilteredDocuments.map((doc) => (
-                    <div key={doc.id} className="grid grid-cols-[2fr,1fr,1fr,2fr,0.5fr] gap-4 py-4 text-sm items-center">
-                      <div className="flex items-center gap-2">
-                        <FileText className="h-4 w-4 text-blue-400" />
-                        <button
-                          onClick={() => handleDocumentClick(doc)}
-                          className={cn(
-                            "text-left hover:text-blue-400 transition-colors flex items-center gap-1",
-                            doc.applicationId ? "text-white cursor-pointer" : "text-zinc-400 cursor-default"
-                          )}
-                          disabled={!doc.applicationId}
-                          title={doc.applicationId ? "Click to open application" : "No associated application"}
-                        >
-                          {doc.name}
-                          {doc.applicationId && <ExternalLink className="h-3 w-3 opacity-60" />}
-                        </button>
-                      </div>
-                      <div className="text-zinc-400">{doc.type}</div>
-                      <div className="text-zinc-400">{doc.fileSize}</div>
-                      <div className="text-zinc-400">
-                        {doc.applicationId ? (
-                          <button
-                            onClick={() => handleDocumentClick(doc)}
-                            className="text-left hover:text-blue-400 transition-colors cursor-pointer"
-                            title="Click to open application"
-                          >
-                            {getApplicationName(doc.applicationId)}
-                          </button>
-                        ) : (
-                          "No application"
-                        )}
-                      </div>
-                      <div className="flex justify-end gap-2">
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-8 w-8 text-zinc-400 hover:text-white hover:bg-zinc-800"
-                          onClick={() => handleDownload(doc)}
-                          title="Download"
-                        >
-                          <Download className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="icon"
-                          className="h-8 w-8 text-zinc-400 hover:text-white hover:bg-zinc-800"
-                          onClick={() => handleDelete(doc.id)}
-                          title="Delete"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-          </div>
-        </div>
-                  ))}
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <div>
+                  <h2 className="text-lg font-medium text-white mb-1">Document Tree</h2>
+                  <p className="text-sm text-zinc-400">Organized by application folders</p>
                 </div>
-              )}
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={expandAll}
+                    className="border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+                  >
+                    Expand All
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={collapseAll}
+                    className="border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+                  >
+                    Collapse All
+                  </Button>
+                </div>
+              </div>
+              
+              {/* Status Legend */}
+              <div className="flex gap-4 mb-6 p-3 bg-zinc-900/50 rounded-lg border border-zinc-800">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <span className="text-xs text-zinc-400">Approved</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-yellow-500" />
+                  <span className="text-xs text-zinc-400">Under Review</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4 text-blue-500" />
+                  <span className="text-xs text-zinc-400">Draft</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <XCircle className="h-4 w-4 text-red-500" />
+                  <span className="text-xs text-zinc-400">Expired</span>
+                </div>
+              </div>
+              
+              <div className="space-y-1">
+                {filteredTree.length === 0 ? (
+                  <div className="py-12 text-center">
+                    <Folder className="h-12 w-12 text-zinc-600 mx-auto mb-4" />
+                    <p className="text-zinc-400 text-sm">No documents found</p>
+                  </div>
+                ) : (
+                  filteredTree.map(node => renderTreeNode(node))
+                )}
+              </div>
             </div>
           </div>
         </div>
       </main>
+
+      {/* Document Details Dialog */}
+      <Dialog open={isDocumentDetailsOpen} onOpenChange={setIsDocumentDetailsOpen}>
+        <DialogContent className="bg-black border border-zinc-800 text-white max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-medium">Document Details</DialogTitle>
+          </DialogHeader>
+          
+          {selectedDocument && (
+            <div className="space-y-6 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-zinc-400">Document Name</label>
+                  <p className="text-white">{selectedDocument.name}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-zinc-400">Type</label>
+                  <p className="text-white capitalize">{selectedDocument.type}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-zinc-400">File Size</label>
+                  <p className="text-white">{selectedDocument.fileSize}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-zinc-400">Uploaded</label>
+                  <p className="text-white">{new Date(selectedDocument.uploadedAt).toLocaleDateString()}</p>
+                </div>
+              </div>
+              
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => handleDownload(selectedDocument)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Download
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsDocumentDetailsOpen(false)}
+                  className="border-zinc-800 text-white hover:bg-zinc-800"
+                >
+                  Close
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       <Footer />
     </div>
   );

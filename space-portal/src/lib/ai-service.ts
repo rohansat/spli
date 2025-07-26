@@ -874,9 +874,135 @@ export async function analyzeUserInput(request: AIAnalysisRequest): Promise<AIAn
 
 // Mock AI service for development (now uses real API)
 export async function mockAIAnalysis(userInput: string): Promise<AIAnalysisResponse> {
-  // Use the real analysis function
-  return analyzeUserInput({
-    userInput,
-    formFields: []
-  });
+  // Use local analysis only - independent from the auto-fill system
+  const missionInfo = extractMissionInfo(userInput);
+  const localSuggestions = generateSuggestions(missionInfo, userInput);
+  
+  return {
+    suggestions: localSuggestions,
+    summary: `Local analysis completed with ${localSuggestions.length} field suggestions.`
+  };
+}
+
+// Dedicated AI service for Dashboard AI Form Assistant (completely independent)
+export async function dashboardAIAnalysis(userInput: string): Promise<AIAnalysisResponse> {
+  const lowerInput = userInput.toLowerCase();
+  const suggestions: AIFormSuggestion[] = [];
+
+  // Dashboard-specific analysis for mission descriptions
+  // Focus on application name and mission objective suggestions
+
+  // Mission Objective Analysis
+  if (lowerInput.includes('satellite') || lowerInput.includes('spacecraft')) {
+    if (lowerInput.includes('earth observation') || lowerInput.includes('environmental')) {
+      suggestions.push({
+        field: 'missionObjective',
+        value: 'Earth observation and environmental monitoring satellite mission',
+        confidence: 0.90,
+        reasoning: 'Detected Earth observation satellite mission in description'
+      });
+    } else if (lowerInput.includes('communication') || lowerInput.includes('telecom')) {
+      suggestions.push({
+        field: 'missionObjective',
+        value: 'Satellite communications and telecommunications mission',
+        confidence: 0.85,
+        reasoning: 'Detected communications satellite mission in description'
+      });
+    } else {
+      suggestions.push({
+        field: 'missionObjective',
+        value: 'Satellite mission for space operations and research',
+        confidence: 0.80,
+        reasoning: 'Detected general satellite mission in description'
+      });
+    }
+  } else if (lowerInput.includes('rocket') || lowerInput.includes('launch vehicle')) {
+    suggestions.push({
+      field: 'missionObjective',
+      value: 'Launch vehicle mission for payload delivery to orbit',
+      confidence: 0.85,
+      reasoning: 'Detected launch vehicle mission in description'
+    });
+  } else if (lowerInput.includes('suborbital') || lowerInput.includes('space tourism')) {
+    suggestions.push({
+      field: 'missionObjective',
+      value: 'Suborbital space tourism and research mission',
+      confidence: 0.80,
+      reasoning: 'Detected suborbital mission in description'
+    });
+  } else {
+    suggestions.push({
+      field: 'missionObjective',
+      value: 'Space mission for aerospace operations and research',
+      confidence: 0.70,
+      reasoning: 'General space mission detected in description'
+    });
+  }
+
+  // Application Name Suggestions
+  if (lowerInput.includes('200kg') || lowerInput.includes('200 kg')) {
+    suggestions.push({
+      field: 'applicationName',
+      value: '200kg Earth Observation Satellite Launch',
+      confidence: 0.85,
+      reasoning: 'Detected 200kg payload specification'
+    });
+  } else if (lowerInput.includes('cape canaveral') || lowerInput.includes('kennedy space center')) {
+    suggestions.push({
+      field: 'applicationName',
+      value: 'Cape Canaveral Space Launch Mission',
+      confidence: 0.80,
+      reasoning: 'Detected Cape Canaveral launch site'
+    });
+  } else if (lowerInput.includes('two-stage') || lowerInput.includes('2-stage')) {
+    suggestions.push({
+      field: 'applicationName',
+      value: 'Two-Stage Rocket Launch Mission',
+      confidence: 0.75,
+      reasoning: 'Detected two-stage rocket configuration'
+    });
+  } else {
+    suggestions.push({
+      field: 'applicationName',
+      value: 'Space Launch Mission Application',
+      confidence: 0.60,
+      reasoning: 'General space mission application'
+    });
+  }
+
+  // Application Type Suggestions
+  if (lowerInput.includes('part 450') || lowerInput.includes('450')) {
+    suggestions.push({
+      field: 'applicationType',
+      value: 'Part 450',
+      confidence: 0.95,
+      reasoning: 'Explicitly mentioned Part 450 in description'
+    });
+  } else if (lowerInput.includes('amendment') || lowerInput.includes('modify')) {
+    suggestions.push({
+      field: 'applicationType',
+      value: 'License Amendment',
+      confidence: 0.85,
+      reasoning: 'Detected amendment or modification request'
+    });
+  } else if (lowerInput.includes('safety') || lowerInput.includes('approval')) {
+    suggestions.push({
+      field: 'applicationType',
+      value: 'Safety Approval',
+      confidence: 0.80,
+      reasoning: 'Detected safety-related application'
+    });
+  } else {
+    suggestions.push({
+      field: 'applicationType',
+      value: 'Part 450',
+      confidence: 0.70,
+      reasoning: 'Default to Part 450 for new space missions'
+    });
+  }
+
+  return {
+    suggestions,
+    summary: `Dashboard AI analyzed mission description and generated ${suggestions.length} suggestions for application creation.`
+  };
 } 

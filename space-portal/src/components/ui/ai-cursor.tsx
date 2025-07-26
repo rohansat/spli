@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Sparkles, Wand2, Check, X, Loader2, Zap, Brain } from 'lucide-react';
-import { mockAIAnalysis, AIFormSuggestion } from '@/lib/ai-service';
+import { mockAIAnalysis, AIFormSuggestion, dashboardAIAnalysis } from '@/lib/ai-service';
 import { Textarea } from './textarea';
 
 interface AICursorProps {
@@ -38,16 +38,13 @@ export function AICursor({ onFillForm, formFields, isVisible, onClose, inline = 
   const processWithAI = async (input: string) => {
     setIsProcessing(true);
     try {
-      const response = await mockAIAnalysis(input);
+      const response = await dashboardAIAnalysis(input);
       setSuggestions(response.suggestions);
       setShowSuggestions(true);
     } catch (error) {
-      setSuggestions([{
-        field: 'missionObjective',
-        value: 'Mission objective based on your description.',
-        confidence: 0.7,
-        reasoning: 'Basic analysis of your input.'
-      }]);
+      // Fallback to basic dashboard analysis
+      const fallbackResponse = await dashboardAIAnalysis(input);
+      setSuggestions(fallbackResponse.suggestions);
       setShowSuggestions(true);
     } finally {
       setIsProcessing(false);
