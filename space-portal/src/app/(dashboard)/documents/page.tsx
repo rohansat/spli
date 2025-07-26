@@ -134,17 +134,119 @@ export default function DocumentManagement() {
 
   // Helper functions for document metadata
   const getDocumentStatus = (doc: Document): 'draft' | 'review' | 'approved' | 'expired' => {
-    // Simple status logic - can be enhanced
-    if (doc.type === 'license') return 'approved';
-    if (doc.type === 'application') return 'review';
+    // Get the associated application to determine status
+    const associatedApp = doc.applicationId ? applications.find(app => app.id === doc.applicationId) : null;
+    
+    // License documents - check if expired
+    if (doc.type === 'license') {
+      const expirationDate = getDocumentExpiration(doc);
+      if (expirationDate && new Date(expirationDate) < new Date()) {
+        return 'expired';
+      }
+      return 'approved';
+    }
+    
+    // Application documents - follow application status
+    if (doc.type === 'application') {
+      if (!associatedApp) return 'draft';
+      
+      switch (associatedApp.status) {
+        case 'draft':
+          return 'draft';
+        case 'under_review':
+        case 'submitted':
+        case 'pending_approval':
+          return 'review';
+        case 'approved':
+          return 'approved';
+        default:
+          return 'draft';
+      }
+    }
+    
+    // Email documents - follow application status if associated
+    if (doc.type === 'email') {
+      if (!associatedApp) return 'draft';
+      
+      switch (associatedApp.status) {
+        case 'draft':
+          return 'draft';
+        case 'under_review':
+        case 'submitted':
+        case 'pending_approval':
+          return 'review';
+        case 'approved':
+          return 'approved';
+        default:
+          return 'draft';
+      }
+    }
+    
+    // Attachment documents - follow application status if associated
+    if (doc.type === 'attachment') {
+      if (!associatedApp) return 'draft';
+      
+      switch (associatedApp.status) {
+        case 'draft':
+          return 'draft';
+        case 'under_review':
+        case 'submitted':
+        case 'pending_approval':
+          return 'review';
+        case 'approved':
+          return 'approved';
+        default:
+          return 'draft';
+      }
+    }
+    
+    // Default to draft for unassigned documents
     return 'draft';
   };
 
   const getDocumentTags = (doc: Document): string[] => {
     const tags: string[] = [doc.type];
-    if (doc.applicationId) tags.push('associated');
-    if (doc.type === 'license') tags.push('official');
+    const associatedApp = doc.applicationId ? applications.find(app => app.id === doc.applicationId) : null;
+    
+    if (doc.applicationId) {
+      tags.push('associated');
+      
+      // Add application status tag
+      if (associatedApp) {
+        switch (associatedApp.status) {
+          case 'draft':
+            tags.push('draft');
+            break;
+          case 'under_review':
+            tags.push('reviewing');
+            break;
+          case 'submitted':
+            tags.push('submitted');
+            break;
+          case 'pending_approval':
+            tags.push('pending');
+            break;
+          case 'approved':
+            tags.push('approved');
+            break;
+        }
+      }
+    } else {
+      tags.push('unassigned');
+    }
+    
+    // Document type specific tags
+    if (doc.type === 'license') {
+      tags.push('official');
+      const expirationDate = getDocumentExpiration(doc);
+      if (expirationDate && new Date(expirationDate) < new Date()) {
+        tags.push('expired');
+      }
+    }
     if (doc.type === 'email') tags.push('communication');
+    if (doc.type === 'application') tags.push('primary');
+    if (doc.type === 'attachment') tags.push('supporting');
+    
     return tags;
   };
 
@@ -184,6 +286,16 @@ export default function DocumentManagement() {
       case 'review': return 'text-yellow-500';
       case 'expired': return 'text-red-500';
       default: return 'text-blue-500';
+    }
+  };
+
+  const getStatusText = (status: string): string => {
+    switch (status) {
+      case 'approved': return 'Approved';
+      case 'review': return 'Under Review';
+      case 'expired': return 'Expired';
+      case 'draft': return 'Draft';
+      default: return 'Unknown';
     }
   };
 
@@ -539,6 +651,12 @@ export default function DocumentManagement() {
                   <XCircle className="h-4 w-4 text-red-500" />
                   <span className="text-xs text-zinc-400">Expired</span>
                 </div>
+                <div className="flex items-center gap-2 ml-4">
+                  <span className="text-xs text-zinc-500">• Status follows application state</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-zinc-500">• Licenses expire after 1 year</span>
+                </div>
               </div>
               
               <div className="space-y-1">
@@ -575,12 +693,45 @@ export default function DocumentManagement() {
                   <p className="text-white capitalize">{selectedDocument.type}</p>
                 </div>
                 <div>
+                  <label className="text-sm font-medium text-zinc-400">Status</label>
+                  <div className="flex items-center gap-2">
+                    {getStatusIcon(getDocumentStatus(selectedDocument))}
+                    <span className={getStatusColor(getDocumentStatus(selectedDocument))}>
+                      {getStatusText(getDocumentStatus(selectedDocument))}
+                    </span>
+                  </div>
+                </div>
+                <div>
                   <label className="text-sm font-medium text-zinc-400">File Size</label>
                   <p className="text-white">{selectedDocument.fileSize}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-zinc-400">Uploaded</label>
                   <p className="text-white">{new Date(selectedDocument.uploadedAt).toLocaleDateString()}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-zinc-400">Associated Application</label>
+                  <p className="text-white">
+                    {selectedDocument.applicationId 
+                      ? applications.find(app => app.id === selectedDocument.applicationId)?.name || 'Unknown'
+                      : 'None'
+                    }
+                  </p>
+                </div>
+              </div>
+              
+              {/* Tags */}
+              <div>
+                <label className="text-sm font-medium text-zinc-400 mb-2 block">Tags</label>
+                <div className="flex flex-wrap gap-2">
+                  {getDocumentTags(selectedDocument).map(tag => (
+                    <span 
+                      key={tag}
+                      className="px-2 py-1 text-xs bg-zinc-700 text-zinc-300 rounded"
+                    >
+                      {tag}
+                    </span>
+                  ))}
                 </div>
               </div>
               
