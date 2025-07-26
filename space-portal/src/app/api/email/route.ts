@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { generatePDFBlob } from '@/lib/pdf-generator';
+import { db } from '@/lib/firebase';
+import { collection, addDoc } from 'firebase/firestore';
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,7 +17,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { recipient, subject, body, applicationData, applicationName } = await request.json();
+    const { recipient, subject, body, applicationData, applicationName, applicationId } = await request.json();
 
     // Validate required fields
     if (!recipient || !subject || !body || !applicationData) {
@@ -109,8 +111,36 @@ Sent from SPLI Application System
       throw new Error(`Failed to send email: ${response.status} ${response.statusText}`);
     }
 
+    // Save email copy to document management system
+    try {
+      const emailDocument = {
+        name: `Email: ${subject}`,
+        type: 'email' as const,
+        applicationId: applicationId || undefined,
+        applicationName: applicationName || undefined,
+        fileSize: `${(emailContent.length / 1024).toFixed(2)} KB`,
+        url: `data:text/plain;base64,${Buffer.from(emailContent).toString('base64')}`,
+        uploadedAt: new Date().toISOString(),
+        userId: session.user?.email || "",
+        emailMetadata: {
+          recipient,
+          subject,
+          body,
+          sentAt: new Date().toISOString(),
+          applicationData: applicationData,
+          applicationName: applicationName || 'Part 450 Application'
+        }
+      };
+
+      await addDoc(collection(db, "documents"), emailDocument);
+      console.log('Email copy saved to document management system');
+    } catch (error) {
+      console.error('Error saving email to document management:', error);
+      // Don't fail the email send if document save fails
+    }
+
     return NextResponse.json(
-      { success: true, message: 'Email sent successfully from your Outlook account' },
+      { success: true, message: 'Email sent successfully from your Outlook account and saved to document management' },
       { status: 200 }
     );
 

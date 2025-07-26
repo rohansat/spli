@@ -345,12 +345,44 @@ export default function DocumentManagement() {
   };
 
   const handleDownload = (doc: Document) => {
-    const link = document.createElement('a');
-    link.href = doc.url;
-    link.download = doc.name;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    if (doc.type === 'email' && doc.emailMetadata) {
+      // For email documents, create a text file with email content
+      const emailContent = `Email Details
+================
+
+To: ${doc.emailMetadata.recipient}
+Subject: ${doc.emailMetadata.subject}
+Sent: ${new Date(doc.emailMetadata.sentAt).toLocaleString()}
+
+Message:
+${doc.emailMetadata.body}
+
+---
+Application Data:
+${Object.entries(doc.emailMetadata.applicationData)
+  .filter(([_, value]) => value && value.trim() !== '')
+  .map(([key, value]) => `${key}: ${value}`)
+  .join('\n')}
+`;
+
+      const blob = new Blob([emailContent], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${doc.name}.txt`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } else {
+      // For other documents, use the existing URL
+      const link = document.createElement('a');
+      link.href = doc.url;
+      link.download = doc.name;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
   };
 
   const handleDelete = (docId: string) => {
@@ -423,7 +455,11 @@ export default function DocumentManagement() {
           onClick={() => handleDocumentClick(doc)}
         >
           <div className="flex items-center gap-3 flex-1">
-            <FileText className="h-4 w-4 text-zinc-400" />
+            {doc.type === 'email' ? (
+              <Mail className="h-4 w-4 text-blue-400" />
+            ) : (
+              <FileText className="h-4 w-4 text-zinc-400" />
+            )}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <span className="text-white truncate">{node.name}</span>
@@ -433,6 +469,12 @@ export default function DocumentManagement() {
                 <span>{doc.fileSize}</span>
                 <span>•</span>
                 <span>{new Date(doc.uploadedAt).toLocaleDateString()}</span>
+                {doc.type === 'email' && doc.emailMetadata && (
+                  <>
+                    <span>•</span>
+                    <span className="text-blue-400">To: {doc.emailMetadata.recipient}</span>
+                  </>
+                )}
                 {node.expirationDate && (
                   <>
                     <span>•</span>
@@ -719,6 +761,35 @@ export default function DocumentManagement() {
                   </p>
                 </div>
               </div>
+              
+              {/* Email-specific information */}
+              {selectedDocument.type === 'email' && selectedDocument.emailMetadata && (
+                <div className="space-y-4">
+                  <div className="border-t border-zinc-800 pt-4">
+                    <h4 className="text-sm font-medium text-zinc-300 mb-3">Email Details</h4>
+                    <div className="grid grid-cols-1 gap-3">
+                      <div>
+                        <label className="text-xs font-medium text-zinc-400">To</label>
+                        <p className="text-white text-sm">{selectedDocument.emailMetadata.recipient}</p>
+                      </div>
+                      <div>
+                        <label className="text-xs font-medium text-zinc-400">Subject</label>
+                        <p className="text-white text-sm">{selectedDocument.emailMetadata.subject}</p>
+                      </div>
+                      <div>
+                        <label className="text-xs font-medium text-zinc-400">Sent At</label>
+                        <p className="text-white text-sm">{new Date(selectedDocument.emailMetadata.sentAt).toLocaleString()}</p>
+                      </div>
+                      <div>
+                        <label className="text-xs font-medium text-zinc-400">Message</label>
+                        <div className="bg-zinc-800 p-3 rounded text-sm text-white max-h-32 overflow-y-auto">
+                          {selectedDocument.emailMetadata.body}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
               
               {/* Tags */}
               <div>

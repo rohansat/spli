@@ -653,7 +653,8 @@ export default function ApplicationPage() {
           subject: composeMessage.subject,
           body: composeMessage.body,
           applicationData: formData,
-          applicationName: application?.name || 'Part 450 Application'
+          applicationName: application?.name || 'Part 450 Application',
+          applicationId: applicationId
         }),
       });
 

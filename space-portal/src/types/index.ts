@@ -19,6 +19,14 @@ export interface Document {
   uploadedAt: string;
   url: string;
   userId?: string;
+  emailMetadata?: {
+    recipient: string;
+    subject: string;
+    body: string;
+    sentAt: string;
+    applicationData: Record<string, string>;
+    applicationName: string;
+  };
 }
 
 export interface Message {
