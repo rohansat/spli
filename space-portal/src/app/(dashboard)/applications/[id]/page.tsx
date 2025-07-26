@@ -17,6 +17,7 @@ import { doc, getDoc, setDoc } from "firebase/firestore";
 import { useSession } from 'next-auth/react';
 import { AICursor } from "@/components/ui/ai-cursor";
 import { AIAssistantPanel, AIAssistantPanelHandle } from "@/components/ui/AIAssistantPanel";
+import { useToast } from "@/components/ui/use-toast";
 import type { Document } from "@/types";
 // import { ComplianceDashboard } from '@/components/ui/compliance-dashboard';
 
@@ -30,7 +31,8 @@ interface FormField {
 export default function ApplicationPage() {
   const params = useParams();
   const router = useRouter();
-  const { getApplicationById, uploadDocument, updateApplicationStatus } = useApplication();
+  const { getApplicationById, uploadDocument, updateApplicationStatus, refreshDocuments } = useApplication();
+  const { toast } = useToast();
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [activeTab, setActiveTab] = useState("section-0");
   const [isSaving, setIsSaving] = useState(false);
@@ -91,10 +93,10 @@ export default function ApplicationPage() {
           'vehicle description': 'vehicleDescription',
           'vehicledescription': 'vehicleDescription',
           'vehicle': 'vehicleDescription',
-          'launch reentry sequence': 'launchReentrySequence',
-          'launchreentrysequence': 'launchReentrySequence',
-          'launch sequence': 'launchReentrySequence',
-          'reentry sequence': 'launchReentrySequence',
+          'launch reentry sequence': 'launchReEntrySequence',
+          'launchreentrysequence': 'launchReEntrySequence',
+          'launch sequence': 'launchReEntrySequence',
+          'reentry sequence': 'launchReEntrySequence',
           'trajectory overview': 'trajectoryOverview',
           'trajectoryoverview': 'trajectoryOverview',
           'trajectory': 'trajectoryOverview',
@@ -379,7 +381,7 @@ export default function ApplicationPage() {
     const fieldMapping: Record<string, string> = {
       'missionobjective': 'missionObjective',
       'vehicledescription': 'vehicleDescription',
-      'launchreentrysequence': 'launchReentrySequence',
+      'launchreentrysequence': 'launchReEntrySequence',
       'trajectoryoverview': 'trajectoryOverview',
       'safetyconsiderations': 'safetyConsiderations',
       'groundoperations': 'groundOperations',
@@ -643,6 +645,13 @@ export default function ApplicationPage() {
   const handleSendMessage = async () => {
     setIsSendingMessage(true);
     try {
+      console.log('Sending email with application data:', {
+        recipient: composeMessage.recipient,
+        subject: composeMessage.subject,
+        applicationId: applicationId,
+        applicationName: application?.name
+      });
+
       const response = await fetch('/api/email', {
         method: 'POST',
         headers: {
@@ -659,11 +668,17 @@ export default function ApplicationPage() {
       });
 
       const data = await response.json();
+      console.log('Email API response:', data);
 
       if (response.ok && data.success) {
         if (applicationId) {
           await updateApplicationStatus(applicationId, "pending_approval");
         }
+        
+        // Refresh documents to show the new email document
+        console.log('Refreshing documents after email send...');
+        await refreshDocuments();
+        console.log('Documents refreshed successfully');
         
         setIsComposeOpen(false);
         setSaveMessage(data.message || "Application submitted successfully! Status updated to Pending Approval.");
@@ -677,6 +692,10 @@ export default function ApplicationPage() {
           recipient: "recipient@faa.gov",
           subject: "",
           body: ""
+        });
+        toast({
+          title: "Email sent!",
+          description: "Your application has been submitted to FAA officials for review.",
         });
       } else {
         throw new Error(data.error || 'Failed to send email');

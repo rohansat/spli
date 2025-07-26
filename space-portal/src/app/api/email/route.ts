@@ -116,6 +116,7 @@ Sent from SPLI Application System
       console.log('Saving email to document management...');
       console.log('Application ID:', applicationId);
       console.log('User email:', session.user?.email);
+      console.log('Session user:', session.user);
       
       const emailDocument = {
         name: `Email: ${subject}`,
@@ -136,12 +137,14 @@ Sent from SPLI Application System
         }
       };
 
-      console.log('Email document to save:', emailDocument);
+      console.log('Email document to save:', JSON.stringify(emailDocument, null, 2));
       
       const docRef = await addDoc(collection(db, "documents"), emailDocument);
       console.log('Email copy saved to document management system with ID:', docRef.id);
+      console.log('Document saved successfully to Firebase');
     } catch (error) {
       console.error('Error saving email to document management:', error);
+      console.error('Error details:', error instanceof Error ? error.message : 'Unknown error');
       // Don't fail the email send if document save fails
     }
 

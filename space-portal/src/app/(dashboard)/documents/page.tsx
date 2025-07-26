@@ -37,6 +37,7 @@ import {
 import { cn } from "@/lib/utils";
 import type { Document } from "@/types";
 import { Footer } from "@/components/Footer";
+import { useToast } from "@/components/ui/use-toast";
 
 interface TreeNode {
   id: string;
@@ -52,7 +53,7 @@ interface TreeNode {
 }
 
 export default function DocumentManagement() {
-  const { documents, applications, uploadDocument, removeDocument } = useApplication();
+  const { documents, applications, uploadDocument, removeDocument, refreshDocuments } = useApplication();
   const { data: session } = useSession();
   const router = useRouter();
   const user = session?.user;
@@ -65,6 +66,13 @@ export default function DocumentManagement() {
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
   const [isDocumentDetailsOpen, setIsDocumentDetailsOpen] = useState(false);
+  const { toast } = useToast();
+
+  // Debug: Log documents when they change
+  useEffect(() => {
+    console.log('Documents updated:', documents.length, 'documents');
+    console.log('Document types:', documents.map(d => ({ id: d.id, type: d.type, name: d.name, applicationId: d.applicationId })));
+  }, [documents]);
 
   // Expand/Collapse all functionality
   const expandAll = () => {
@@ -543,12 +551,60 @@ ${Object.entries(doc.emailMetadata.applicationData)
             </div>
             <div className="flex gap-2">
               <Button 
-                onClick={() => window.location.reload()}
+                onClick={async () => {
+                  console.log('Manual refresh triggered');
+                  await refreshDocuments();
+                  toast({
+                    title: "Documents refreshed!",
+                    description: `Found ${documents.length} documents in your account.`,
+                  });
+                }}
                 variant="outline"
                 className="border-zinc-600 text-zinc-300 hover:bg-zinc-800 gap-2 px-4 py-2 rounded-md flex items-center"
               >
                 <RefreshCw className="h-4 w-4" />
-                REFRESH
+                REFRESH ({documents.length})
+              </Button>
+              <Button 
+                onClick={() => {
+                  console.log('Current documents:', documents);
+                  console.log('Current applications:', applications);
+                  
+                  // Check for email documents specifically
+                  const emailDocs = documents.filter(doc => doc.type === 'email');
+                  console.log('Email documents found:', emailDocs);
+                  
+                  toast({
+                    title: "Debug Info",
+                    description: `${documents.length} total docs, ${emailDocs.length} email docs, ${applications.length} applications`,
+                  });
+                }}
+                variant="outline"
+                className="border-zinc-600 text-zinc-300 hover:bg-zinc-800 gap-2 px-4 py-2 rounded-md flex items-center"
+              >
+                DEBUG
+              </Button>
+              <Button 
+                onClick={async () => {
+                  console.log('Testing document refresh...');
+                  console.log('User email:', user?.email);
+                  
+                  // Force a refresh
+                  await refreshDocuments();
+                  
+                  // Check again after refresh
+                  const emailDocs = documents.filter(doc => doc.type === 'email');
+                  console.log('After refresh - Email documents found:', emailDocs);
+                  
+                  toast({
+                    title: "Refresh Test",
+                    description: `Refreshed: ${documents.length} docs, ${emailDocs.length} emails`,
+                  });
+                }}
+                variant="outline"
+                className="border-zinc-600 text-zinc-300 hover:bg-zinc-800 gap-2 px-4 py-2 rounded-md flex items-center"
+              >
+                TEST REFRESH
               </Button>
               <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
                 <DialogTrigger asChild>

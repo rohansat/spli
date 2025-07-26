@@ -17,6 +17,7 @@ interface ApplicationContextType {
   removeDocument: (id: string) => void;
   removeApplication: (appId: string) => void;
   updateApplicationStatus: (appId: string, status: Application["status"]) => Promise<void>;
+  refreshDocuments: () => Promise<void>;
   isLoading: boolean;
 }
 
@@ -209,6 +210,29 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const refreshDocuments = async () => {
+    if (!user) return;
+    
+    try {
+      console.log('Refreshing documents for user:', user.email);
+      // Fetch documents
+      const documentsQuery = query(
+        collection(db, "documents"),
+        where("userId", "==", user.email)
+      );
+      const documentsSnapshot = await getDocs(documentsQuery);
+      const documentsData = documentsSnapshot.docs.map(doc => ({
+        ...doc.data(),
+        id: doc.id,
+      })) as Document[];
+      console.log('Fetched documents:', documentsData.length, 'documents');
+      console.log('Document types:', documentsData.map(d => d.type));
+      setDocuments(documentsData);
+    } catch (error) {
+      console.error("Error refreshing documents:", error);
+    }
+  };
+
   return (
     <ApplicationContext.Provider
       value={{
@@ -221,6 +245,7 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
         removeDocument,
         removeApplication,
         updateApplicationStatus,
+        refreshDocuments,
         isLoading,
       }}
     >

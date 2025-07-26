@@ -6,6 +6,7 @@ import { useSession } from 'next-auth/react';
 import { usePathname } from "next/navigation";
 import { AICursorButton } from "@/components/ui/ai-cursor-button";
 import { AIAssistantPanel, AIAssistantPanelHandle } from "@/components/ui/AIAssistantPanel";
+import { Toaster } from "@/components/ui/toaster";
 import React, { useRef, useState } from "react";
 
 export default function DashboardLayout({
@@ -77,6 +78,7 @@ export default function DashboardLayout({
           )}
         </div>
       </div>
+      <Toaster />
     </ApplicationProvider>
   );
 }
