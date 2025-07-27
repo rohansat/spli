@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { generatePDFBlob } from '@/lib/pdf-generator';
-import { db } from '@/lib/firebase';
-import { collection, addDoc } from 'firebase/firestore';
 
 export async function POST(request: NextRequest) {
   try {
@@ -116,6 +114,10 @@ Sent from SPLI Application System
       console.log('=== SAVING EMAIL DOCUMENT ===');
       console.log('Application ID:', applicationId);
       console.log('User email:', session.user?.email);
+      
+      // Import Firebase dynamically for server-side use
+      const { db } = await import('@/lib/firebase');
+      const { collection, addDoc } = await import('firebase/firestore');
       
       // Test Firebase connection first
       console.log('Testing Firebase connection...');
