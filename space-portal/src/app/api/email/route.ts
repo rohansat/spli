@@ -111,32 +111,11 @@ Sent from SPLI Application System
 
     // Save email copy to document management system
     try {
-      console.log('=== SAVING EMAIL DOCUMENT ===');
-      console.log('Application ID:', applicationId);
-      console.log('User email:', session.user?.email);
-      
       // Import Firebase dynamically for server-side use
       const { db } = await import('@/lib/firebase');
       const { collection, addDoc } = await import('firebase/firestore');
       
-      // Test Firebase connection first
-      console.log('Testing Firebase connection...');
-      const testDoc = {
-        name: 'Test Connection',
-        type: 'email',
-        userId: session.user?.email || "",
-        uploadedAt: new Date().toISOString()
-      };
-      
-      try {
-        const testRef = await addDoc(collection(db, "documents"), testDoc);
-        console.log('✅ Firebase connection test successful, test doc ID:', testRef.id);
-      } catch (testError) {
-        console.error('❌ Firebase connection test failed:', testError);
-        throw testError;
-      }
-      
-      // Create a simple email document
+      // Create email document
       const emailDocument = {
         name: `Email: ${subject}`,
         type: 'email',
@@ -155,25 +134,12 @@ Sent from SPLI Application System
           applicationName: applicationName || 'Part 450 Application'
         }
       };
-
-      console.log('Email document structure:', {
-        name: emailDocument.name,
-        type: emailDocument.type,
-        applicationId: emailDocument.applicationId,
-        userId: emailDocument.userId,
-        uploadedAt: emailDocument.uploadedAt
-      });
       
       // Save to Firebase
-      const docRef = await addDoc(collection(db, "documents"), emailDocument);
-      console.log('✅ Email document saved successfully with ID:', docRef.id);
-      console.log('=== EMAIL DOCUMENT SAVED ===');
+      await addDoc(collection(db, "documents"), emailDocument);
       
     } catch (error) {
-      console.error('❌ ERROR SAVING EMAIL DOCUMENT:', error);
-      console.error('Error name:', error instanceof Error ? error.name : 'Unknown');
-      console.error('Error message:', error instanceof Error ? error.message : 'Unknown');
-      console.error('Error stack:', error instanceof Error ? error.stack : 'Unknown');
+      console.error('Failed to save email document:', error);
       // Don't fail the email send if document save fails
     }
 

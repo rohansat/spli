@@ -214,7 +214,6 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
     if (!user) return;
     
     try {
-      console.log('Refreshing documents for user:', user.email);
       // Fetch documents
       const documentsQuery = query(
         collection(db, "documents"),
@@ -225,8 +224,6 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
         ...doc.data(),
         id: doc.id,
       })) as Document[];
-      console.log('Fetched documents:', documentsData.length, 'documents');
-      console.log('Document types:', documentsData.map(d => d.type));
       setDocuments(documentsData);
     } catch (error) {
       console.error("Error refreshing documents:", error);

@@ -645,13 +645,6 @@ export default function ApplicationPage() {
   const handleSendMessage = async () => {
     setIsSendingMessage(true);
     try {
-      console.log('Sending email with application data:', {
-        recipient: composeMessage.recipient,
-        subject: composeMessage.subject,
-        applicationId: applicationId,
-        applicationName: application?.name
-      });
-
       const response = await fetch('/api/email', {
         method: 'POST',
         headers: {
@@ -668,7 +661,6 @@ export default function ApplicationPage() {
       });
 
       const data = await response.json();
-      console.log('Email API response:', data);
 
       if (response.ok && data.success) {
         if (applicationId) {
@@ -676,9 +668,7 @@ export default function ApplicationPage() {
         }
         
         // Refresh documents to show the new email document
-        console.log('Refreshing documents after email send...');
         await refreshDocuments();
-        console.log('Documents refreshed successfully');
         
         setIsComposeOpen(false);
         setSaveMessage(data.message || "Application submitted successfully! Status updated to Pending Approval.");
