@@ -374,29 +374,25 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
         const searchTerm = atMatch[1];
         setContextSearchTerm(searchTerm);
         
-        // Calculate position for context menu - position it above the textarea
+        // Calculate position for context menu - position it relative to the chat panel
         const textarea = e.target;
-        const rect = textarea.getBoundingClientRect();
+        const chatPanel = textarea.closest('.chat-panel') as HTMLElement;
         
-        // Calculate optimal position
-        let x = rect.left;
-        let y = rect.top - 320; // Position above the textarea
-        
-        // Ensure menu doesn't go off-screen
-        const menuWidth = 320; // Approximate menu width
-        const menuHeight = 300; // Approximate menu height
-        
-        // Adjust horizontal position if it would go off-screen
-        if (x + menuWidth > window.innerWidth) {
-          x = window.innerWidth - menuWidth - 10;
+        if (chatPanel) {
+          const panelRect = chatPanel.getBoundingClientRect();
+          const textareaRect = textarea.getBoundingClientRect();
+          
+          // Position relative to the chat panel, above the textarea
+          const x = textareaRect.left - panelRect.left;
+          const y = textareaRect.top - panelRect.top - 320; // Position above the textarea
+          
+          setContextMenuPosition({ x, y });
+        } else {
+          // Fallback to absolute positioning
+          const rect = textarea.getBoundingClientRect();
+          setContextMenuPosition({ x: rect.left, y: rect.top - 320 });
         }
         
-        // Adjust vertical position if it would go off-screen
-        if (y < 10) {
-          y = rect.bottom + 10; // Position below the textarea instead
-        }
-        
-        setContextMenuPosition({ x, y });
         setShowContextMenu(true);
         setCursorPosition(cursorPos);
       } else {
@@ -535,7 +531,7 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
     };
 
     return (
-      <div className="flex flex-col h-full min-h-0 bg-zinc-900 border border-zinc-800 overflow-hidden">
+      <div className="flex flex-col h-full min-h-0 bg-zinc-900 border border-zinc-800 overflow-hidden chat-panel">
         {/* Header */}
         <div className="bg-zinc-800 px-4 py-3 border-b border-zinc-700">
           <div className="flex items-center justify-between">
@@ -688,6 +684,10 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
           </div>
         )}
 
+
+
+
+
         {/* Context Menu */}
         <AIContextMenu
           isVisible={showContextMenu}
@@ -696,8 +696,6 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
           onClose={handleContextMenuClose}
           searchTerm={contextSearchTerm}
         />
-
-
 
         {/* Input & Drag-and-Drop */}
         <div className="border-t border-zinc-700 p-3 bg-zinc-800 flex items-center gap-3" style={{ marginTop: 'auto' }}>
@@ -732,6 +730,19 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
                 title="Quick actions"
               >
                 <Sparkles className="h-5 w-5" />
+              </button>
+              <button
+                type="button"
+                className="text-zinc-400 hover:text-zinc-300 transition-colors p-2 rounded hover:bg-zinc-700"
+                onClick={() => {
+                  setInput(input + '@');
+                  setShowContextMenu(true);
+                  setContextSearchTerm("");
+                  setContextMenuPosition({ x: 0, y: -320 });
+                }}
+                title="Add context"
+              >
+                <span className="text-lg font-bold">@</span>
               </button>
               <Textarea
                 value={input}
