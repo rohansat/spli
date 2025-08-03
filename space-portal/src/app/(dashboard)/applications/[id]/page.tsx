@@ -1116,7 +1116,22 @@ export default function ApplicationPage() {
       </div>
 
       {showFloatingChat && (
-        <div className="w-96 min-w-96 h-[calc(100vh-8rem)] flex flex-col bg-zinc-900 border-l border-zinc-800 sticky top-32">
+        <div className="w-96 min-w-96 h-[calc(100vh-8rem)] flex flex-col bg-zinc-900 border-l border-zinc-800 sticky top-32 rounded-l-xl overflow-hidden">
+          <div className="flex items-center justify-between p-3 border-b border-zinc-800 bg-zinc-900">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 flex items-center justify-center">
+                <span style={{fontSize: '1.5rem', lineHeight: 1}}>🚀</span>
+              </div>
+              <span className="font-semibold text-white text-lg">SPLI Chat</span>
+            </div>
+            <button
+              className="text-zinc-400 hover:text-white text-xl px-2 py-1 rounded"
+              onClick={() => setShowFloatingChat(false)}
+              title="Close chat"
+            >
+              ×
+            </button>
+          </div>
           <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
             <AIAssistantPanel
               ref={aiPanelRef}
