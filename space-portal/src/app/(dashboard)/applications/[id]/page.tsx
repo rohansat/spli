@@ -67,15 +67,25 @@ export default function ApplicationPage() {
     console.log('Form data changed:', formData);
   }, [formData]);
 
-  // Prevent scroll when chat opens
+  // Prevent initial scroll when chat opens
   useEffect(() => {
     if (showFloatingChat) {
       const currentScrollY = window.scrollY;
-      const preventScroll = () => {
+      // Only prevent scroll for a brief moment when chat opens
+      const preventInitialScroll = () => {
         window.scrollTo(0, currentScrollY);
       };
-      window.addEventListener('scroll', preventScroll);
-      return () => window.removeEventListener('scroll', preventScroll);
+      window.addEventListener('scroll', preventInitialScroll);
+      
+      // Remove the scroll prevention after a short delay
+      const timeout = setTimeout(() => {
+        window.removeEventListener('scroll', preventInitialScroll);
+      }, 100);
+      
+      return () => {
+        window.removeEventListener('scroll', preventInitialScroll);
+        clearTimeout(timeout);
+      };
     }
   }, [showFloatingChat]);
 
