@@ -144,6 +144,11 @@ export function AIQuickActions({
     { id: 'analysis', label: 'Analysis', count: quickActions.filter(a => a.category === 'analysis').length },
   ];
 
+  const handleActionClick = (prompt: string) => {
+    console.log('Quick action clicked:', prompt);
+    onActionSelect(prompt);
+  };
+
   return (
     <div className="space-y-4">
       {/* Category Filter */}
@@ -168,11 +173,11 @@ export function AIQuickActions({
       {/* Quick Actions Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {filteredActions.map((action) => (
-          <button
-            key={action.id}
-            onClick={() => onActionSelect(action.prompt)}
-            className="group p-4 bg-gradient-to-br from-zinc-800 to-zinc-900 border border-zinc-700 rounded-xl hover:border-blue-500/50 hover:from-zinc-800/80 hover:to-zinc-900/80 transition-all duration-200 text-left"
-          >
+                      <button
+              key={action.id}
+              onClick={() => handleActionClick(action.prompt)}
+              className="group p-4 bg-gradient-to-br from-zinc-800 to-zinc-900 border border-zinc-700 rounded-xl hover:border-blue-500/50 hover:from-zinc-800/80 hover:to-zinc-900/80 transition-all duration-200 text-left"
+            >
             <div className="flex items-start gap-3">
               <div className="flex-shrink-0 p-2 bg-gradient-to-br from-blue-500/20 to-purple-600/20 rounded-lg group-hover:from-blue-500/30 group-hover:to-purple-600/30 transition-all">
                 <div className="text-blue-400 group-hover:text-blue-300">

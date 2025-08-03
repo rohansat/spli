@@ -1,12 +1,11 @@
 "use client";
 
 import React, { useState, useRef, useImperativeHandle, forwardRef } from "react";
-import { Paperclip, Send, UploadCloud, User, Bot, ThumbsUp, ThumbsDown, RefreshCw, Copy, Check, Sparkles, X, BarChart3 } from "lucide-react";
+import { Paperclip, Send, UploadCloud, User, Bot, ThumbsUp, ThumbsDown, RefreshCw, Copy, Check, Sparkles, X } from "lucide-react";
 import { Button } from "./button";
 import dayjs from "dayjs";
 import { Textarea } from './textarea';
 import { AIQuickActions } from './ai-quick-actions';
-import { AIChatInsights } from './ai-chat-insights';
 
 interface Message {
   id: number;
@@ -46,7 +45,7 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
       {
         id: 1,
         sender: "ai",
-        content: "Hi! I'm SPLI Chat, your AI assistant for aerospace compliance and FAA applications. I can help you fill out forms, analyze your application, and answer questions. What would you like to do?",
+        content: "Hi! I am SPLI, How can I help you today?",
         timestamp: Date.now()
       }
     ]);
@@ -59,7 +58,6 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
     const [isLoading, setIsLoading] = useState(false);
     const [copiedMessageId, setCopiedMessageId] = useState<number | null>(null);
     const [showQuickActions, setShowQuickActions] = useState(false);
-    const [showInsights, setShowInsights] = useState(false);
     const [analytics, setAnalytics] = useState<any>(null);
     const [suggestionsUsed, setSuggestionsUsed] = useState(0);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -174,6 +172,7 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
     };
 
     const handleQuickAction = (prompt: string) => {
+      console.log('Quick action selected:', prompt);
       setInput(prompt);
       setShowQuickActions(false);
     };
@@ -506,21 +505,17 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
           )}
           <div ref={messagesEndRef} />
         </div>
-        {/* Quick Actions and Insights Toggle */}
-        <div className="border-t border-zinc-800 p-2 bg-zinc-900 flex justify-between">
+        {/* Quick Actions Toggle */}
+        <div className="border-t border-zinc-800 p-2 bg-zinc-900">
           <button
-            onClick={() => setShowQuickActions(!showQuickActions)}
+            onClick={() => {
+              console.log('Quick actions toggle clicked, current state:', showQuickActions);
+              setShowQuickActions(!showQuickActions);
+            }}
             className="flex items-center gap-2 text-sm text-zinc-400 hover:text-blue-400 transition-colors"
           >
             <Sparkles className="h-4 w-4" />
             {showQuickActions ? 'Hide Quick Actions' : 'Show Quick Actions'}
-          </button>
-          <button
-            onClick={() => setShowInsights(!showInsights)}
-            className="flex items-center gap-2 text-sm text-zinc-400 hover:text-purple-400 transition-colors"
-          >
-            <BarChart3 className="h-4 w-4" />
-            {showInsights ? 'Hide Insights' : 'Show Insights'}
           </button>
         </div>
 
@@ -544,32 +539,13 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
           </div>
         )}
 
-        {/* Insights Panel */}
-        {showInsights && (
-          <div className="border-t border-zinc-800 p-4 bg-zinc-900/50 max-h-96 overflow-y-auto">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-medium text-zinc-200">AI Chat Insights</h3>
-              <button
-                onClick={() => setShowInsights(false)}
-                className="text-zinc-400 hover:text-zinc-300 transition-colors"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-            <AIChatInsights
-              analytics={analytics}
-              messageCount={messages.filter(m => m.sender === 'user').length}
-              suggestionsUsed={suggestionsUsed}
-              averageResponseTime={2.5}
-            />
-          </div>
-        )}
+
 
         {/* Input & Drag-and-Drop */}
         <div className="border-t border-zinc-800 p-0 bg-zinc-900 flex items-center gap-2 mt-0 mb-0" style={{ marginTop: 'auto' }}>
           <div
-            className={`relative p-2 rounded-2xl border-2 border-dashed transition-colors shadow-lg w-full ${
-              isDragging ? "border-blue-400 bg-blue-950/30" : "border-zinc-700 bg-zinc-900"
+            className={`relative p-2 rounded-2xl transition-colors shadow-lg w-full ${
+              isDragging ? "bg-blue-950/30" : "bg-zinc-900"
             }`}
             onDrop={handleDrop}
             onDragOver={handleDragOver}
