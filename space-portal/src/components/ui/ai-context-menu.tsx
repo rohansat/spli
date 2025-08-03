@@ -229,15 +229,7 @@ export function AIContextMenu({
         )}
       </div>
 
-      {/* Footer */}
-      <div className="p-1 border-t border-zinc-700 text-xs text-zinc-500">
-        <div className="flex items-center justify-between">
-          <span>Use arrow keys to navigate</span>
-          <span>
-            {viewMode === "sections" ? "→ to expand" : "← to go back"}
-          </span>
-        </div>
-      </div>
+
     </div>
   );
 } 
