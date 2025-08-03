@@ -67,6 +67,18 @@ export default function ApplicationPage() {
     console.log('Form data changed:', formData);
   }, [formData]);
 
+  // Prevent scroll when chat opens
+  useEffect(() => {
+    if (showFloatingChat) {
+      const currentScrollY = window.scrollY;
+      const preventScroll = () => {
+        window.scrollTo(0, currentScrollY);
+      };
+      window.addEventListener('scroll', preventScroll);
+      return () => window.removeEventListener('scroll', preventScroll);
+    }
+  }, [showFloatingChat]);
+
   // Test parsing function manually
   const testParsing = () => {
     const testResponse = `MISSION OBJECTIVE Deploy a 200kg Earth observation satellite to low Earth orbit for environmental monitoring and disaster response capabilities. The mission will provide critical data collection services for environmental assessment and emergency response coordination over a planned 3-year operational period with daily data acquisition cycles. VEHICLE DESCRIPTION Two-stage launch vehicle utilizing solid fuel propulsion systems. The vehicle is designed to deliver a 200kg payload to low Earth orbit at 500km altitude. Configuration optimized for reliable satellite deployment with proven solid rocket motor technology.`;
@@ -743,6 +755,7 @@ export default function ApplicationPage() {
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
+                e.currentTarget.blur(); // Remove focus to prevent scroll
                 console.log('AI Mode button clicked, setting showFloatingChat to true');
                 setShowFloatingChat(!showFloatingChat);
               }}
@@ -1116,7 +1129,11 @@ export default function ApplicationPage() {
       </div>
 
       {showFloatingChat && (
-        <div className="w-96 min-w-96 h-[calc(100vh-8rem)] flex flex-col bg-zinc-900 border-l border-zinc-800 sticky top-32 rounded-l-xl overflow-hidden">
+        <div 
+          className="w-96 min-w-96 h-[calc(100vh-8rem)] flex flex-col bg-zinc-900 border-l border-zinc-800 sticky top-32 rounded-l-xl overflow-hidden"
+          onFocus={(e) => e.preventDefault()}
+          onBlur={(e) => e.preventDefault()}
+        >
           <div className="flex items-center justify-between p-3 border-b border-zinc-800 bg-zinc-900">
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 flex items-center justify-center">
