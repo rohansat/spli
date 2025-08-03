@@ -148,10 +148,11 @@ export function AIContextMenu({
   return (
     <div
       ref={menuRef}
-      className="fixed z-50 bg-zinc-800 border border-zinc-700 rounded-lg shadow-xl min-w-64 max-w-80"
+      className="fixed z-50 bg-zinc-800 border border-zinc-700 rounded-lg shadow-xl min-w-64 max-w-80 context-menu"
       style={{
         left: position.x,
         top: position.y,
+        maxHeight: '300px',
       }}
     >
       {/* Header */}

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useImperativeHandle, forwardRef } from "react";
+import React, { useState, useRef, useImperativeHandle, forwardRef, useEffect } from "react";
 import { Paperclip, Send, UploadCloud, User, Bot, ThumbsUp, ThumbsDown, RefreshCw, Copy, Check, Sparkles, X, ChevronRight, MousePointer, Search, Palette, BookOpen, Globe, Pencil } from "lucide-react";
 import { AIContextMenu } from "./ai-context-menu";
 import { Button } from "./button";
@@ -374,16 +374,27 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
         const searchTerm = atMatch[1];
         setContextSearchTerm(searchTerm);
         
-        // Calculate position for context menu
+        // Calculate position for context menu - position it above the textarea
         const textarea = e.target;
         const rect = textarea.getBoundingClientRect();
-        const lineHeight = 20; // Approximate line height
-        const lines = beforeCursor.split('\n');
-        const currentLine = lines[lines.length - 1];
         
-        // Calculate position relative to textarea
-        const x = rect.left + (currentLine.length * 8); // Approximate character width
-        const y = rect.top + (lines.length * lineHeight);
+        // Calculate optimal position
+        let x = rect.left;
+        let y = rect.top - 320; // Position above the textarea
+        
+        // Ensure menu doesn't go off-screen
+        const menuWidth = 320; // Approximate menu width
+        const menuHeight = 300; // Approximate menu height
+        
+        // Adjust horizontal position if it would go off-screen
+        if (x + menuWidth > window.innerWidth) {
+          x = window.innerWidth - menuWidth - 10;
+        }
+        
+        // Adjust vertical position if it would go off-screen
+        if (y < 10) {
+          y = rect.bottom + 10; // Position below the textarea instead
+        }
         
         setContextMenuPosition({ x, y });
         setShowContextMenu(true);
@@ -416,6 +427,24 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
       setShowContextMenu(false);
       setContextSearchTerm("");
     };
+
+    // Handle clicks outside the context menu
+    useEffect(() => {
+      const handleClickOutside = (event: MouseEvent) => {
+        if (showContextMenu) {
+          const target = event.target as Element;
+          if (!target.closest('.context-menu') && !target.closest('textarea')) {
+            setShowContextMenu(false);
+            setContextSearchTerm("");
+          }
+        }
+      };
+
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }, [showContextMenu]);
 
     const renderTypingIndicator = () => (
       <div className="flex items-center gap-2 px-3 py-2 max-w-[75%] bg-zinc-800 text-zinc-200 rounded-lg rounded-bl-md border border-zinc-700">
