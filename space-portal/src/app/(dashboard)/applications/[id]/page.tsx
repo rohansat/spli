@@ -1114,7 +1114,7 @@ export default function ApplicationPage() {
       </div>
 
       {showFloatingChat && (
-        <div className="w-96 min-w-96 h-[calc(100vh-8rem)] flex flex-col bg-zinc-900 border-l border-zinc-800 sticky top-8">
+        <div className="w-96 min-w-96 h-[calc(100vh-8rem)] flex flex-col bg-zinc-900 border-l border-zinc-800 sticky top-32">
           <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
             <AIAssistantPanel
               ref={aiPanelRef}
