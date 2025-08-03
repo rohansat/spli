@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useImperativeHandle, forwardRef } from "react";
-import { Paperclip, Send, UploadCloud, User, Bot, ThumbsUp, ThumbsDown, RefreshCw, Copy, Check, Sparkles, X } from "lucide-react";
+import { Paperclip, Send, UploadCloud, User, Bot, ThumbsUp, ThumbsDown, RefreshCw, Copy, Check, Sparkles, X, ChevronRight, MousePointer, Search, Palette, BookOpen, Globe, Pencil } from "lucide-react";
 import { Button } from "./button";
 import dayjs from "dayjs";
 import { Textarea } from './textarea';
@@ -541,23 +541,52 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
           </button>
         </div>
 
-        {/* Quick Actions Panel */}
+        {/* Quick Actions Dropdown */}
         {showQuickActions && (
-          <div className="border-t border-zinc-700 p-4 bg-zinc-800 max-h-64 overflow-y-auto">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-medium text-zinc-200">Quick Actions</h3>
-              <button
-                onClick={() => setShowQuickActions(false)}
-                className="text-zinc-400 hover:text-zinc-300 transition-colors"
-              >
-                <X className="h-4 w-4" />
-              </button>
+          <div className="absolute bottom-16 left-3 bg-zinc-800 border border-zinc-700 rounded-lg shadow-xl z-50 min-w-48">
+            <div className="p-2">
+              <div className="flex items-center gap-3 px-3 py-2 text-white hover:bg-zinc-700 rounded cursor-pointer">
+                <Paperclip className="h-4 w-4" />
+                <span className="text-sm">Add photos & files</span>
+              </div>
+              <div className="flex items-center justify-between px-3 py-2 text-white hover:bg-zinc-700 rounded cursor-pointer">
+                <div className="flex items-center gap-3">
+                  <div className="w-4 h-4 bg-white rounded-sm flex items-center justify-center">
+                    <div className="w-2 h-2 bg-zinc-800 rounded-sm"></div>
+                  </div>
+                  <span className="text-sm">Add from apps</span>
+                </div>
+                <ChevronRight className="h-3 w-3" />
+              </div>
+              <div className="border-t border-zinc-600 my-1"></div>
+              <div className="flex items-center justify-between px-3 py-2 text-white hover:bg-zinc-700 rounded cursor-pointer">
+                <div className="flex items-center gap-3">
+                  <MousePointer className="h-4 w-4" />
+                  <span className="text-sm">Agent mode</span>
+                </div>
+                <span className="text-xs bg-zinc-700 text-white px-2 py-1 rounded border border-zinc-600">NEW</span>
+              </div>
+              <div className="flex items-center gap-3 px-3 py-2 text-white hover:bg-zinc-700 rounded cursor-pointer">
+                <Search className="h-4 w-4" />
+                <span className="text-sm">Deep research</span>
+              </div>
+              <div className="flex items-center gap-3 px-3 py-2 text-white hover:bg-zinc-700 rounded cursor-pointer">
+                <Palette className="h-4 w-4" />
+                <span className="text-sm">Create image</span>
+              </div>
+              <div className="flex items-center gap-3 px-3 py-2 text-white hover:bg-zinc-700 rounded cursor-pointer">
+                <BookOpen className="h-4 w-4" />
+                <span className="text-sm">Study and learn</span>
+              </div>
+              <div className="flex items-center gap-3 px-3 py-2 text-white hover:bg-zinc-700 rounded cursor-pointer">
+                <Globe className="h-4 w-4" />
+                <span className="text-sm">Web search</span>
+              </div>
+              <div className="flex items-center gap-3 px-3 py-2 text-white hover:bg-zinc-700 rounded cursor-pointer">
+                <Pencil className="h-4 w-4" />
+                <span className="text-sm">Canvas</span>
+              </div>
             </div>
-            <AIQuickActions 
-              onActionSelect={handleQuickAction}
-              showCategories={false}
-              maxActions={6}
-            />
           </div>
         )}
 
@@ -588,6 +617,14 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
                 title="Attach files"
               >
                 <Paperclip className="h-5 w-5" />
+              </button>
+              <button
+                type="button"
+                className="text-zinc-400 hover:text-zinc-300 transition-colors p-2 rounded hover:bg-zinc-700"
+                onClick={() => setShowQuickActions(!showQuickActions)}
+                title="Quick actions"
+              >
+                <Sparkles className="h-5 w-5" />
               </button>
               <Textarea
                 value={input}
