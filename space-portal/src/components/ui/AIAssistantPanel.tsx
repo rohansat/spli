@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useImperativeHandle, forwardRef, useEffect } from "react";
-import { Paperclip, Send, UploadCloud, User, Bot, ThumbsUp, ThumbsDown, RefreshCw, Copy, Check, Sparkles, X, ChevronRight, MousePointer, Search, Palette, BookOpen, Globe, Pencil } from "lucide-react";
+import { Paperclip, Send, UploadCloud, User, Bot, ThumbsUp, ThumbsDown, RefreshCw, Copy, Check, Sparkles, X, ChevronRight, MousePointer, Search, Palette, BookOpen, Globe, Pencil, FileText } from "lucide-react";
 import { AIContextMenu } from "./ai-context-menu";
 import { Button } from "./button";
 import dayjs from "dayjs";
@@ -64,11 +64,12 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
     const [suggestionsUsed, setSuggestionsUsed] = useState(0);
     const fileInputRef = useRef<HTMLInputElement>(null);
     
-    // Context menu state
-    const [showContextMenu, setShowContextMenu] = useState(false);
-    const [contextMenuPosition, setContextMenuPosition] = useState({ x: 0, y: 0 });
-    const [contextSearchTerm, setContextSearchTerm] = useState("");
-    const [cursorPosition, setCursorPosition] = useState(0);
+      // Context menu state
+  const [showContextMenu, setShowContextMenu] = useState(false);
+  const [contextMenuPosition, setContextMenuPosition] = useState({ x: 0, y: 0 });
+  const [contextSearchTerm, setContextSearchTerm] = useState("");
+  const [cursorPosition, setCursorPosition] = useState(0);
+  const [selectedField, setSelectedField] = useState<any>(null);
 
     // Check if user is at the bottom of the chat
     const isAtBottom = () => {
@@ -401,6 +402,9 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
     };
 
     const handleContextMenuSelect = (item: any) => {
+      // Set the selected field for direct editing
+      setSelectedField(item);
+      
       // Replace the @ mention with the selected item
       const beforeAt = input.substring(0, cursorPosition - contextSearchTerm.length - 1);
       const afterAt = input.substring(cursorPosition);
@@ -553,6 +557,32 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
             </div>
           </div>
         </div>
+
+        {/* Selected Field Display */}
+        {selectedField && (
+          <div className="bg-zinc-800 px-4 py-2 border-b border-zinc-700">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <FileText className="h-4 w-4 text-zinc-400" />
+                <span className="text-sm text-zinc-200 font-medium">
+                  Editing: {selectedField.title}
+                </span>
+                {selectedField.sectionTitle && (
+                  <span className="text-xs text-zinc-500">
+                    ({selectedField.sectionTitle})
+                  </span>
+                )}
+              </div>
+              <button
+                onClick={() => setSelectedField(null)}
+                className="text-zinc-400 hover:text-zinc-300 transition-colors"
+                title="Close field editor"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Message List */}
         <div 

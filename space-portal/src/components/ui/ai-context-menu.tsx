@@ -60,16 +60,28 @@ export function AIContextMenu({
 
   const items = generateItems();
   const filteredItems = items.filter(item => {
-    const searchLower = searchTerm.toLowerCase();
+    const searchLower = searchTerm.toLowerCase().trim();
     const titleLower = item.title.toLowerCase();
     const pathLower = item.path.toLowerCase();
     
+    // If search is empty, show all items
+    if (!searchLower) return true;
+    
     // Check if search term matches title or path
-    return titleLower.includes(searchLower) || 
-           pathLower.includes(searchLower) ||
-           // Also check individual words for better matching
-           item.title.toLowerCase().split(' ').some(word => word.includes(searchLower)) ||
-           item.path.toLowerCase().split(' ').some(word => word.includes(searchLower));
+    if (titleLower.includes(searchLower) || pathLower.includes(searchLower)) {
+      return true;
+    }
+    
+    // Check individual words for better matching
+    const searchWords = searchLower.split(' ').filter(word => word.length > 0);
+    const titleWords = titleLower.split(' ').filter(word => word.length > 0);
+    const pathWords = pathLower.split(' ').filter(word => word.length > 0);
+    
+    // Check if all search words are found in title or path
+    return searchWords.every(searchWord => 
+      titleWords.some(titleWord => titleWord.includes(searchWord)) ||
+      pathWords.some(pathWord => pathWord.includes(searchWord))
+    );
   });
 
   // Handle keyboard navigation
