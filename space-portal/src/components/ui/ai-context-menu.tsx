@@ -59,10 +59,18 @@ export function AIContextMenu({
   };
 
   const items = generateItems();
-  const filteredItems = items.filter(item =>
-    item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.path.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredItems = items.filter(item => {
+    const searchLower = searchTerm.toLowerCase();
+    const titleLower = item.title.toLowerCase();
+    const pathLower = item.path.toLowerCase();
+    
+    // Check if search term matches title or path
+    return titleLower.includes(searchLower) || 
+           pathLower.includes(searchLower) ||
+           // Also check individual words for better matching
+           item.title.toLowerCase().split(' ').some(word => word.includes(searchLower)) ||
+           item.path.toLowerCase().split(' ').some(word => word.includes(searchLower));
+  });
 
   // Handle keyboard navigation
   useEffect(() => {

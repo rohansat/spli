@@ -365,10 +365,10 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
       const value = e.target.value;
       setInput(value);
       
-      // Check for @ mention
+      // Check for @ mention with auto-completion
       const cursorPos = e.target.selectionStart;
       const beforeCursor = value.substring(0, cursorPos);
-      const atMatch = beforeCursor.match(/@(\w*)$/);
+      const atMatch = beforeCursor.match(/@([^@\s]*)$/);
       
       if (atMatch) {
         const searchTerm = atMatch[1];
@@ -404,7 +404,10 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
       // Replace the @ mention with the selected item
       const beforeAt = input.substring(0, cursorPosition - contextSearchTerm.length - 1);
       const afterAt = input.substring(cursorPosition);
-      const newInput = beforeAt + `@${item.path}` + afterAt;
+      
+      // Use the full field path for auto-completion
+      const replacement = `@${item.path}`;
+      const newInput = beforeAt + replacement + afterAt;
       
       setInput(newInput);
       setShowContextMenu(false);
@@ -413,7 +416,7 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
       // Focus back to textarea
       const textarea = document.querySelector('textarea') as HTMLTextAreaElement;
       if (textarea) {
-        const newCursorPos = beforeAt.length + item.path.length + 1;
+        const newCursorPos = beforeAt.length + replacement.length;
         textarea.focus();
         textarea.setSelectionRange(newCursorPos, newCursorPos);
       }
@@ -752,7 +755,7 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
                     handleSend(e);
                   }
                 }}
-                placeholder={isLoading ? "AI is processing..." : "Type a message... (use @ to reference form sections)"}
+                placeholder={isLoading ? "AI is processing..." : "Type a message... (use @ to auto-complete form fields)"}
                 className="flex-1 bg-zinc-700 outline-none text-zinc-100 placeholder:text-zinc-400 px-3 py-2 rounded border border-zinc-600 focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 transition-all min-h-[40px] max-h-[150px] overflow-y-auto resize-none"
                 autoResize={true}
                 disabled={isLoading}
