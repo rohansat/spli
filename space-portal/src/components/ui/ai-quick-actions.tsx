@@ -161,7 +161,7 @@ export function AIQuickActions({
               className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
                 selectedCategory === category.id
                   ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-md'
-                  : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-300'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-800'
               }`}
             >
               {category.label} ({category.count})
@@ -173,27 +173,27 @@ export function AIQuickActions({
       {/* Quick Actions Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {filteredActions.map((action) => (
-                      <button
+                                  <button
               key={action.id}
               onClick={() => handleActionClick(action.prompt)}
-              className="group p-4 bg-gradient-to-br from-zinc-800 to-zinc-900 border border-zinc-700 rounded-xl hover:border-blue-500/50 hover:from-zinc-800/80 hover:to-zinc-900/80 transition-all duration-200 text-left"
+              className="group p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-300 hover:shadow-md transition-all duration-200 text-left"
             >
-            <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 p-2 bg-gradient-to-br from-blue-500/20 to-purple-600/20 rounded-lg group-hover:from-blue-500/30 group-hover:to-purple-600/30 transition-all">
-                <div className="text-blue-400 group-hover:text-blue-300">
-                  {action.icon}
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0 p-2 bg-gradient-to-br from-blue-500/10 to-purple-600/10 rounded-lg group-hover:from-blue-500/20 group-hover:to-purple-600/20 transition-all">
+                  <div className="text-blue-500 group-hover:text-blue-600">
+                    {action.icon}
+                  </div>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-medium text-gray-900 group-hover:text-blue-600 transition-colors">
+                    {action.title}
+                  </h3>
+                  <p className="text-sm text-gray-600 group-hover:text-gray-700 transition-colors mt-1">
+                    {action.description}
+                  </p>
                 </div>
               </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-medium text-zinc-100 group-hover:text-white transition-colors">
-                  {action.title}
-                </h3>
-                <p className="text-sm text-zinc-400 group-hover:text-zinc-300 transition-colors mt-1">
-                  {action.description}
-                </p>
-              </div>
-            </div>
-          </button>
+            </button>
         ))}
       </div>
 

@@ -301,13 +301,13 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
     };
 
     const renderTypingIndicator = () => (
-      <div className="flex items-center gap-2 px-5 py-3 max-w-[75%] bg-gradient-to-br from-zinc-800 to-zinc-900 text-zinc-100 rounded-3xl rounded-bl-md border-purple-400/20 shadow-lg">
+      <div className="flex items-center gap-2 px-4 py-3 max-w-[75%] bg-white text-gray-800 rounded-2xl rounded-bl-md border border-gray-200 shadow-sm">
         <div className="flex space-x-1">
-          <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-          <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-          <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+          <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+          <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+          <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
         </div>
-        <span className="text-sm text-zinc-400">AI is thinking...</span>
+        <span className="text-sm text-gray-500">AI is thinking...</span>
       </div>
     );
 
@@ -389,10 +389,29 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
     };
 
     return (
-      <div className="flex flex-col h-full min-h-0">
+      <div className="flex flex-col h-full min-h-0 bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-4 text-white">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                <Bot className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-lg">SPLI Assistant</h3>
+                <p className="text-blue-100 text-sm">Aerospace Compliance AI</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+              <span className="text-sm text-blue-100">Online</span>
+            </div>
+          </div>
+        </div>
+
         {/* Message List */}
         <div 
-          className="flex-1 min-h-0 overflow-y-auto space-y-3 pr-1 pb-2 bg-gradient-to-br from-zinc-900 via-zinc-950 to-zinc-900 rounded-2xl shadow-xl border border-zinc-800 ai-chat-scrollbar relative"
+          className="flex-1 min-h-0 overflow-y-auto space-y-4 p-4 bg-gray-50 relative"
           style={{
             height: '400px',
             maxHeight: '400px'
@@ -404,25 +423,27 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
           {showScrollButton && (
             <button
               onClick={() => scrollToBottom(true)}
-              className="absolute bottom-4 right-4 z-10 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white p-2 rounded-full shadow-lg transition-all duration-200 hover:scale-110"
+              className="absolute bottom-4 right-4 z-10 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white p-3 rounded-full shadow-lg transition-all duration-200 hover:scale-110"
               title="Scroll to bottom"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
               </svg>
             </button>
           )}
           {messages.length === 0 ? (
-            <div className="text-zinc-500 text-center mt-10">Loading chat...</div>
+            <div className="text-gray-500 text-center mt-10">Loading chat...</div>
           ) : (
             messages.map((msg) => (
               <div
                 key={msg.id}
-                className={`flex items-end gap-2 ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
+                className={`flex items-end gap-3 ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
               >
                 {msg.sender === "ai" && !msg.isTyping && (
                   <div className="flex-shrink-0 mb-1">
-                    <Bot className="h-6 w-6 text-purple-400 bg-zinc-800 rounded-full p-1 shadow" />
+                    <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-md">
+                      <Bot className="h-4 w-4 text-white" />
+                    </div>
                   </div>
                 )}
                 <div className="relative group">
@@ -430,40 +451,39 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
                     renderTypingIndicator()
                   ) : (
                     <div
-                      className={`px-5 py-3 max-w-[75%] text-sm flex flex-col gap-1 shadow-lg border transition-all duration-200 ${
+                      className={`px-4 py-3 max-w-[75%] text-sm flex flex-col gap-1 shadow-sm border transition-all duration-200 ${
                         msg.sender === "user"
-                          ? "bg-gradient-to-br from-blue-500 to-purple-600 text-white rounded-3xl rounded-br-md border-blue-400/30"
-                          : "bg-gradient-to-br from-zinc-800 to-zinc-900 text-zinc-100 rounded-3xl rounded-bl-md border-purple-400/20"
+                          ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-2xl rounded-br-md"
+                          : "bg-white text-gray-800 rounded-2xl rounded-bl-md border border-gray-200"
                       }`}
-                      style={{ boxShadow: msg.sender === "user" ? "0 2px 12px 0 rgba(80,80,255,0.10)" : "0 2px 12px 0 rgba(120,80,255,0.10)" }}
                     >
                       <span>{msg.content}</span>
                       {msg.type === 'diff' && msg.diffData && (
                         renderDiff(msg.diffData.oldContent, msg.diffData.newContent)
                       )}
                       <div className="flex items-center justify-between mt-2">
-                        <span className={`text-xs ${msg.sender === "user" ? "text-blue-100/80" : "text-purple-200/80"}`}>
+                        <span className={`text-xs ${msg.sender === "user" ? "text-blue-100/80" : "text-gray-500"}`}>
                           {dayjs(msg.timestamp).format("HH:mm")}
                         </span>
                         {msg.sender === "ai" && (
                           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                             <button
                               onClick={() => copyMessage(msg.content, msg.id)}
-                              className="p-1 hover:bg-zinc-700 rounded transition-colors"
+                              className="p-1 hover:bg-gray-100 rounded transition-colors"
                               title="Copy message"
                             >
                               {copiedMessageId === msg.id ? (
-                                <Check className="h-3 w-3 text-green-400" />
+                                <Check className="h-3 w-3 text-green-500" />
                               ) : (
-                                <Copy className="h-3 w-3 text-zinc-400" />
+                                <Copy className="h-3 w-3 text-gray-400" />
                               )}
                             </button>
                             <button
                               onClick={() => handleReaction(msg.id, 'thumbsUp')}
                               className={`p-1 rounded transition-colors ${
                                 msg.reactions?.thumbsUp 
-                                  ? 'text-green-400 bg-green-400/20' 
-                                  : 'text-zinc-400 hover:bg-zinc-700'
+                                  ? 'text-green-500 bg-green-100' 
+                                  : 'text-gray-400 hover:bg-gray-100'
                               }`}
                               title="Helpful"
                             >
@@ -473,8 +493,8 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
                               onClick={() => handleReaction(msg.id, 'thumbsDown')}
                               className={`p-1 rounded transition-colors ${
                                 msg.reactions?.thumbsDown 
-                                  ? 'text-red-400 bg-red-400/20' 
-                                  : 'text-zinc-400 hover:bg-zinc-700'
+                                  ? 'text-red-500 bg-red-100' 
+                                  : 'text-gray-400 hover:bg-gray-100'
                               }`}
                               title="Not helpful"
                             >
@@ -485,10 +505,10 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
                         {msg.sender === "user" && (
                           <button
                             onClick={() => retryMessage(msg.id)}
-                            className="p-1 hover:bg-blue-600/20 rounded transition-colors opacity-0 group-hover:opacity-100"
+                            className="p-1 hover:bg-blue-100 rounded transition-colors opacity-0 group-hover:opacity-100"
                             title="Retry message"
                           >
-                            <RefreshCw className="h-3 w-3 text-blue-300" />
+                            <RefreshCw className="h-3 w-3 text-blue-500" />
                           </button>
                         )}
                       </div>
@@ -497,7 +517,9 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
                 </div>
                 {msg.sender === "user" && (
                   <div className="flex-shrink-0 mb-1">
-                    <User className="h-6 w-6 text-blue-400 bg-zinc-800 rounded-full p-1 shadow" />
+                    <div className="w-8 h-8 bg-gradient-to-r from-gray-500 to-gray-600 rounded-full flex items-center justify-center shadow-md">
+                      <User className="h-4 w-4 text-white" />
+                    </div>
                   </div>
                 )}
               </div>
@@ -506,13 +528,13 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
           <div ref={messagesEndRef} />
         </div>
         {/* Quick Actions Toggle */}
-        <div className="border-t border-zinc-800 p-2 bg-zinc-900">
+        <div className="border-t border-gray-200 p-3 bg-white">
           <button
             onClick={() => {
               console.log('Quick actions toggle clicked, current state:', showQuickActions);
               setShowQuickActions(!showQuickActions);
             }}
-            className="flex items-center gap-2 text-sm text-zinc-400 hover:text-blue-400 transition-colors"
+            className="flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600 transition-colors font-medium"
           >
             <Sparkles className="h-4 w-4" />
             {showQuickActions ? 'Hide Quick Actions' : 'Show Quick Actions'}
@@ -521,12 +543,12 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
 
         {/* Quick Actions Panel */}
         {showQuickActions && (
-          <div className="border-t border-zinc-800 p-4 bg-zinc-900/50 max-h-64 overflow-y-auto">
+          <div className="border-t border-gray-200 p-4 bg-gray-50 max-h-64 overflow-y-auto">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-medium text-zinc-200">Quick Actions</h3>
+              <h3 className="text-sm font-medium text-gray-800">Quick Actions</h3>
               <button
                 onClick={() => setShowQuickActions(false)}
-                className="text-zinc-400 hover:text-zinc-300 transition-colors"
+                className="text-gray-400 hover:text-gray-600 transition-colors"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -542,10 +564,10 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
 
 
         {/* Input & Drag-and-Drop */}
-        <div className="border-t border-zinc-800 p-0 bg-zinc-900 flex items-center gap-2 mt-0 mb-0" style={{ marginTop: 'auto' }}>
+        <div className="border-t border-gray-200 p-4 bg-white flex items-center gap-3" style={{ marginTop: 'auto' }}>
           <div
-            className={`relative p-2 rounded-2xl transition-colors shadow-lg w-full ${
-              isDragging ? "bg-blue-950/30" : "bg-zinc-900"
+            className={`relative flex-1 transition-colors ${
+              isDragging ? "bg-blue-50" : ""
             }`}
             onDrop={handleDrop}
             onDragOver={handleDragOver}
@@ -558,10 +580,10 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
               className="hidden"
               onChange={handleFileInputChange}
             />
-            <form className="flex items-center gap-2" onSubmit={handleSend} autoComplete="off">
+            <form className="flex items-center gap-3 w-full" onSubmit={handleSend} autoComplete="off">
               <button
                 type="button"
-                className="text-zinc-400 hover:text-blue-400 transition-transform hover:scale-110"
+                className="text-gray-400 hover:text-blue-500 transition-colors p-2 rounded-lg hover:bg-gray-100"
                 onClick={() => fileInputRef.current?.click()}
                 title="Attach files"
               >
@@ -576,17 +598,17 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
                     handleSend(e);
                   }
                 }}
-                placeholder={isLoading ? "AI is processing..." : "Type a command, request, or drop a file..."}
-                className="flex-1 bg-zinc-800/60 outline-none text-white placeholder:text-zinc-400 px-3 py-2 rounded-xl border border-zinc-700 focus:border-blue-400 transition-all min-h-[40px] max-h-[150px] overflow-y-auto"
+                placeholder={isLoading ? "AI is processing..." : "Type a message..."}
+                className="flex-1 bg-white outline-none text-gray-900 placeholder:text-gray-400 px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all min-h-[48px] max-h-[150px] overflow-y-auto resize-none"
                 autoResize={true}
                 disabled={isLoading}
               />
               <Button
                 size="icon"
-                className={`shadow-md transition-transform hover:scale-110 ${
+                className={`shadow-sm transition-all hover:scale-105 ${
                   isLoading 
-                    ? 'bg-zinc-600 cursor-not-allowed' 
-                    : 'bg-gradient-to-br from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white'
+                    ? 'bg-gray-300 cursor-not-allowed' 
+                    : 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white'
                 }`}
                 onClick={handleSend}
                 title="Send"
@@ -602,7 +624,7 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
             </form>
             {isDragging && (
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <div className="bg-blue-500/80 text-white px-4 py-2 rounded-lg shadow-lg animate-pulse">
+                <div className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg animate-pulse">
                   Drop files to upload
                 </div>
               </div>
