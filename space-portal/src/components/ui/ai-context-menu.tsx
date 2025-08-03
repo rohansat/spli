@@ -152,11 +152,11 @@ export function AIContextMenu({
       style={{
         left: position.x,
         top: position.y,
-        maxHeight: '280px',
+        maxHeight: '200px',
       }}
     >
       {/* Header */}
-      <div className="flex items-center justify-between p-3 border-b border-zinc-700">
+      <div className="flex items-center justify-between p-2 border-b border-zinc-700">
         <div className="flex items-center gap-2">
           <Search className="h-4 w-4 text-zinc-400" />
           <span className="text-sm font-medium text-zinc-200">
@@ -178,7 +178,7 @@ export function AIContextMenu({
       </div>
 
       {/* Search input */}
-      <div className="p-2 border-b border-zinc-700">
+      <div className="p-1 border-b border-zinc-700">
         <input
           type="text"
           placeholder="Search sections and fields..."
@@ -189,7 +189,7 @@ export function AIContextMenu({
       </div>
 
       {/* Items list */}
-      <div className="max-h-48 overflow-y-auto" style={{
+      <div className="max-h-32 overflow-y-auto" style={{
         scrollbarWidth: 'thin',
         scrollbarColor: '#52525b #27272a'
       }}>
@@ -201,7 +201,7 @@ export function AIContextMenu({
           filteredItems.map((item, index) => (
             <div
               key={item.id}
-              className={`flex items-center gap-3 px-3 py-2 cursor-pointer transition-colors ${
+              className={`flex items-center gap-2 px-2 py-1 cursor-pointer transition-colors ${
                 index === selectedIndex
                   ? "bg-zinc-600 text-zinc-100"
                   : "text-zinc-300 hover:bg-zinc-700 hover:text-zinc-100"
@@ -230,7 +230,7 @@ export function AIContextMenu({
       </div>
 
       {/* Footer */}
-      <div className="p-2 border-t border-zinc-700 text-xs text-zinc-500">
+      <div className="p-1 border-t border-zinc-700 text-xs text-zinc-500">
         <div className="flex items-center justify-between">
           <span>Use arrow keys to navigate</span>
           <span>
