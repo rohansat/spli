@@ -2,8 +2,10 @@
 
 import React, { useState, useRef, useImperativeHandle, forwardRef } from "react";
 import { Paperclip, Send, UploadCloud, User, Bot, ThumbsUp, ThumbsDown, RefreshCw, Copy, Check, Sparkles, X, ChevronRight, MousePointer, Search, Palette, BookOpen, Globe, Pencil } from "lucide-react";
+import { AIContextMenu } from "./ai-context-menu";
 import { Button } from "./button";
 import dayjs from "dayjs";
+import { part450FormTemplate } from "@/lib/mock-data";
 import { Textarea } from './textarea';
 import { AIQuickActions } from './ai-quick-actions';
 
@@ -61,6 +63,12 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
     const [analytics, setAnalytics] = useState<any>(null);
     const [suggestionsUsed, setSuggestionsUsed] = useState(0);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    
+    // Context menu state
+    const [showContextMenu, setShowContextMenu] = useState(false);
+    const [contextMenuPosition, setContextMenuPosition] = useState({ x: 0, y: 0 });
+    const [contextSearchTerm, setContextSearchTerm] = useState("");
+    const [cursorPosition, setCursorPosition] = useState(0);
 
     // Check if user is at the bottom of the chat
     const isAtBottom = () => {
@@ -191,6 +199,58 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
       // Force scroll to bottom when user sends a message
       setTimeout(() => scrollToBottom(true), 100);
 
+      // Process @ mentions and add context
+      let processedMessage = userMessage;
+      let formContext = "";
+      
+      // Extract @ mentions
+      const atMentions = userMessage.match(/@([^@\s]+)/g);
+      if (atMentions) {
+        const contextParts: string[] = [];
+        
+        atMentions.forEach(mention => {
+          const path = mention.substring(1); // Remove @
+          const pathParts = path.split(' > ');
+          
+          if (pathParts.length === 2) {
+            // Section > Field format
+            const sectionTitle = pathParts[0];
+            const fieldLabel = pathParts[1];
+            
+            // Find the section and field in the form template
+            const section = part450FormTemplate.sections.find((s: any) => 
+              s.title.toLowerCase().includes(sectionTitle.toLowerCase())
+            );
+            
+            if (section) {
+              const field = section.fields.find((f: any) => 
+                f.label.toLowerCase().includes(fieldLabel.toLowerCase())
+              );
+              
+              if (field) {
+                contextParts.push(`Section: ${section.title}\nField: ${field.label}\nType: ${field.type}`);
+              }
+            }
+          } else {
+            // Just section name
+            const section = part450FormTemplate.sections.find((s: any) => 
+              s.title.toLowerCase().includes(path.toLowerCase())
+            );
+            
+            if (section) {
+              contextParts.push(`Section: ${section.title}\nFields: ${section.fields.map((f: any) => f.label).join(', ')}`);
+            }
+          }
+        });
+        
+        if (contextParts.length > 0) {
+          formContext = `\n\nForm Context:\n${contextParts.join('\n\n')}`;
+          processedMessage = userMessage.replace(/@([^@\s]+)/g, (match, path) => {
+            return `[${path}]`;
+          });
+        }
+      }
+
       // Detect if this is an auto-fill request based on content
       const lowerMessage = userMessage.toLowerCase();
       const isAutoFillRequest = lowerMessage.includes('auto fill') || 
@@ -218,7 +278,7 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            userInput: userMessage,
+            userInput: processedMessage + formContext,
             mode: isAutoFillRequest ? 'form' : 'unified',
             conversationHistory: messages // Send conversation history for context
           }),
@@ -298,6 +358,63 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
       if (e.target.files && onFileDrop) {
         onFileDrop(Array.from(e.target.files));
       }
+    };
+
+    // Context menu handlers
+    const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      const value = e.target.value;
+      setInput(value);
+      
+      // Check for @ mention
+      const cursorPos = e.target.selectionStart;
+      const beforeCursor = value.substring(0, cursorPos);
+      const atMatch = beforeCursor.match(/@(\w*)$/);
+      
+      if (atMatch) {
+        const searchTerm = atMatch[1];
+        setContextSearchTerm(searchTerm);
+        
+        // Calculate position for context menu
+        const textarea = e.target;
+        const rect = textarea.getBoundingClientRect();
+        const lineHeight = 20; // Approximate line height
+        const lines = beforeCursor.split('\n');
+        const currentLine = lines[lines.length - 1];
+        
+        // Calculate position relative to textarea
+        const x = rect.left + (currentLine.length * 8); // Approximate character width
+        const y = rect.top + (lines.length * lineHeight);
+        
+        setContextMenuPosition({ x, y });
+        setShowContextMenu(true);
+        setCursorPosition(cursorPos);
+      } else {
+        setShowContextMenu(false);
+      }
+    };
+
+    const handleContextMenuSelect = (item: any) => {
+      // Replace the @ mention with the selected item
+      const beforeAt = input.substring(0, cursorPosition - contextSearchTerm.length - 1);
+      const afterAt = input.substring(cursorPosition);
+      const newInput = beforeAt + `@${item.path}` + afterAt;
+      
+      setInput(newInput);
+      setShowContextMenu(false);
+      setContextSearchTerm("");
+      
+      // Focus back to textarea
+      const textarea = document.querySelector('textarea') as HTMLTextAreaElement;
+      if (textarea) {
+        const newCursorPos = beforeAt.length + item.path.length + 1;
+        textarea.focus();
+        textarea.setSelectionRange(newCursorPos, newCursorPos);
+      }
+    };
+
+    const handleContextMenuClose = () => {
+      setShowContextMenu(false);
+      setContextSearchTerm("");
     };
 
     const renderTypingIndicator = () => (
@@ -542,6 +659,15 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
           </div>
         )}
 
+        {/* Context Menu */}
+        <AIContextMenu
+          isVisible={showContextMenu}
+          position={contextMenuPosition}
+          onSelect={handleContextMenuSelect}
+          onClose={handleContextMenuClose}
+          searchTerm={contextSearchTerm}
+        />
+
 
 
         {/* Input & Drag-and-Drop */}
@@ -580,14 +706,14 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
               </button>
               <Textarea
                 value={input}
-                onChange={(e) => setInput(e.target.value)}
+                onChange={handleInputChange}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.shiftKey) {
                     e.preventDefault();
                     handleSend(e);
                   }
                 }}
-                placeholder={isLoading ? "AI is processing..." : "Type a message..."}
+                placeholder={isLoading ? "AI is processing..." : "Type a message... (use @ to reference form sections)"}
                 className="flex-1 bg-zinc-700 outline-none text-zinc-100 placeholder:text-zinc-400 px-3 py-2 rounded border border-zinc-600 focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 transition-all min-h-[40px] max-h-[150px] overflow-y-auto resize-none"
                 autoResize={true}
                 disabled={isLoading}
