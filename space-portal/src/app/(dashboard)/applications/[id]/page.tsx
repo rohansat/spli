@@ -704,8 +704,8 @@ export default function ApplicationPage() {
   };
 
   return (
-    <div className="relative max-w-[1400px] mx-auto bg-black py-8 min-h-[80vh] flex flex-row gap-6">
-      <div className="flex-1 min-w-0 transition-all duration-300">
+    <div className="relative max-w-[1400px] mx-auto bg-black py-8 min-h-[80vh] flex flex-row gap-6 overflow-hidden">
+      <div className={`flex-1 min-w-0 transition-all duration-300 ${showFloatingChat ? 'pr-6' : ''}`}>
         <div className="mb-8">
           <Link href="/dashboard" className="flex items-center text-white/70 hover:text-white transition-colors">
             <ChevronLeft className="mr-1 h-4 w-4" />
@@ -713,23 +713,31 @@ export default function ApplicationPage() {
           </Link>
         </div>
 
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-white mb-3 break-words">{application.name}</h1>
-            <div className="flex items-center">
-              <p className="text-white/60 mr-3">
+        <div className={`flex flex-col ${showFloatingChat ? 'lg:flex-row' : 'md:flex-row'} justify-between items-start ${showFloatingChat ? 'lg:items-center' : 'md:items-center'} mb-8`}>
+          <div className={`${showFloatingChat ? 'min-w-0 flex-1' : ''}`}>
+            <h1 className={`${showFloatingChat ? 'text-2xl lg:text-3xl' : 'text-3xl'} font-bold text-white mb-3 break-words`}>{application.name}</h1>
+            <div className={`flex ${showFloatingChat ? 'flex-col sm:flex-row' : 'items-center'} ${showFloatingChat ? 'gap-2' : ''}`}>
+              <p className={`text-white/60 ${showFloatingChat ? 'text-sm' : 'mr-3'}`}>
                 {application.type} • Created on{" "}
                 {new Date(application.createdAt).toLocaleDateString()}
               </p>
               <span
-                className="px-3 py-1 rounded-full text-xs font-medium self-start bg-zinc-500/20 text-zinc-300"
+                className={`px-3 py-1 rounded-full text-xs font-medium self-start ${
+                  application.status === "draft"
+                    ? "bg-zinc-500/20 text-zinc-300"
+                    : application.status === "under_review"
+                    ? "bg-yellow-500/20 text-yellow-300"
+                    : application.status === "submitted"
+                    ? "bg-blue-500/20 text-blue-300"
+                    : "bg-green-500/20 text-green-300"
+                }`}
               >
                 {application.status === "submitted" ? "SUBMITTED" : application.status.replace("_", " ").toUpperCase()}
               </span>
             </div>
           </div>
 
-          <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4 mt-4 md:mt-0">
+          <div className={`flex flex-col ${showFloatingChat ? 'lg:flex-row' : 'md:flex-row'} space-y-4 ${showFloatingChat ? 'lg:space-y-0 lg:space-x-2' : 'md:space-y-0 md:space-x-4'} mt-4 ${showFloatingChat ? 'lg:mt-0' : 'md:mt-0'}`}>
             <Button
               variant="outline"
               onClick={() => {
@@ -1106,8 +1114,8 @@ export default function ApplicationPage() {
       </div>
 
       {showFloatingChat && (
-        <div className="w-96 min-w-96 h-[calc(100vh-4rem)] flex flex-col bg-zinc-900 border-l border-zinc-800">
-          <div className="flex-1 min-h-0 flex flex-col">
+        <div className="w-96 min-w-96 h-[calc(100vh-8rem)] flex flex-col bg-zinc-900 border-l border-zinc-800 sticky top-8">
+          <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
             <AIAssistantPanel
               ref={aiPanelRef}
               onCommand={async (cmd) => {
