@@ -460,17 +460,47 @@ UNIQUE TECH/INTERNATIONAL
       
       if (isAutoFillRequest) {
         const suggestions = extractFormSuggestions(aiResponse, userInput);
+        
+        // Add conversation analytics
+        const analytics = {
+          messageLength: userInput.length,
+          responseLength: aiResponse.length,
+          hasSuggestions: suggestions.length > 0,
+          suggestionCount: suggestions.length,
+          isAutoFillRequest: true,
+          timestamp: new Date().toISOString()
+        };
+        
         return NextResponse.json({ 
           suggestions,
           message: aiResponse,
-          mode: 'form'
+          mode: 'form',
+          analytics
         });
       }
+      
+      // Add conversation analytics for regular responses
+      const analytics = {
+        messageLength: userInput.length,
+        responseLength: aiResponse.length,
+        hasSuggestions: false,
+        suggestionCount: 0,
+        isAutoFillRequest: false,
+        timestamp: new Date().toISOString()
+      };
     }
 
     return NextResponse.json({ 
       message: aiResponse,
-      mode 
+      mode,
+      analytics: {
+        messageLength: userInput.length,
+        responseLength: aiResponse.length,
+        hasSuggestions: false,
+        suggestionCount: 0,
+        isAutoFillRequest: false,
+        timestamp: new Date().toISOString()
+      }
     });
 
   } catch (error) {
