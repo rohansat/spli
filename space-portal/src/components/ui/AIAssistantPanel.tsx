@@ -384,7 +384,7 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
           
           // Position relative to the chat panel, above the input area but not overlapping messages
           const x = 0; // Align to left edge of chat panel
-          const y = -320; // Position above the input area
+          const y = -280; // Position above the input area with reduced height
           
           setContextMenuPosition({ x, y });
         } else {
@@ -737,7 +737,7 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
                   setInput(input + '@');
                   setShowContextMenu(true);
                   setContextSearchTerm("");
-                  setContextMenuPosition({ x: 0, y: -320 });
+                  setContextMenuPosition({ x: 0, y: -280 });
                 }}
                 title="Add context"
               >

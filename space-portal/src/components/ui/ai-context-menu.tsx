@@ -152,7 +152,7 @@ export function AIContextMenu({
       style={{
         left: position.x,
         top: position.y,
-        maxHeight: '300px',
+        maxHeight: '280px',
       }}
     >
       {/* Header */}
@@ -189,7 +189,10 @@ export function AIContextMenu({
       </div>
 
       {/* Items list */}
-      <div className="max-h-64 overflow-y-auto">
+      <div className="max-h-48 overflow-y-auto" style={{
+        scrollbarWidth: 'thin',
+        scrollbarColor: '#52525b #27272a'
+      }}>
         {filteredItems.length === 0 ? (
           <div className="p-3 text-center text-zinc-400 text-sm">
             No items found
