@@ -150,7 +150,7 @@ export function AIQuickActions({
   };
 
   return (
-    <div className="space-y-4">
+    <div className={showCategories ? "space-y-4" : ""}>
       {/* Category Filter */}
       {showCategories && (
         <div className="flex flex-wrap gap-2">
@@ -170,10 +170,11 @@ export function AIQuickActions({
         </div>
       )}
 
-      {/* Quick Actions Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {filteredActions.map((action) => (
-                                  <button
+      {/* Quick Actions - Grid for categories, List for dropdown */}
+      {showCategories ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {filteredActions.map((action) => (
+            <button
               key={action.id}
               onClick={() => handleActionClick(action.prompt)}
               className="group p-3 bg-zinc-700 border border-zinc-600 rounded-lg hover:border-zinc-500 hover:bg-zinc-600 transition-all duration-200 text-left"
@@ -194,8 +195,24 @@ export function AIQuickActions({
                 </div>
               </div>
             </button>
-        ))}
-      </div>
+          ))}
+        </div>
+      ) : (
+        <div className="space-y-1">
+          {filteredActions.map((action) => (
+            <button
+              key={action.id}
+              onClick={() => handleActionClick(action.prompt)}
+              className="flex items-center gap-3 px-3 py-2 text-white hover:bg-zinc-700 rounded cursor-pointer w-full text-left"
+            >
+              <div className="text-zinc-300">
+                {action.icon}
+              </div>
+              <span className="text-sm">{action.title}</span>
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Empty State */}
       {filteredActions.length === 0 && (
