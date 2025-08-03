@@ -382,9 +382,9 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
           const panelRect = chatPanel.getBoundingClientRect();
           const textareaRect = textarea.getBoundingClientRect();
           
-          // Position relative to the chat panel, above the textarea
-          const x = textareaRect.left - panelRect.left;
-          const y = textareaRect.top - panelRect.top - 320; // Position above the textarea
+          // Position relative to the chat panel, above the input area but not overlapping messages
+          const x = 0; // Align to left edge of chat panel
+          const y = -320; // Position above the input area
           
           setContextMenuPosition({ x, y });
         } else {
@@ -688,17 +688,16 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
 
 
 
-        {/* Context Menu */}
-        <AIContextMenu
-          isVisible={showContextMenu}
-          position={contextMenuPosition}
-          onSelect={handleContextMenuSelect}
-          onClose={handleContextMenuClose}
-          searchTerm={contextSearchTerm}
-        />
-
         {/* Input & Drag-and-Drop */}
-        <div className="border-t border-zinc-700 p-3 bg-zinc-800 flex items-center gap-3" style={{ marginTop: 'auto' }}>
+        <div className="border-t border-zinc-700 p-3 bg-zinc-800 flex items-center gap-3 relative" style={{ marginTop: 'auto' }}>
+          {/* Context Menu */}
+          <AIContextMenu
+            isVisible={showContextMenu}
+            position={contextMenuPosition}
+            onSelect={handleContextMenuSelect}
+            onClose={handleContextMenuClose}
+            searchTerm={contextSearchTerm}
+          />
           <div
             className={`relative flex-1 transition-colors ${
               isDragging ? "bg-zinc-700" : ""
