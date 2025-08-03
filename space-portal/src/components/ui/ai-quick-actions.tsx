@@ -160,8 +160,8 @@ export function AIQuickActions({
               onClick={() => setSelectedCategory(category.id as any)}
               className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
                 selectedCategory === category.id
-                  ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-md'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-800'
+                  ? 'bg-zinc-600 text-zinc-100'
+                  : 'bg-zinc-700 text-zinc-400 hover:bg-zinc-600 hover:text-zinc-300'
               }`}
             >
               {category.label} ({category.count})
@@ -176,19 +176,19 @@ export function AIQuickActions({
                                   <button
               key={action.id}
               onClick={() => handleActionClick(action.prompt)}
-              className="group p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-300 hover:shadow-md transition-all duration-200 text-left"
+              className="group p-3 bg-zinc-700 border border-zinc-600 rounded-lg hover:border-zinc-500 hover:bg-zinc-600 transition-all duration-200 text-left"
             >
               <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 p-2 bg-gradient-to-br from-blue-500/10 to-purple-600/10 rounded-lg group-hover:from-blue-500/20 group-hover:to-purple-600/20 transition-all">
-                  <div className="text-blue-500 group-hover:text-blue-600">
+                <div className="flex-shrink-0 p-2 bg-zinc-600 rounded-lg group-hover:bg-zinc-500 transition-all">
+                  <div className="text-zinc-300 group-hover:text-zinc-200">
                     {action.icon}
                   </div>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-medium text-gray-900 group-hover:text-blue-600 transition-colors">
+                  <h3 className="font-medium text-zinc-200 group-hover:text-zinc-100 transition-colors">
                     {action.title}
                   </h3>
-                  <p className="text-sm text-gray-600 group-hover:text-gray-700 transition-colors mt-1">
+                  <p className="text-sm text-zinc-400 group-hover:text-zinc-300 transition-colors mt-1">
                     {action.description}
                   </p>
                 </div>
