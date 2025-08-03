@@ -527,19 +527,7 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
           )}
           <div ref={messagesEndRef} />
         </div>
-        {/* Quick Actions Toggle */}
-        <div className="border-t border-zinc-700 p-3 bg-zinc-800">
-          <button
-            onClick={() => {
-              console.log('Quick actions toggle clicked, current state:', showQuickActions);
-              setShowQuickActions(!showQuickActions);
-            }}
-            className="flex items-center gap-2 text-sm text-zinc-300 hover:text-zinc-100 transition-colors"
-          >
-            <Sparkles className="h-4 w-4" />
-            {showQuickActions ? 'Hide Quick Actions' : 'Show Quick Actions'}
-          </button>
-        </div>
+
 
         {/* Quick Actions Dropdown */}
         {showQuickActions && (
