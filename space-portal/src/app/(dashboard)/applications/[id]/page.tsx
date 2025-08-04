@@ -1310,6 +1310,7 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
                 if (isMissionDescription) {
                   // Auto-fill the form with the mission description
                   try {
+                    console.log('🚀 Mission description detected, calling AI...');
                     const response = await fetch('/api/ai', {
                       method: 'POST',
                       headers: {
@@ -1324,9 +1325,12 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
                     
                     if (response.ok) {
                       const data = await response.json();
-                      console.log('AI auto-fill response:', data);
+                      console.log('📡 AI auto-fill response:', data);
+                      console.log('📝 AI message:', data.message);
+                      console.log('💡 AI suggestions:', data.suggestions);
                       
                       if (data.suggestions && data.suggestions.length > 0) {
+                        console.log('✅ Using AI suggestions:', data.suggestions);
                         // Apply the suggestions to the form
                         const newFormData = { ...formData };
                         data.suggestions.forEach((suggestion: any) => {
@@ -1343,19 +1347,28 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
                         await handleSave();
                         return;
                       } else {
+                        console.log('🔍 No suggestions found, trying to parse structured response...');
                         // Try parsing the response as structured sections
                         const sections = parseStructuredResponse(data.message);
+                        console.log('📊 Parsed sections:', sections);
                         if (Object.keys(sections).length > 0) {
                           setFormData((prev) => ({ ...prev, ...sections }));
                           const filledFields = Object.keys(sections).length;
                           aiPanelRef.current?.addAIMsg(`✅ Successfully filled ${filledFields} form sections with information from your mission description! The form has been updated automatically.`);
                           await handleSave();
                           return;
+                        } else {
+                          console.log('❌ No sections parsed from AI response');
+                          aiPanelRef.current?.addAIMsg(`I analyzed your mission description but couldn't extract structured information. Here's what the AI returned: ${data.message.substring(0, 200)}...`);
                         }
                       }
+                    } else {
+                      console.log('❌ AI response not ok:', response.status);
+                      aiPanelRef.current?.addAIMsg('Sorry, there was an error processing your mission description. Please try again.');
                     }
                   } catch (error) {
-                    console.error('Auto-fill error:', error);
+                    console.error('❌ Auto-fill error:', error);
+                    aiPanelRef.current?.addAIMsg('Sorry, there was an error processing your mission description. Please try again.');
                   }
                 }
 

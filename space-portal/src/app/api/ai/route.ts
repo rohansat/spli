@@ -255,7 +255,10 @@ COMMANDS:
 
     let suggestions: any[] = [];
     if (isAutoFillRequest) {
+      console.log('🔍 Auto-fill request detected, extracting suggestions...');
+      console.log('📝 AI Response:', aiResponse);
       suggestions = extractFormSuggestions(aiResponse, userInput);
+      console.log('💡 Extracted suggestions:', suggestions);
     }
 
     const analytics = {
@@ -288,6 +291,10 @@ COMMANDS:
 }
 
 function extractFormSuggestions(aiResponse: string, userInput: string) {
+  console.log('🔧 Starting form suggestions extraction...');
+  console.log('📄 AI Response length:', aiResponse.length);
+  console.log('📄 AI Response preview:', aiResponse.substring(0, 500));
+  
   // Smart parsing of structured AI response
   const suggestions = [];
   
@@ -322,34 +329,102 @@ function extractFormSuggestions(aiResponse: string, userInput: string) {
     'LICENSE TYPE INTENT': 'licenseTypeIntent'
   };
   
-  // Split response into sections and extract content
-  const sections = aiResponse.split(/\n\s*\n/);
+  // Enhanced section headers with variations
+  const sectionHeaders = [
+    'MISSION OBJECTIVE',
+    'VEHICLE DESCRIPTION', 
+    'LAUNCH SEQUENCE',
+    'LAUNCH/REENTRY SEQUENCE',
+    'TRAJECTORY OVERVIEW',
+    'SAFETY CONSIDERATIONS',
+    'GROUND OPERATIONS',
+    'TECHNICAL SUMMARY',
+    'DIMENSIONS/MASS/STAGES',
+    'PROPULSION TYPES',
+    'RECOVERY SYSTEMS',
+    'GROUND SUPPORT EQUIPMENT',
+    'SITE NAMES/COORDINATES',
+    'SITE OPERATOR',
+    'AIRSPACE/MARITIME NOTES',
+    'LAUNCH SITE',
+    'LAUNCH WINDOW',
+    'FLIGHT PATH',
+    'LANDING SITE',
+    'EARLY RISK ASSESSMENTS',
+    'PUBLIC SAFETY CHALLENGES',
+    'PLANNED SAFETY TOOLS',
+    'FULL APPLICATION TIMELINE',
+    'INTENDED WINDOW',
+    'TIMELINE',
+    'LICENSE TYPE INTENT',
+    'LICENSE TYPE',
+    'CLARIFY PART 450',
+    'UNIQUE TECH/INTERNATIONAL'
+  ];
   
-  for (const section of sections) {
-    const lines = section.trim().split('\n');
-    if (lines.length < 2) continue;
+  // Split response into lines and process each section
+  const lines = aiResponse.split('\n');
+  console.log('📋 Total lines:', lines.length);
+  let currentSection = '';
+  let currentContent: string[] = [];
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
     
-    const header = lines[0].trim();
-    const content = lines.slice(1).join(' ').trim();
+    // Check if this line is a section header
+    const isHeader = sectionHeaders.some(header => 
+      line.toUpperCase() === header.toUpperCase() || 
+      line.toUpperCase().startsWith(header.toUpperCase())
+    );
     
-    // Skip empty content or placeholder text
-    if (!content || 
-        content === '[Extracted...]' || 
-        content === 'Information not provided in description' ||
-        content.toLowerCase().includes('not provided') ||
-        content.toLowerCase().includes('tbd') ||
-        content.toLowerCase().includes('to be determined')) {
-      continue;
+    if (isHeader) {
+      console.log('🏷️ Found header:', line);
+      // Save previous section if we have content
+      if (currentSection && currentContent.length > 0) {
+        const content = currentContent.join(' ').trim();
+        if (content && content.length > 0) {
+          const sectionKey = currentSection.toLowerCase().replace(/[^a-z]/g, '');
+          const fieldName = fieldMapping[sectionKey];
+          
+          if (fieldName) {
+            suggestions.push({
+              field: fieldName,
+              value: content,
+              confidence: 0.9,
+              reasoning: `Extracted from AI analysis of mission description`
+            });
+            console.log(`✅ Extracted ${fieldName}:`, content.substring(0, 100) + '...');
+          } else {
+            console.log(`❌ No field mapping for section: ${currentSection}`);
+          }
+        }
+      }
+      
+      // Start new section
+      currentSection = line;
+      currentContent = [];
+    } else if (line.length > 0 && currentSection) {
+      // Add content to current section
+      currentContent.push(line);
     }
-    
-    const fieldName = fieldMapping[header];
-    if (fieldName) {
-      suggestions.push({
-        field: fieldName,
-        value: content,
-        confidence: 0.9,
-        reasoning: `Extracted from AI analysis of mission description`
-      });
+  }
+  
+  // Handle the last section
+  if (currentSection && currentContent.length > 0) {
+    const content = currentContent.join(' ').trim();
+    if (content && content.length > 0) {
+      const sectionKey = currentSection.toLowerCase().replace(/[^a-z]/g, '');
+      const fieldName = fieldMapping[sectionKey];
+      
+      if (fieldName) {
+        suggestions.push({
+          field: fieldName,
+          value: content,
+          confidence: 0.9,
+          reasoning: `Extracted from AI analysis of mission description`
+        });
+        console.log(`✅ Extracted ${fieldName}:`, content.substring(0, 100) + '...');
+      }
     }
   }
 
