@@ -14,73 +14,79 @@ export async function POST(request: NextRequest) {
     const { userInput, context, mode, conversationHistory = [], documents = [] } = await request.json();
     console.log('Request data:', { userInput, mode, conversationHistoryLength: conversationHistory.length, documentsCount: documents.length });
 
-    // Simplified system prompt for clean, focused responses
-    const systemPrompt = `You are SPLI Chat, a specialized AI assistant for space, aerospace, and FAA licensing. Keep responses concise and focused.
+    // Enhanced system prompt for form filling
+    const systemPrompt = `You are SPLI Chat, a specialized AI assistant for space, aerospace, and FAA licensing. Your primary role is to help users fill out Part 450 application forms by extracting information from ANY mission description.
 
 CORE CAPABILITIES:
+- Extract mission information and fill Part 450 application forms automatically from ANY mission description
 - Answer questions about space missions, aerospace technology, and FAA licensing
-- Help fill out Part 450 application forms intelligently
 - Analyze documents for application relevance
 - Provide professional, FAA-ready language suggestions
 
-RESPONSE GUIDELINES:
-- Keep responses concise and to the point
-- Don't overwhelm users with long lists of capabilities
-- For simple questions, give direct answers
-- For form filling, provide structured responses only when explicitly requested
-- Use clean formatting with proper spacing
-- Be helpful but not verbose
-
-AUTO-FILL INSTRUCTIONS:
-When a user provides a mission description or asks to fill out an application, ALWAYS respond with a structured FAA Part 450 application format. Extract all relevant information and organize it into clear sections.
+CRITICAL INSTRUCTION FOR MISSION DESCRIPTIONS:
+When a user provides ANY mission description paragraph, you MUST respond with a structured FAA Part 450 application format. Extract ALL relevant information from the description and organize it into the appropriate form fields. DO NOT provide explanations about jurisdiction or regulations - just fill out the form.
 
 REQUIRED FORMAT FOR MISSION DESCRIPTIONS:
-When analyzing mission descriptions, structure your response exactly like this:
+When analyzing ANY mission description, structure your response exactly like this:
 
 MISSION OBJECTIVE
-[Extracted mission objective]
+[Extract and describe the mission objective from the description]
 
 VEHICLE DESCRIPTION
-[Extracted vehicle information]
+[Extract vehicle information, rocket type, stages, propulsion, dimensions, etc.]
 
 LAUNCH SEQUENCE
-[Extracted launch sequence]
+[Extract launch sequence, stages, trajectory, destination]
 
 TECHNICAL SUMMARY
-[Extracted technical specifications]
+[Extract technical specifications, payload details, power systems, communications, etc.]
 
 SAFETY CONSIDERATIONS
-[Extracted safety information]
+[Extract safety measures, risk assessments, termination systems, etc.]
 
 GROUND OPERATIONS
-[Extracted ground operations]
+[Extract ground operations, facilities, mission control, etc.]
 
 LAUNCH SITE
-[Extracted launch site information]
+[Extract launch site information, coordinates, facility details]
 
 TIMELINE
-[Extracted timeline information]
+[Extract timeline information, launch windows, mission duration, etc.]
 
 LICENSE TYPE
-[Extracted license type]
+[Extract license type based on mission characteristics]
 
-PART 450 APPLICATION SECTIONS:
-- Mission Objective, Vehicle Description, Launch Sequence
-- Technical Summary, Safety Considerations, Ground Operations
-- Launch Site, Timeline, Risk Assessment
-- License Type, FAA Questions
+INSTRUCTIONS:
+- Analyze ANY mission description paragraph provided by the user
+- Extract ALL relevant information from the description
+- Fill in as many sections as possible with extracted information
+- If information is not provided, use "Information not provided in description"
+- Be comprehensive and thorough in extraction
+- Use professional, FAA-ready language
+- DO NOT provide jurisdictional advice or explanations - just fill the form
+- Focus on extracting and organizing information, not explaining regulations
+
+FORM FIELDS TO FILL:
+- missionObjective, vehicleDescription, launchReentrySequence
+- technicalSummary, safetyConsiderations, groundOperations
+- launchSite, launchWindow, flightPath
+- earlyRiskAssessments, publicSafetyChallenges, plannedSafetyTools
+- fullApplicationTimeline, intendedWindow, licenseTypeIntent
+
+RESPONSE GUIDELINES:
+- For ANY mission description: ALWAYS provide structured form data
+- For questions: Give direct, helpful answers
+- Keep responses concise and focused
+- Extract ALL relevant information from the description
+- Use professional, FAA-ready language
+- Be flexible and handle any type of space mission
+- Focus on form filling, not explanations
 
 COMMANDS:
 - "ready for FAA" - Prompt form
 - "analyze documents" - Analyze uploaded documents
 - "auto fill" - Fill form from mission description
-- "strengthen" - Improve application quality
-
-FORMATTING:
-- Use clean, simple formatting
-- Keep responses concise and focused
-- Use bullet points for lists when needed
-- Structure form responses clearly when requested`;
+- "strengthen" - Improve application quality`;
 
     // Build conversation messages array
     const messages: Array<{ role: 'user' | 'assistant'; content: string }> = [];
@@ -172,17 +178,78 @@ FORMATTING:
       
     // For unified mode (default), try to detect if this is an auto-fill request
     const lowerInput = userInput.toLowerCase();
-    const isAutoFillRequest = lowerInput.includes('mission') || 
-                             lowerInput.includes('satellite') || 
-                             lowerInput.includes('rocket') || 
-                             lowerInput.includes('launch') ||
-                             lowerInput.includes('lunar') ||
-                             lowerInput.includes('nova') ||
-                             lowerInput.includes('kennedy space center') ||
-                             lowerInput.includes('cape canaveral') ||
-                             lowerInput.includes('500kg') ||
-                             lowerInput.includes('methane/oxygen') ||
-                             lowerInput.includes('mare tranquillitatis');
+    
+    // Check if this looks like a mission description paragraph
+    const isAutoFillRequest = 
+      // If it's a long paragraph with mission details, it's likely a mission description
+      userInput.length > 50 && (
+        // Mission-related keywords
+        lowerInput.includes('mission') || 
+        lowerInput.includes('satellite') || 
+        lowerInput.includes('rocket') || 
+        lowerInput.includes('launcher') ||
+        lowerInput.includes('launch') ||
+        lowerInput.includes('spacecraft') ||
+        lowerInput.includes('vehicle') ||
+        
+        // Destinations
+        lowerInput.includes('lunar') ||
+        lowerInput.includes('moon') ||
+        lowerInput.includes('mars') ||
+        lowerInput.includes('orbit') ||
+        lowerInput.includes('leo') ||
+        lowerInput.includes('geo') ||
+        lowerInput.includes('suborbital') ||
+        
+        // Technical specifications
+        lowerInput.includes('kg') ||
+        lowerInput.includes('pound') ||
+        lowerInput.includes('meter') ||
+        lowerInput.includes('stage') ||
+        lowerInput.includes('engine') ||
+        lowerInput.includes('propulsion') ||
+        lowerInput.includes('fuel') ||
+        lowerInput.includes('payload') ||
+        
+        // Launch sites
+        lowerInput.includes('kennedy space center') ||
+        lowerInput.includes('ksc') ||
+        lowerInput.includes('cape canaveral') ||
+        lowerInput.includes('vandenberg') ||
+        lowerInput.includes('wallops') ||
+        lowerInput.includes('spaceport') ||
+        
+        // Mission types
+        lowerInput.includes('earth observation') ||
+        lowerInput.includes('communications') ||
+        lowerInput.includes('research') ||
+        lowerInput.includes('technology demonstration') ||
+        lowerInput.includes('space tourism') ||
+        lowerInput.includes('commercial') ||
+        
+        // Form-related keywords
+        lowerInput.includes('faa application') ||
+        lowerInput.includes('part 450') ||
+        lowerInput.includes('license') ||
+        lowerInput.includes('fill out') ||
+        lowerInput.includes('fill the form') ||
+        lowerInput.includes('auto fill') ||
+        lowerInput.includes('complete the form') ||
+        lowerInput.includes('application form') ||
+        
+        // Common mission description phrases
+        lowerInput.includes('we are') ||
+        lowerInput.includes('our mission') ||
+        lowerInput.includes('planning') ||
+        lowerInput.includes('deploy') ||
+        lowerInput.includes('conduct') ||
+        lowerInput.includes('launch from') ||
+        lowerInput.includes('mission will') ||
+        lowerInput.includes('timeline') ||
+        lowerInput.includes('specifications') ||
+        lowerInput.includes('safety') ||
+        lowerInput.includes('operations')
+      );
 
     let suggestions: any[] = [];
     if (isAutoFillRequest) {
@@ -222,7 +289,38 @@ function extractFormSuggestions(aiResponse: string, userInput: string) {
   // Smart parsing of structured AI response
   const suggestions = [];
   
-  // Parse structured sections from AI response
+  // Map section headers to field names (comprehensive mapping)
+  const fieldMapping: Record<string, string> = {
+    'MISSION OBJECTIVE': 'missionObjective',
+    'VEHICLE DESCRIPTION': 'vehicleDescription',
+    'LAUNCH SEQUENCE': 'launchReentrySequence',
+    'LAUNCH/REENTRY SEQUENCE': 'launchReentrySequence',
+    'TRAJECTORY OVERVIEW': 'trajectoryOverview',
+    'SAFETY CONSIDERATIONS': 'safetyConsiderations',
+    'GROUND OPERATIONS': 'groundOperations',
+    'TECHNICAL SUMMARY': 'technicalSummary',
+    'DIMENSIONS/MASS/STAGES': 'dimensionsMassStages',
+    'PROPULSION TYPES': 'propulsionTypes',
+    'RECOVERY SYSTEMS': 'recoverySystems',
+    'GROUND SUPPORT EQUIPMENT': 'groundSupportEquipment',
+    'SITE NAMES/COORDINATES': 'siteNamesCoordinates',
+    'SITE OPERATOR': 'siteOperator',
+    'AIRSPACE/MARITIME NOTES': 'airspaceMaritimeNotes',
+    'LAUNCH SITE': 'launchSite',
+    'LAUNCH WINDOW': 'launchWindow',
+    'FLIGHT PATH': 'flightPath',
+    'LANDING SITE': 'landingSite',
+    'EARLY RISK ASSESSMENTS': 'earlyRiskAssessments',
+    'PUBLIC SAFETY CHALLENGES': 'publicSafetyChallenges',
+    'PLANNED SAFETY TOOLS': 'plannedSafetyTools',
+    'FULL APPLICATION TIMELINE': 'fullApplicationTimeline',
+    'INTENDED WINDOW': 'intendedWindow',
+    'TIMELINE': 'intendedWindow',
+    'LICENSE TYPE': 'licenseTypeIntent',
+    'LICENSE TYPE INTENT': 'licenseTypeIntent'
+  };
+  
+  // Split response into sections and extract content
   const sections = aiResponse.split(/\n\s*\n/);
   
   for (const section of sections) {
@@ -232,45 +330,140 @@ function extractFormSuggestions(aiResponse: string, userInput: string) {
     const header = lines[0].trim();
     const content = lines.slice(1).join(' ').trim();
     
-    if (content && content !== '[Extracted...]' && content !== 'Information not provided in description') {
-      // Map section headers to field names
-      const fieldMapping: Record<string, string> = {
-        'MISSION OBJECTIVE': 'missionObjective',
-        'VEHICLE DESCRIPTION': 'vehicleDescription',
-        'LAUNCH/REENTRY SEQUENCE': 'launchReentrySequence',
-        'TRAJECTORY OVERVIEW': 'trajectoryOverview',
-        'SAFETY CONSIDERATIONS': 'safetyConsiderations',
-        'GROUND OPERATIONS': 'groundOperations',
-        'TECHNICAL SUMMARY': 'technicalSummary',
-        'DIMENSIONS/MASS/STAGES': 'dimensionsMassStages',
-        'PROPULSION TYPES': 'propulsionTypes',
-        'RECOVERY SYSTEMS': 'recoverySystems',
-        'GROUND SUPPORT EQUIPMENT': 'groundSupportEquipment',
-        'SITE NAMES/COORDINATES': 'siteNamesCoordinates',
-        'SITE OPERATOR': 'siteOperator',
-        'AIRSPACE/MARITIME NOTES': 'airspaceMaritimeNotes',
-        'LAUNCH SITE': 'launchSite',
-        'LAUNCH WINDOW': 'launchWindow',
-        'FLIGHT PATH': 'flightPath',
-        'LANDING SITE': 'landingSite',
-        'EARLY RISK ASSESSMENTS': 'earlyRiskAssessments',
-        'PUBLIC SAFETY CHALLENGES': 'publicSafetyChallenges',
-        'PLANNED SAFETY TOOLS': 'plannedSafetyTools',
-        'FULL APPLICATION TIMELINE': 'fullApplicationTimeline',
-        'INTENDED WINDOW': 'intendedWindow',
-        'LICENSE TYPE INTENT': 'licenseTypeIntent',
-        'CLARIFY PART 450': 'clarifyPart450',
-        'UNIQUE TECH/INTERNATIONAL': 'uniqueTechInternational'
-      };
-      
-      const fieldName = fieldMapping[header];
-      if (fieldName) {
+    // Skip empty content or placeholder text
+    if (!content || 
+        content === '[Extracted...]' || 
+        content === 'Information not provided in description' ||
+        content.toLowerCase().includes('not provided') ||
+        content.toLowerCase().includes('tbd') ||
+        content.toLowerCase().includes('to be determined')) {
+      continue;
+    }
+    
+    const fieldName = fieldMapping[header];
+    if (fieldName) {
       suggestions.push({
-          field: fieldName,
-          value: content,
+        field: fieldName,
+        value: content,
         confidence: 0.9,
-          reasoning: `Extracted from AI analysis of mission description`
+        reasoning: `Extracted from AI analysis of mission description`
+      });
+    }
+  }
+
+  // If no structured sections found, try intelligent parsing of the entire response
+  if (suggestions.length === 0) {
+    const lowerResponse = aiResponse.toLowerCase();
+    const lowerInput = userInput.toLowerCase();
+    
+    // Extract mission objective from any part of the response
+    if (lowerResponse.includes('mission') || lowerResponse.includes('objective') || lowerResponse.includes('purpose')) {
+      // Look for mission objective patterns
+      const missionPatterns = [
+        /(?:mission|objective|purpose)[:\s]+([^.]+)/i,
+        /(?:we are|our mission|planning to)[^.]*(?:mission|launch|deploy)[^.]*/i,
+        /(?:commercial|research|technology)[^.]*(?:mission|launch)[^.]*/i
+      ];
+      
+      for (const pattern of missionPatterns) {
+        const match = aiResponse.match(pattern);
+        if (match && match[1]) {
+          suggestions.push({
+            field: 'missionObjective',
+            value: match[1].trim(),
+            confidence: 0.8,
+            reasoning: 'Extracted mission objective from response'
+          });
+          break;
+        }
+      }
+    }
+    
+    // Extract vehicle description
+    if (lowerResponse.includes('vehicle') || lowerResponse.includes('rocket') || lowerResponse.includes('launcher') || 
+        lowerResponse.includes('stage') || lowerResponse.includes('engine') || lowerResponse.includes('propulsion')) {
+      const vehiclePatterns = [
+        /(?:vehicle|rocket|launcher|nova)[^.]*(?:stage|engine|propulsion)[^.]*/i,
+        /(?:three-stage|two-stage|single-stage)[^.]*/i,
+        /(?:methane|oxygen|solid|liquid)[^.]*(?:fuel|propulsion)[^.]*/i
+      ];
+      
+      for (const pattern of vehiclePatterns) {
+        const match = aiResponse.match(pattern);
+        if (match) {
+          suggestions.push({
+            field: 'vehicleDescription',
+            value: match[0].trim(),
+            confidence: 0.8,
+            reasoning: 'Extracted vehicle description from response'
+          });
+          break;
+        }
+      }
+    }
+    
+    // Extract launch site
+    const launchSites = [
+      { pattern: /kennedy space center|ksc/i, value: 'Kennedy Space Center, Florida' },
+      { pattern: /cape canaveral/i, value: 'Cape Canaveral Space Force Station, Florida' },
+      { pattern: /vandenberg/i, value: 'Vandenberg Space Force Base, California' },
+      { pattern: /wallops/i, value: 'Wallops Flight Facility, Virginia' }
+    ];
+    
+    for (const site of launchSites) {
+      if (site.pattern.test(aiResponse)) {
+        suggestions.push({
+          field: 'launchSite',
+          value: site.value,
+          confidence: 0.9,
+          reasoning: 'Extracted launch site from response'
         });
+        break;
+      }
+    }
+    
+    // Extract timeline information
+    if (lowerResponse.includes('timeline') || lowerResponse.includes('window') || lowerResponse.includes('q1') || 
+        lowerResponse.includes('q2') || lowerResponse.includes('q3') || lowerResponse.includes('q4') ||
+        lowerResponse.includes('2024') || lowerResponse.includes('2025')) {
+      const timelinePatterns = [
+        /(?:timeline|window|launch)[^.]*(?:q[1-4]\s*\d{4}|\d{4})[^.]*/i,
+        /(?:january|february|march|april|may|june|july|august|september|october|november|december)[^.]*/i
+      ];
+      
+      for (const pattern of timelinePatterns) {
+        const match = aiResponse.match(pattern);
+        if (match) {
+          suggestions.push({
+            field: 'intendedWindow',
+            value: match[0].trim(),
+            confidence: 0.8,
+            reasoning: 'Extracted timeline from response'
+          });
+          break;
+        }
+      }
+    }
+    
+    // Extract safety considerations
+    if (lowerResponse.includes('safety') || lowerResponse.includes('risk') || lowerResponse.includes('termination') ||
+        lowerResponse.includes('autonomous') || lowerResponse.includes('gps')) {
+      const safetyPatterns = [
+        /(?:safety|risk|termination)[^.]*/i,
+        /(?:autonomous|gps|tracking)[^.]*/i
+      ];
+      
+      for (const pattern of safetyPatterns) {
+        const match = aiResponse.match(pattern);
+        if (match) {
+          suggestions.push({
+            field: 'safetyConsiderations',
+            value: match[0].trim(),
+            confidence: 0.7,
+            reasoning: 'Extracted safety information from response'
+          });
+          break;
+        }
       }
     }
   }

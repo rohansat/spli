@@ -1194,6 +1194,84 @@ export default function ApplicationPage() {
                   return;
                 }
                 
+                // Check if this looks like a mission description that should auto-fill the form
+                const lowerCmd = cmd.toLowerCase();
+                const isMissionDescription = cmd.length > 50 && (
+                  lowerCmd.includes('mission') || 
+                  lowerCmd.includes('satellite') || 
+                  lowerCmd.includes('rocket') || 
+                  lowerCmd.includes('launch') ||
+                  lowerCmd.includes('lunar') ||
+                  lowerCmd.includes('space') ||
+                  lowerCmd.includes('we are') ||
+                  lowerCmd.includes('our mission') ||
+                  lowerCmd.includes('planning') ||
+                  lowerCmd.includes('deploy') ||
+                  lowerCmd.includes('conduct') ||
+                  lowerCmd.includes('kg') ||
+                  lowerCmd.includes('stage') ||
+                  lowerCmd.includes('engine') ||
+                  lowerCmd.includes('propulsion') ||
+                  lowerCmd.includes('kennedy space center') ||
+                  lowerCmd.includes('cape canaveral') ||
+                  lowerCmd.includes('timeline') ||
+                  lowerCmd.includes('specifications') ||
+                  lowerCmd.includes('safety') ||
+                  lowerCmd.includes('operations')
+                );
+
+                if (isMissionDescription) {
+                  // Auto-fill the form with the mission description
+                  try {
+                    const response = await fetch('/api/ai', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                      },
+                      body: JSON.stringify({
+                        userInput: cmd,
+                        mode: 'unified',
+                        conversationHistory: []
+                      }),
+                    });
+                    
+                    if (response.ok) {
+                      const data = await response.json();
+                      console.log('AI auto-fill response:', data);
+                      
+                      if (data.suggestions && data.suggestions.length > 0) {
+                        // Apply the suggestions to the form
+                        const newFormData = { ...formData };
+                        data.suggestions.forEach((suggestion: any) => {
+                          newFormData[suggestion.field] = suggestion.value;
+                        });
+                        
+                        setFormData(newFormData);
+                        
+                        // Show success message
+                        const filledFields = data.suggestions.length;
+                        aiPanelRef.current?.addAIMsg(`✅ Successfully filled ${filledFields} form fields with information from your mission description! The form has been updated automatically.`);
+                        
+                        // Save the updated form data
+                        await handleSave();
+                        return;
+                      } else {
+                        // Try parsing the response as structured sections
+                        const sections = parseStructuredResponse(data.message);
+                        if (Object.keys(sections).length > 0) {
+                          setFormData((prev) => ({ ...prev, ...sections }));
+                          const filledFields = Object.keys(sections).length;
+                          aiPanelRef.current?.addAIMsg(`✅ Successfully filled ${filledFields} form sections with information from your mission description! The form has been updated automatically.`);
+                          await handleSave();
+                          return;
+                        }
+                      }
+                    }
+                  } catch (error) {
+                    console.error('Auto-fill error:', error);
+                  }
+                }
+
                 // Use AI to intelligently parse and execute commands
                 try {
                   const response = await fetch('/api/ai', {
@@ -1338,7 +1416,7 @@ export default function ApplicationPage() {
                   return;
                 }
                 
-                aiPanelRef.current?.addAIMsg("I can help with Part 450 applications, FAA compliance, and aerospace regulations. Try commands like 'save draft', 'submit application', 'replace [field] with [content]', 'fill section X with [content]', 'auto fill', or ask me questions about Part 450 requirements, your application, or aerospace compliance.");
+                aiPanelRef.current?.addAIMsg("I can help with Part 450 applications, FAA compliance, and aerospace regulations. You can:\n\n• Paste a mission description paragraph and I'll automatically fill out the form\n• Use commands like 'save draft', 'submit application', 'replace [field] with [content]'\n• Ask questions about Part 450 requirements, your application, or aerospace compliance\n\nJust describe your mission and I'll extract the information to fill the form!");
               }}
               onFileDrop={async (files) => {
                 if (!user) return;
