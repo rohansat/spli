@@ -91,7 +91,32 @@ export default function ApplicationPage() {
 
   // Test parsing function manually
   const testParsing = () => {
-    const testResponse = `MISSION OBJECTIVE Deploy a 200kg Earth observation satellite to low Earth orbit for environmental monitoring and disaster response capabilities. The mission will provide critical data collection services for environmental assessment and emergency response coordination over a planned 3-year operational period with daily data acquisition cycles. VEHICLE DESCRIPTION Two-stage launch vehicle utilizing solid fuel propulsion systems. The vehicle is designed to deliver a 200kg payload to low Earth orbit at 500km altitude. Configuration optimized for reliable satellite deployment with proven solid rocket motor technology.`;
+    const testResponse = `MISSION OBJECTIVE
+Commercial lunar mission to deploy 500kg lunar lander and rover system to the Moon's surface for scientific research and technology demonstration.
+
+VEHICLE DESCRIPTION
+Three-stage Nova rocket with methane/oxygen engines, 85 meters height, 4.5-meter diameter fairing.
+
+LAUNCH SEQUENCE
+Three-stage launch sequence with lunar transfer injection and surface landing in Mare Tranquillitatis region.
+
+TECHNICAL SUMMARY
+500kg payload mass, solar arrays with 5kW capacity, deep space network communication with 2Mbps data rate.
+
+SAFETY CONSIDERATIONS
+Autonomous flight termination system with GPS tracking, real-time trajectory monitoring and collision avoidance.
+
+GROUND OPERATIONS
+Pre-launch vehicle assembly and testing at KSC, mission control operations from Houston facility.
+
+LAUNCH SITE
+Kennedy Space Center, Florida (28.5729° N, 80.6490° W) at Launch Complex 39A.
+
+TIMELINE
+Application submission Q1 2024, launch window Q4 2024 (October-December), 2-year mission duration.
+
+LICENSE TYPE
+Commercial space transportation license for lunar mission under FAA Part 450.`;
     
     console.log('Testing parsing with:', testResponse);
     const result = parseStructuredResponse(testResponse);
@@ -399,11 +424,12 @@ export default function ApplicationPage() {
   const parseStructuredResponse = (response: string): Record<string, string> => {
     const sections: Record<string, string> = {};
     
-    // Handle both multi-line and single-line formats
+    // Enhanced field mapping with multiple variations
     const fieldMapping: Record<string, string> = {
       'missionobjective': 'missionObjective',
       'vehicledescription': 'vehicleDescription',
-      'launchreentrysequence': 'launchReEntrySequence',
+      'launchreentrysequence': 'launchReentrySequence',
+      'launchsequence': 'launchReentrySequence',
       'trajectoryoverview': 'trajectoryOverview',
       'safetyconsiderations': 'safetyConsiderations',
       'groundoperations': 'groundOperations',
@@ -424,15 +450,18 @@ export default function ApplicationPage() {
       'plannedsafetytools': 'plannedSafetyTools',
       'fullapplicationtimeline': 'fullApplicationTimeline',
       'intendedwindow': 'intendedWindow',
+      'timeline': 'intendedWindow',
       'licensetypeintent': 'licenseTypeIntent',
+      'licensetype': 'licenseTypeIntent',
       'clarifypart450': 'clarifyPart450',
       'uniquetechinternational': 'uniqueTechInternational'
     };
     
-    // Split the response by section headers and extract content
+    // Enhanced section headers with variations
     const sectionHeaders = [
       'MISSION OBJECTIVE',
       'VEHICLE DESCRIPTION', 
+      'LAUNCH SEQUENCE',
       'LAUNCH/REENTRY SEQUENCE',
       'TRAJECTORY OVERVIEW',
       'SAFETY CONSIDERATIONS',
@@ -454,34 +483,92 @@ export default function ApplicationPage() {
       'PLANNED SAFETY TOOLS',
       'FULL APPLICATION TIMELINE',
       'INTENDED WINDOW',
+      'TIMELINE',
       'LICENSE TYPE INTENT',
+      'LICENSE TYPE',
       'CLARIFY PART 450',
       'UNIQUE TECH/INTERNATIONAL'
     ];
     
-    // Find each section and extract its content
-    for (let i = 0; i < sectionHeaders.length; i++) {
-      const currentHeader = sectionHeaders[i];
-      const nextHeader = sectionHeaders[i + 1];
+    // Split response into lines and process each section
+    const lines = response.split('\n');
+    let currentSection = '';
+    let currentContent: string[] = [];
+    
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
       
-      // Create regex to find content between current header and next header
-      let regexPattern;
-      if (nextHeader) {
-        regexPattern = new RegExp(`${currentHeader}\\s+(.*?)\\s+${nextHeader}`, 's');
-      } else {
-        // For the last section, match until the end
-        regexPattern = new RegExp(`${currentHeader}\\s+(.*?)$`, 's');
+      // Check if this line is a section header
+      const isHeader = sectionHeaders.some(header => 
+        line.toUpperCase() === header.toUpperCase() || 
+        line.toUpperCase().startsWith(header.toUpperCase())
+      );
+      
+      if (isHeader) {
+        // Save previous section if we have content
+        if (currentSection && currentContent.length > 0) {
+          const content = currentContent.join(' ').trim();
+          if (content && content.length > 0) {
+            const sectionKey = currentSection.toLowerCase().replace(/[^a-z]/g, '');
+            const fieldName = fieldMapping[sectionKey];
+            
+            if (fieldName) {
+              sections[fieldName] = content;
+              console.log(`Extracted ${fieldName}:`, content.substring(0, 100) + '...');
+            }
+          }
+        }
+        
+        // Start new section
+        currentSection = line;
+        currentContent = [];
+      } else if (line.length > 0 && currentSection) {
+        // Add content to current section
+        currentContent.push(line);
       }
-      
-      const match = response.match(regexPattern);
-      if (match && match[1]) {
-        const content = match[1].trim();
-        const sectionKey = currentHeader.toLowerCase().replace(/[^a-z]/g, '');
+    }
+    
+    // Handle the last section
+    if (currentSection && currentContent.length > 0) {
+      const content = currentContent.join(' ').trim();
+      if (content && content.length > 0) {
+        const sectionKey = currentSection.toLowerCase().replace(/[^a-z]/g, '');
         const fieldName = fieldMapping[sectionKey];
         
-        if (fieldName && content) {
+        if (fieldName) {
           sections[fieldName] = content;
           console.log(`Extracted ${fieldName}:`, content.substring(0, 100) + '...');
+        }
+      }
+    }
+    
+    // Fallback: try regex matching for sections that weren't found
+    if (Object.keys(sections).length === 0) {
+      console.log('No sections found with line-by-line parsing, trying regex fallback...');
+      
+      for (let i = 0; i < sectionHeaders.length; i++) {
+        const currentHeader = sectionHeaders[i];
+        const nextHeader = sectionHeaders[i + 1];
+        
+        // Create regex to find content between current header and next header
+        let regexPattern;
+        if (nextHeader) {
+          regexPattern = new RegExp(`${currentHeader}\\s*\\n(.*?)\\n\\s*${nextHeader}`, 's');
+        } else {
+          // For the last section, match until the end
+          regexPattern = new RegExp(`${currentHeader}\\s*\\n(.*?)$`, 's');
+        }
+        
+        const match = response.match(regexPattern);
+        if (match && match[1]) {
+          const content = match[1].trim();
+          const sectionKey = currentHeader.toLowerCase().replace(/[^a-z]/g, '');
+          const fieldName = fieldMapping[sectionKey];
+          
+          if (fieldName && content && content.length > 0) {
+            sections[fieldName] = content;
+            console.log(`Regex extracted ${fieldName}:`, content.substring(0, 100) + '...');
+          }
         }
       }
     }
