@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useImperativeHandle, forwardRef, useEffect } from "react";
-import { Paperclip, Send, UploadCloud, User, Bot, ThumbsUp, ThumbsDown, RefreshCw, Copy, Check, Sparkles, X, ChevronRight, MousePointer, Search, Palette, BookOpen, Globe, Pencil, FileText } from "lucide-react";
+import { Paperclip, Send, UploadCloud, User, Bot, ThumbsUp, ThumbsDown, RefreshCw, Copy, Check, Sparkles, X, ChevronRight, MousePointer, Search, Palette, BookOpen, Globe, Pencil, FileText, Brain, Zap, Shield, Rocket, Clock, HelpCircle, Lightbulb, Settings, CheckCircle } from "lucide-react";
 import { AIContextMenu } from "./ai-context-menu";
 import { Button } from "./button";
 import dayjs from "dayjs";
@@ -14,12 +14,21 @@ interface Message {
   sender: "user" | "ai";
   content: string;
   timestamp: number;
-  type?: "text" | "diff" | "change";
+  type?: "text" | "diff" | "change" | "document_analysis";
   diffData?: {
     oldContent: string;
     newContent: string;
     filePath: string;
     description: string;
+  };
+  documentInsights?: {
+    technicalSpecifications: string[];
+    missionObjectives: string[];
+    safetyConsiderations: string[];
+    timelineInformation: string[];
+    missingInformation: string[];
+    complianceRequirements: string[];
+    integrationSuggestions: string[];
   };
   isTyping?: boolean;
   reactions?: {
@@ -31,6 +40,7 @@ interface Message {
 export interface AIAssistantPanelHandle {
   addAIMsg: (msg: string) => void;
   addDiffMsg: (msg: string, oldContent: string, newContent: string, filePath: string, description: string) => void;
+  addDocumentAnalysisMsg: (msg: string, insights: any) => void;
   showTypingIndicator: () => void;
   hideTypingIndicator: () => void;
 }
@@ -47,7 +57,7 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
       {
         id: 1,
         sender: "ai",
-        content: "Hi! I am SPLI, How can I help you today?",
+        content: "Hi! I am SPLI, your comprehensive space and aerospace AI assistant. I can help you with:\n\n• FAA Part 450 applications and licensing\n• Space mission planning and design\n• Aerospace technology and engineering\n• Interplanetary mission concepts\n• Document analysis and application enhancement\n• Regulatory compliance and best practices\n\nHow can I assist you today?",
         timestamp: Date.now()
       }
     ]);
@@ -62,14 +72,15 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
     const [showQuickActions, setShowQuickActions] = useState(false);
     const [analytics, setAnalytics] = useState<any>(null);
     const [suggestionsUsed, setSuggestionsUsed] = useState(0);
+    const [uploadedDocuments, setUploadedDocuments] = useState<any[]>([]);
     const fileInputRef = useRef<HTMLInputElement>(null);
     
-      // Context menu state
-  const [showContextMenu, setShowContextMenu] = useState(false);
-  const [contextMenuPosition, setContextMenuPosition] = useState({ x: 0, y: 0 });
-  const [contextSearchTerm, setContextSearchTerm] = useState("");
-  const [cursorPosition, setCursorPosition] = useState(0);
-  const [selectedField, setSelectedField] = useState<any>(null);
+    // Context menu state
+    const [showContextMenu, setShowContextMenu] = useState(false);
+    const [contextMenuPosition, setContextMenuPosition] = useState({ x: 0, y: 0 });
+    const [contextSearchTerm, setContextSearchTerm] = useState("");
+    const [cursorPosition, setCursorPosition] = useState(0);
+    const [selectedField, setSelectedField] = useState<any>(null);
 
     // Check if user is at the bottom of the chat
     const isAtBottom = () => {
@@ -116,6 +127,21 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
               filePath,
               description
             }
+          }
+        ]);
+        // Force scroll to bottom for AI messages
+        setTimeout(() => scrollToBottom(true), 100);
+      },
+      addDocumentAnalysisMsg: (msg: string, insights: any) => {
+        setMessages((msgs) => [
+          ...msgs,
+          { 
+            id: Date.now(), 
+            sender: "ai", 
+            content: msg, 
+            timestamp: Date.now(),
+            type: "document_analysis",
+            documentInsights: insights
           }
         ]);
         // Force scroll to bottom for AI messages
@@ -252,24 +278,34 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
         }
       }
 
-      // Detect if this is an auto-fill request based on content
+      // Detect special commands and modes
       const lowerMessage = userMessage.toLowerCase();
-      const isAutoFillRequest = lowerMessage.includes('auto fill') || 
-                               lowerMessage.includes('fill form') || 
-                               lowerMessage.includes('fill out') ||
-                               lowerMessage.includes('mission description') ||
-                               lowerMessage.includes('satellite') ||
-                               lowerMessage.includes('rocket') ||
-                               lowerMessage.includes('launch') ||
-                               lowerMessage.includes('earth observation') ||
-                               lowerMessage.includes('200kg') ||
-                               lowerMessage.includes('cape canaveral') ||
-                               lowerMessage.includes('q3 2024') ||
-                               lowerMessage.includes('solid fuel') ||
-                               lowerMessage.includes('two-stage') ||
-                               lowerMessage.includes('500km') ||
-                               lowerMessage.includes('environmental monitoring') ||
-                               lowerMessage.includes('disaster response');
+      let mode = 'unified';
+      
+      if (lowerMessage.includes('ready for faa') || lowerMessage.includes('faa form')) {
+        mode = 'form';
+      } else if (lowerMessage.includes('analyze document') || lowerMessage.includes('document analysis')) {
+        mode = 'document_analysis';
+      } else if (lowerMessage.includes('strengthen') || lowerMessage.includes('enhance') || lowerMessage.includes('improve')) {
+        mode = 'assistance';
+      } else if (lowerMessage.includes('auto fill') || 
+                 lowerMessage.includes('fill form') || 
+                 lowerMessage.includes('fill out') ||
+                 lowerMessage.includes('mission description') ||
+                 lowerMessage.includes('satellite') ||
+                 lowerMessage.includes('rocket') ||
+                 lowerMessage.includes('launch') ||
+                 lowerMessage.includes('earth observation') ||
+                 lowerMessage.includes('200kg') ||
+                 lowerMessage.includes('cape canaveral') ||
+                 lowerMessage.includes('q3 2024') ||
+                 lowerMessage.includes('solid fuel') ||
+                 lowerMessage.includes('two-stage') ||
+                 lowerMessage.includes('500km') ||
+                 lowerMessage.includes('environmental monitoring') ||
+                 lowerMessage.includes('disaster response')) {
+        mode = 'form';
+      }
 
       // Call the unified AI API
       try {
@@ -280,8 +316,9 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
           },
           body: JSON.stringify({
             userInput: processedMessage + formContext,
-            mode: isAutoFillRequest ? 'form' : 'unified',
-            conversationHistory: messages // Send conversation history for context
+            mode: mode,
+            conversationHistory: messages, // Send conversation history for context
+            documents: uploadedDocuments // Send uploaded documents for analysis
           }),
         });
 
@@ -312,6 +349,19 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
           if (onCommand) {
             onCommand(`auto_fill_suggestions:${JSON.stringify(data.suggestions)}`);
           }
+        } else if (data.documentInsights) {
+          // Handle document analysis results
+          setMessages((msgs) => [
+            ...msgs,
+            { 
+              id: Date.now(), 
+              sender: "ai", 
+              content: data.message, 
+              timestamp: Date.now(),
+              type: "document_analysis",
+              documentInsights: data.documentInsights
+            }
+          ]);
         } else {
           setMessages((msgs) => [
             ...msgs,
@@ -342,7 +392,22 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
       e.preventDefault();
       setIsDragging(false);
       const files = Array.from(e.dataTransfer.files);
-      if (onFileDrop && files.length > 0) onFileDrop(files);
+      if (onFileDrop && files.length > 0) {
+        onFileDrop(files);
+        // Add files to uploaded documents for AI analysis
+        files.forEach(file => {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const content = e.target?.result as string;
+            setUploadedDocuments(prev => [...prev, {
+              name: file.name,
+              content: content,
+              type: file.type
+            }]);
+          };
+          reader.readAsText(file);
+        });
+      }
     };
 
     const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
@@ -357,7 +422,21 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
 
     const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       if (e.target.files && onFileDrop) {
-        onFileDrop(Array.from(e.target.files));
+        const files = Array.from(e.target.files);
+        onFileDrop(files);
+        // Add files to uploaded documents for AI analysis
+        files.forEach(file => {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const content = e.target?.result as string;
+            setUploadedDocuments(prev => [...prev, {
+              name: file.name,
+              content: content,
+              type: file.type
+            }]);
+          };
+          reader.readAsText(file);
+        });
       }
     };
 
@@ -460,6 +539,110 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
       </div>
     );
 
+    const renderDocumentAnalysis = (insights: any) => {
+      return (
+        <div className="space-y-4 mt-3">
+          {insights.technicalSpecifications.length > 0 && (
+            <div className="bg-blue-900/20 border border-blue-700 rounded-lg p-3">
+              <h4 className="font-medium text-blue-300 mb-2 flex items-center gap-2">
+                <Settings className="h-4 w-4" />
+                Technical Specifications
+              </h4>
+              <ul className="space-y-1">
+                {insights.technicalSpecifications.map((spec: string, index: number) => (
+                  <li key={index} className="text-sm text-blue-200">• {spec}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          
+          {insights.missionObjectives.length > 0 && (
+            <div className="bg-green-900/20 border border-green-700 rounded-lg p-3">
+              <h4 className="font-medium text-green-300 mb-2 flex items-center gap-2">
+                <Rocket className="h-4 w-4" />
+                Mission Objectives
+              </h4>
+              <ul className="space-y-1">
+                {insights.missionObjectives.map((objective: string, index: number) => (
+                  <li key={index} className="text-sm text-green-200">• {objective}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          
+          {insights.safetyConsiderations.length > 0 && (
+            <div className="bg-red-900/20 border border-red-700 rounded-lg p-3">
+              <h4 className="font-medium text-red-300 mb-2 flex items-center gap-2">
+                <Shield className="h-4 w-4" />
+                Safety Considerations
+              </h4>
+              <ul className="space-y-1">
+                {insights.safetyConsiderations.map((safety: string, index: number) => (
+                  <li key={index} className="text-sm text-red-200">• {safety}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          
+          {insights.timelineInformation.length > 0 && (
+            <div className="bg-yellow-900/20 border border-yellow-700 rounded-lg p-3">
+              <h4 className="font-medium text-yellow-300 mb-2 flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                Timeline Information
+              </h4>
+              <ul className="space-y-1">
+                {insights.timelineInformation.map((timeline: string, index: number) => (
+                  <li key={index} className="text-sm text-yellow-200">• {timeline}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          
+          {insights.missingInformation.length > 0 && (
+            <div className="bg-orange-900/20 border border-orange-700 rounded-lg p-3">
+              <h4 className="font-medium text-orange-300 mb-2 flex items-center gap-2">
+                <HelpCircle className="h-4 w-4" />
+                Missing Information
+              </h4>
+              <ul className="space-y-1">
+                {insights.missingInformation.map((missing: string, index: number) => (
+                  <li key={index} className="text-sm text-orange-200">• {missing}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          
+          {insights.complianceRequirements.length > 0 && (
+            <div className="bg-purple-900/20 border border-purple-700 rounded-lg p-3">
+              <h4 className="font-medium text-purple-300 mb-2 flex items-center gap-2">
+                <CheckCircle className="h-4 w-4" />
+                Compliance Requirements
+              </h4>
+              <ul className="space-y-1">
+                {insights.complianceRequirements.map((req: string, index: number) => (
+                  <li key={index} className="text-sm text-purple-200">• {req}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          
+          {insights.integrationSuggestions.length > 0 && (
+            <div className="bg-emerald-900/20 border border-emerald-700 rounded-lg p-3">
+              <h4 className="font-medium text-emerald-300 mb-2 flex items-center gap-2">
+                <Lightbulb className="h-4 w-4" />
+                Integration Suggestions
+              </h4>
+              <ul className="space-y-1">
+                {insights.integrationSuggestions.map((suggestion: string, index: number) => (
+                  <li key={index} className="text-sm text-emerald-200">• {suggestion}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      );
+    };
+
     const renderDiff = (oldContent: string, newContent: string) => {
       const oldLines = oldContent.split('\n');
       const newLines = newContent.split('\n');
@@ -543,12 +726,12 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
         <div className="bg-zinc-800 px-4 py-3 border-b border-zinc-700">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-zinc-700 rounded-lg flex items-center justify-center">
-                <Bot className="h-4 w-4 text-zinc-300" />
+              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
+                <Brain className="h-4 w-4 text-white" />
               </div>
               <div>
                 <h3 className="font-medium text-zinc-100 text-sm">SPLI Assistant</h3>
-                <p className="text-zinc-400 text-xs">Aerospace Compliance</p>
+                <p className="text-zinc-400 text-xs">Space & Aerospace AI Expert</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -616,8 +799,8 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
               >
                 {msg.sender === "ai" && !msg.isTyping && (
                   <div className="flex-shrink-0 mb-1">
-                    <div className="w-6 h-6 bg-zinc-700 rounded flex items-center justify-center">
-                      <Bot className="h-3 w-3 text-zinc-300" />
+                    <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-purple-500 rounded flex items-center justify-center">
+                      <Brain className="h-3 w-3 text-white" />
                     </div>
                   </div>
                 )}
@@ -632,9 +815,12 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
                           : "bg-zinc-800 text-zinc-200 rounded-lg rounded-bl-md border border-zinc-700"
                       }`}
                     >
-                      <span>{msg.content}</span>
+                      <span className="whitespace-pre-wrap">{msg.content}</span>
                       {msg.type === 'diff' && msg.diffData && (
                         renderDiff(msg.diffData.oldContent, msg.diffData.newContent)
+                      )}
+                      {msg.type === 'document_analysis' && msg.documentInsights && (
+                        renderDocumentAnalysis(msg.documentInsights)
                       )}
                       <div className="flex items-center justify-between mt-2">
                         <span className={`text-xs ${msg.sender === "user" ? "text-zinc-300" : "text-zinc-500"}`}>
@@ -703,7 +889,6 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
           <div ref={messagesEndRef} />
         </div>
 
-
         {/* Quick Actions Dropdown */}
         {showQuickActions && (
           <div className="absolute bottom-16 left-3 bg-zinc-800 border border-zinc-700 rounded-lg shadow-xl z-50 min-w-48 max-h-64 overflow-y-auto">
@@ -716,10 +901,6 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
             </div>
           </div>
         )}
-
-
-
-
 
         {/* Input & Drag-and-Drop */}
         <div className="border-t border-zinc-700 p-3 bg-zinc-800 flex items-center gap-3 relative" style={{ marginTop: 'auto' }}>
@@ -785,7 +966,7 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
                     handleSend(e);
                   }
                 }}
-                placeholder={isLoading ? "AI is processing..." : "Type a message... (use @ to auto-complete form fields)"}
+                placeholder={isLoading ? "AI is processing..." : "Ask about space, aerospace, FAA licensing, or use @ to auto-complete form fields..."}
                 className="flex-1 bg-zinc-700 outline-none text-zinc-100 placeholder:text-zinc-400 px-3 py-2 rounded border border-zinc-600 focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 transition-all min-h-[40px] max-h-[150px] overflow-y-auto resize-none"
                 autoResize={true}
                 disabled={isLoading}
@@ -795,7 +976,7 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
                 className={`transition-all ${
                   isLoading 
                     ? 'bg-zinc-600 cursor-not-allowed' 
-                    : 'bg-zinc-600 hover:bg-zinc-500 text-zinc-100'
+                    : 'bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white'
                 }`}
                 onClick={handleSend}
                 title="Send"

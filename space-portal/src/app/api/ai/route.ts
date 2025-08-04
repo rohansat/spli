@@ -11,18 +11,61 @@ export async function POST(request: NextRequest) {
   console.log('API Key length:', process.env.ANTHROPIC_API_KEY?.length);
   
   try {
-    const { userInput, context, mode, conversationHistory = [] } = await request.json();
-    console.log('Request data:', { userInput, mode, conversationHistoryLength: conversationHistory.length });
+    const { userInput, context, mode, conversationHistory = [], documents = [] } = await request.json();
+    console.log('Request data:', { userInput, mode, conversationHistoryLength: conversationHistory.length, documentsCount: documents.length });
 
-    // Enhanced system prompt for better auto-fill functionality
-    const systemPrompt = `You are SPLI Chat, a specialized AI assistant for FAA Part 450 launch and reentry license applications. Your primary function is to analyze comprehensive mission descriptions and extract relevant information to fill out Part 450 application sections.
+    // Enhanced system prompt for comprehensive space and aerospace assistance
+    const systemPrompt = `You are SPLI Chat, a specialized AI assistant for space, aerospace, licensing, FAA timelines, and interplanetary missions. You are an expert in FAA Part 450 launch and reentry license applications, space technology, aerospace engineering, and regulatory compliance.
 
-CORE FUNCTIONALITY:
+CORE CAPABILITIES:
+
+1. COMPREHENSIVE SPACE & AEROSPACE EXPERTISE:
+- Answer any questions about space missions, aerospace technology, and industry
+- Provide detailed information about FAA licensing processes and timelines
+- Explain interplanetary mission concepts, challenges, and requirements
+- Offer guidance on space law, regulations, and compliance
+- Share insights on launch vehicle technology, propulsion systems, and mission design
+- Discuss orbital mechanics, trajectory planning, and mission architecture
+- Provide information about spaceports, launch facilities, and ground operations
+- Explain satellite technology, payload integration, and mission operations
+
+2. INTELLIGENT APPLICATION FILLING:
 When a user provides a comprehensive mission description or application summary, your job is to:
-1. Analyze the entire description thoroughly
-2. Extract specific information relevant to each Part 450 section
-3. Provide structured, accurate content for each applicable form field
-4. Ensure all extracted information is directly relevant to the Part 450 application
+- Analyze the entire description thoroughly
+- Extract specific information relevant to each Part 450 section
+- Provide structured, accurate content for each applicable form field
+- Ensure all extracted information is directly relevant to the Part 450 application
+- Suggest improvements and enhancements to strengthen applications
+- Provide sophisticated, FAA-ready language and phrasing
+- Identify missing information and suggest what needs to be added
+
+3. DOCUMENT ANALYSIS:
+- Analyze uploaded documents for relevant information
+- Extract key data points that should be included in applications
+- Identify compliance requirements and regulatory references
+- Suggest how document information should be integrated into forms
+- Flag potential issues or missing documentation
+
+4. APPLICATION ENHANCEMENT:
+- Suggest ideas to strengthen applications
+- Provide sophisticated, professional language for FAA submissions
+- Recommend additional technical details and specifications
+- Suggest safety considerations and risk mitigation strategies
+- Offer best practices for successful applications
+
+5. COMMAND EXECUTION:
+You can execute these specific commands when users request them:
+- "ready for FAA" - Prompt the same form that appears when users click the button
+- "analyze documents" - Analyze uploaded documents for application relevance
+- "strengthen application" - Provide suggestions to improve application quality
+- "sophisticated language" - Rephrase content to be more professional and FAA-ready
+- "auto fill" or "fill form" - Analyze mission description and automatically fill relevant form sections
+- "save draft" - Save the current application draft
+- "submit application" - Submit the application for review
+- "replace [field name] section with [content]" - Replace a specific form field with new content
+- "fill section X with [content]" - Fill a specific form section with provided content
+- "delete application" - Delete the current application
+- "upload document" - Help with document uploads
 
 PART 450 APPLICATION SECTIONS TO FILL:
 
@@ -71,7 +114,7 @@ When analyzing a mission description:
 1. Read the entire description carefully
 2. Identify all relevant information for each Part 450 section
 3. Extract specific details like:
-   - Mission type (satellite, suborbital, orbital, etc.)
+   - Mission type (satellite, suborbital, orbital, interplanetary, etc.)
    - Vehicle specifications (stages, propulsion, dimensions, mass)
    - Launch site and timing information
    - Safety considerations and risk assessments
@@ -79,6 +122,15 @@ When analyzing a mission description:
    - Timeline and licensing information
 4. Provide accurate, specific content for each applicable field
 5. If information is missing for a section, indicate "Information not provided in description"
+
+DOCUMENT ANALYSIS INSTRUCTIONS:
+When analyzing documents:
+1. Extract key technical specifications and data
+2. Identify regulatory requirements and compliance information
+3. Find mission-specific details and objectives
+4. Locate safety considerations and risk assessments
+5. Extract timeline and scheduling information
+6. Identify missing information that should be included in applications
 
 RESPONSE FORMAT FOR APPLICATION ANALYSIS:
 When analyzing an application summary, structure your response with clear section headers:
@@ -176,6 +228,11 @@ CONVERSATION STYLE:
 - Match the user's energy and detail level
 - Keep responses concise and appropriate to the question
 - Don't overwhelm with information unless specifically asked
+- Use clean, organized formatting with proper spacing and structure
+- Use bullet points (•), numbered lists, and clear sections for better readability
+- Separate different topics with line breaks for visual clarity
+- Use ALL CAPS for section headers and key terms
+- DO NOT use markdown formatting - use plain text that displays properly
 
 RESPONSE GUIDELINES:
 - For simple greetings (hi, hello, hey): Respond briefly and warmly, then ask how you can help
@@ -210,6 +267,9 @@ AVAILABLE COMMANDS:
 7. show_help - Show available commands
 8. upload_file [file] - Upload files to application
 9. delete_application - Delete the application
+10. analyze_documents - Analyze uploaded documents
+11. strengthen_application - Provide application enhancement suggestions
+12. sophisticated_language - Rephrase content professionally
 
 COMMAND EXECUTION FORMAT:
 When executing commands, respond with ONLY the command and parameters (no additional text):
@@ -222,12 +282,6 @@ Examples:
 
 - User: "save the draft"
 - Response: "COMMAND: save_draft\nPARAMS: {}"
-
-- User: "switch to safety considerations tab"
-- Response: "COMMAND: switch_tab\nPARAMS: {\"tab\": \"safety considerations\"}"
-
-- User: "analyze my application"
-- Response: "COMMAND: analyze_application\nPARAMS: {}"
 
 IMPORTANT: Do not include any explanatory text, just the COMMAND and PARAMS lines.
 
@@ -382,7 +436,86 @@ CLARIFY PART 450
 [Extracted questions about regulations]
 
 UNIQUE TECH/INTERNATIONAL
-[Extracted unique technology or international aspects]`;
+[Extracted unique technology or international aspects]
+
+DOCUMENT ANALYSIS FORMAT:
+When analyzing documents, provide structured insights:
+
+DOCUMENT ANALYSIS RESULTS
+
+KEY TECHNICAL SPECIFICATIONS
+• [Extracted technical data]
+
+MISSION OBJECTIVES
+• [Extracted mission goals]
+
+SAFETY CONSIDERATIONS
+• [Extracted safety information]
+
+TIMELINE INFORMATION
+• [Extracted scheduling data]
+
+MISSING INFORMATION
+• [Information that should be added to application]
+
+COMPLIANCE REQUIREMENTS
+• [Regulatory requirements found]
+
+INTEGRATION SUGGESTIONS
+• [How to use document information in application]
+
+SPACE & AEROSPACE EXPERTISE AREAS:
+- Launch vehicle technology and propulsion systems
+- Orbital mechanics and trajectory planning
+- Satellite technology and payload integration
+- Space law and regulatory compliance
+- FAA licensing processes and requirements
+- Interplanetary mission design and challenges
+- Spaceport operations and ground support
+- Mission architecture and systems engineering
+- Safety analysis and risk assessment
+- International space cooperation and agreements
+- Space tourism and commercial spaceflight
+- Space debris mitigation and sustainability
+- Planetary protection and contamination control
+- Space weather and environmental factors
+- Mission operations and control systems
+
+INTERPLANETARY MISSION EXPERTISE:
+- Mars mission planning and requirements
+- Lunar exploration and Artemis program
+- Deep space navigation and communication
+- Planetary protection protocols
+- Interplanetary propulsion systems
+- Mission duration and life support considerations
+- Radiation protection and shielding
+- Autonomous systems and AI in space
+- International cooperation in deep space
+- Commercial interplanetary initiatives
+
+FAA LICENSING EXPERTISE:
+- Part 450 application process and requirements
+- Safety analysis and risk assessment methodologies
+- Environmental impact assessment
+- Public safety considerations
+- Launch site licensing and requirements
+- Mission-specific vs. operator licensing
+- License amendment and modification processes
+- Compliance monitoring and reporting
+- International launch coordination
+- Regulatory updates and policy changes
+
+AEROSPACE TECHNOLOGY EXPERTISE:
+- Propulsion systems (liquid, solid, hybrid, electric)
+- Launch vehicle design and optimization
+- Reusable launch systems and recovery
+- Payload integration and fairing design
+- Avionics and guidance systems
+- Materials science and structural design
+- Thermal protection and heat management
+- Power systems and energy storage
+- Communication and telemetry systems
+- Ground support equipment and infrastructure`;
 
     // Build conversation messages array
     const messages: Array<{ role: 'user' | 'assistant'; content: string }> = [
@@ -400,6 +533,18 @@ UNIQUE TECH/INTERNATIONAL
       });
     });
 
+    // Add document context if provided
+    if (documents && documents.length > 0) {
+      const documentContext = `\n\nDOCUMENT ANALYSIS CONTEXT:\n${documents.map((doc: any, index: number) => 
+        `Document ${index + 1}: ${doc.name}\nContent: ${doc.content}\n\n`
+      ).join('')}`;
+      
+      messages.push({
+        role: 'user',
+        content: `Please analyze the following documents for application relevance:${documentContext}`
+      });
+    }
+
     // Add current user input
     messages.push({
       role: 'user',
@@ -408,7 +553,7 @@ UNIQUE TECH/INTERNATIONAL
 
     const response = await anthropic.messages.create({
       model: 'claude-sonnet-4-20250514',
-      max_tokens: 2048, // Increased for better structured responses
+      max_tokens: 4096, // Increased for comprehensive responses
       messages: messages
     });
 
@@ -443,64 +588,30 @@ UNIQUE TECH/INTERNATIONAL
       });
     }
 
-    // For unified mode (default), try to detect if this is an auto-fill request
-    if (mode === 'unified' || !mode) {
-      const lowerInput = userInput.toLowerCase();
-      const isAutoFillRequest = lowerInput.includes('auto fill') || 
-                               lowerInput.includes('fill form') || 
-                               lowerInput.includes('fill out') ||
-                               lowerInput.includes('mission description') ||
-                               lowerInput.includes('satellite') ||
-                               lowerInput.includes('rocket') ||
-                               lowerInput.includes('launch') ||
-                               lowerInput.includes('earth observation') ||
-                               lowerInput.includes('200kg') ||
-                               lowerInput.includes('cape canaveral') ||
-                               lowerInput.includes('q3 2024');
-      
-      if (isAutoFillRequest) {
-        const suggestions = extractFormSuggestions(aiResponse, userInput);
-        
-        // Add conversation analytics
-        const analytics = {
-          messageLength: userInput.length,
-          responseLength: aiResponse.length,
-          hasSuggestions: suggestions.length > 0,
-          suggestionCount: suggestions.length,
-          isAutoFillRequest: true,
-          timestamp: new Date().toISOString()
-        };
-        
-        return NextResponse.json({ 
-          suggestions,
-          message: aiResponse,
-          mode: 'form',
-          analytics
-        });
-      }
-      
-      // Add conversation analytics for regular responses
-      const analytics = {
-        messageLength: userInput.length,
-        responseLength: aiResponse.length,
-        hasSuggestions: false,
-        suggestionCount: 0,
-        isAutoFillRequest: false,
-        timestamp: new Date().toISOString()
-      };
+    // For document analysis mode
+    if (mode === 'document_analysis') {
+      const documentInsights = extractDocumentInsights(aiResponse);
+      return NextResponse.json({ 
+        message: aiResponse,
+        documentInsights,
+        mode 
+      });
     }
+
+    // For unified mode (default), try to detect if this is an auto-fill request
+    const analytics = {
+      messageLength: userInput.length,
+      responseLength: aiResponse.length,
+      hasSuggestions: false,
+      suggestionCount: 0,
+      isAutoFillRequest: false,
+      timestamp: new Date().toISOString()
+    };
 
     return NextResponse.json({ 
       message: aiResponse,
       mode,
-      analytics: {
-        messageLength: userInput.length,
-        responseLength: aiResponse.length,
-        hasSuggestions: false,
-        suggestionCount: 0,
-        isAutoFillRequest: false,
-        timestamp: new Date().toISOString()
-      }
+      analytics
     });
 
   } catch (error) {
@@ -520,334 +631,148 @@ function extractFormSuggestions(aiResponse: string, userInput: string) {
   // Smart parsing of structured AI response
   const suggestions = [];
   
-  console.log('AI Response for parsing:', aiResponse);
+  // Parse structured sections from AI response
+  const sections = aiResponse.split(/\n\s*\n/);
   
-  // Enhanced field name mappings for parsing with more variations
-  const fieldMappings = {
-    // Section 1: Concept of Operations (CONOPS)
-    missionObjective: ['mission objective', 'mission', 'objective', 'purpose', 'goal', 'description', 'launch', 'satellite', 'observation', 'monitoring'],
-    vehicleDescription: ['vehicle description', 'vehicle', 'rocket', 'launcher', 'spacecraft', 'two-stage', 'three-stage', 'solid fuel', 'liquid fuel', 'propulsion'],
-    launchReentrySequence: ['launch/reentry sequence', 'launch sequence', 'reentry sequence', 'flight sequence', 'mission sequence', 'stages', 'separation', 'ignition'],
-    trajectoryOverview: ['trajectory overview', 'trajectory', 'flight path', 'orbit', 'path', 'altitude', 'leo', 'low earth orbit', '500km'],
-    safetyConsiderations: ['safety considerations', 'safety', 'risk', 'hazard', 'environmental', 'disaster response', 'monitoring'],
-    groundOperations: ['ground operations', 'ground', 'operations', 'launch pad', 'cape canaveral', 'space force station'],
+  for (const section of sections) {
+    const lines = section.trim().split('\n');
+    if (lines.length < 2) continue;
     
-    // Section 2: Vehicle Overview
-    technicalSummary: ['technical summary', 'technical', 'specifications', 'specs', 'technical data', '200kg', 'payload', 'mass', 'weight'],
-    dimensionsMassStages: ['dimensions/mass/stages', 'dimensions', 'mass', 'stages', 'size', 'weight', '200kg', 'two-stage', 'stages'],
-    propulsionTypes: ['propulsion types', 'propulsion', 'engines', 'motor', 'fuel', 'solid fuel', 'solid-fueled', 'liquid fuel'],
-    recoverySystems: ['recovery systems', 'recovery', 'landing', 'reusable', 'expendable'],
-    groundSupportEquipment: ['ground support equipment', 'ground support', 'GSE', 'equipment', 'launch pad', 'facility'],
+    const header = lines[0].trim();
+    const content = lines.slice(1).join(' ').trim();
     
-    // Section 3: Planned Launch/Reentry Location(s)
-    siteNamesCoordinates: ['site names/coordinates', 'site', 'coordinates', 'location', 'latitude', 'longitude', 'cape canaveral', 'space force station'],
-    siteOperator: ['site operator', 'operator', 'facility operator', 'space force', 'military'],
-    airspaceMaritimeNotes: ['airspace/maritime notes', 'airspace', 'maritime', 'flight corridor', 'military airspace'],
-    
-    // Section 4: Launch Information
-    launchSite: ['launch site', 'launch location', 'launch pad', 'facility', 'cape canaveral', 'space force station'],
-    launchWindow: ['launch window', 'window', 'timing', 'schedule', 'launch time', 'q3 2024', 'quarter', '2024'],
-    flightPath: ['flight path', 'path', 'trajectory', 'route', 'leo', 'low earth orbit', '500km'],
-    landingSite: ['landing site', 'landing location', 'recovery site', 'expendable'],
-    
-    // Section 5: Preliminary Risk or Safety Considerations
-    earlyRiskAssessments: ['early risk assessments', 'risk assessment', 'hazard analysis', 'environmental monitoring'],
-    publicSafetyChallenges: ['public safety challenges', 'public safety', 'safety challenge', 'disaster response'],
-    plannedSafetyTools: ['planned safety tools', 'safety tools', 'DEBRIS', 'SARA', 'monitoring systems'],
-    
-    // Section 6: Timeline & Intent
-    fullApplicationTimeline: ['full application timeline', 'timeline', 'schedule', 'deadline', 'q3 2024', '2024'],
-    intendedWindow: ['intended window', 'target window', 'planned window', 'q3 2024'],
-    licenseTypeIntent: ['license type intent', 'license type', 'license intent', 'part 450'],
-    
-    // Section 7: List of Questions for FAA
-    clarifyPart450: ['clarify part 450', 'clarify', 'questions', 'requirements', 'faa'],
-    uniqueTechInternational: ['unique tech/international', 'unique technology', 'international', 'novel', 'earth observation']
+    if (content && content !== '[Extracted...]' && content !== 'Information not provided in description') {
+      // Map section headers to field names
+      const fieldMapping: Record<string, string> = {
+        'MISSION OBJECTIVE': 'missionObjective',
+        'VEHICLE DESCRIPTION': 'vehicleDescription',
+        'LAUNCH/REENTRY SEQUENCE': 'launchReentrySequence',
+        'TRAJECTORY OVERVIEW': 'trajectoryOverview',
+        'SAFETY CONSIDERATIONS': 'safetyConsiderations',
+        'GROUND OPERATIONS': 'groundOperations',
+        'TECHNICAL SUMMARY': 'technicalSummary',
+        'DIMENSIONS/MASS/STAGES': 'dimensionsMassStages',
+        'PROPULSION TYPES': 'propulsionTypes',
+        'RECOVERY SYSTEMS': 'recoverySystems',
+        'GROUND SUPPORT EQUIPMENT': 'groundSupportEquipment',
+        'SITE NAMES/COORDINATES': 'siteNamesCoordinates',
+        'SITE OPERATOR': 'siteOperator',
+        'AIRSPACE/MARITIME NOTES': 'airspaceMaritimeNotes',
+        'LAUNCH SITE': 'launchSite',
+        'LAUNCH WINDOW': 'launchWindow',
+        'FLIGHT PATH': 'flightPath',
+        'LANDING SITE': 'landingSite',
+        'EARLY RISK ASSESSMENTS': 'earlyRiskAssessments',
+        'PUBLIC SAFETY CHALLENGES': 'publicSafetyChallenges',
+        'PLANNED SAFETY TOOLS': 'plannedSafetyTools',
+        'FULL APPLICATION TIMELINE': 'fullApplicationTimeline',
+        'INTENDED WINDOW': 'intendedWindow',
+        'LICENSE TYPE INTENT': 'licenseTypeIntent',
+        'CLARIFY PART 450': 'clarifyPart450',
+        'UNIQUE TECH/INTERNATIONAL': 'uniqueTechInternational'
+      };
+      
+      const fieldName = fieldMapping[header];
+      if (fieldName) {
+        suggestions.push({
+          field: fieldName,
+          value: content,
+          confidence: 0.9,
+          reasoning: `Extracted from AI analysis of mission description`
+        });
+      }
+    }
+  }
+  
+  return suggestions;
+}
+
+function extractDocumentInsights(aiResponse: string) {
+  // Parse document analysis insights
+  const insights: {
+    technicalSpecifications: string[];
+    missionObjectives: string[];
+    safetyConsiderations: string[];
+    timelineInformation: string[];
+    missingInformation: string[];
+    complianceRequirements: string[];
+    integrationSuggestions: string[];
+  } = {
+    technicalSpecifications: [],
+    missionObjectives: [],
+    safetyConsiderations: [],
+    timelineInformation: [],
+    missingInformation: [],
+    complianceRequirements: [],
+    integrationSuggestions: []
   };
-
-  // Parse structured response with clear sections
-  const parsedSections = parseStructuredResponse(aiResponse);
-  console.log('Parsed sections:', parsedSections);
   
-  // Map parsed sections to form fields
-  for (const [field, searchTerms] of Object.entries(fieldMappings)) {
-    const content = findMatchingContent(parsedSections, searchTerms);
-    if (content && content.trim().length > 0 && !content.includes('Information not provided')) {
-      suggestions.push({
-        field,
-        value: content.trim(),
-        confidence: 0.9,
-        reasoning: `Extracted from AI response section matching ${searchTerms[0]}`
-      });
-    }
-  }
-
-  console.log('Structured parsing suggestions:', suggestions);
-
-  // If structured parsing didn't work well, fall back to keyword-based extraction
-  if (suggestions.length < 5) { // Require at least 5 fields to be confident in structured parsing
-    console.log('Falling back to keyword-based extraction');
-    const lowerInput = userInput.toLowerCase();
-    const lowerResponse = aiResponse.toLowerCase();
-
-    for (const [field, keywords] of Object.entries(fieldMappings)) {
-      // Skip if we already have this field from structured parsing
-      if (suggestions.some(s => s.field === field)) continue;
-      
-      if (keywords.some(keyword => lowerInput.includes(keyword) || lowerResponse.includes(keyword))) {
-        const relevantText = extractRelevantText(aiResponse, keywords);
-        if (relevantText && relevantText.trim().length > 0) {
-          suggestions.push({
-            field,
-            value: relevantText.trim(),
-            confidence: 0.7,
-            reasoning: `Based on keyword matching: ${keywords.join(' or ')}`
-          });
-        }
-      }
-    }
-  }
-
-  console.log('Final suggestions:', suggestions);
-
-  // Final fallback: generate basic suggestions based on mission type
-  if (suggestions.length === 0) {
-    console.log('Using basic suggestions fallback');
-    const missionType = detectMissionType(userInput.toLowerCase());
-    if (missionType) {
-      suggestions.push(...generateBasicSuggestions(missionType, userInput));
-    }
-  }
-
-  return suggestions;
-}
-
-function parseStructuredResponse(response: string): Record<string, string> {
-  const sections: Record<string, string> = {};
+  // Parse structured document analysis
+  const sections = aiResponse.split(/\n\s*\n/);
   
-  // Split response into lines and look for section headers
-  const lines = response.split('\n');
-  let currentSection = '';
-  let currentContent: string[] = [];
-  
-  for (const line of lines) {
-    const trimmedLine = line.trim();
+  for (const section of sections) {
+    const lines = section.trim().split('\n');
+    if (lines.length < 2) continue;
     
-    // Enhanced pattern matching for section headers
-    if (trimmedLine.match(/^[A-Z\s\/]+$/) || 
-        trimmedLine.match(/^\*\*[^*]+\*\*$/) ||
-        trimmedLine.match(/^[A-Z][a-z\s]+:$/) ||
-        trimmedLine.match(/^[A-Z\s]+:$/) ||
-        trimmedLine.match(/^[A-Z][A-Z\s]+$/) ||
-        // Enhanced patterns for the AI response format
-        trimmedLine.match(/^[A-Z\s]+\s+[A-Z\s]+$/) ||
-        trimmedLine.match(/^[A-Z][A-Z\s\/]+[A-Z]$/) ||
-        // New patterns for specific section headers
-        trimmedLine.match(/^MISSION OBJECTIVE$/) ||
-        trimmedLine.match(/^VEHICLE DESCRIPTION$/) ||
-        trimmedLine.match(/^LAUNCH\/REENTRY SEQUENCE$/) ||
-        trimmedLine.match(/^TRAJECTORY OVERVIEW$/) ||
-        trimmedLine.match(/^SAFETY CONSIDERATIONS$/) ||
-        trimmedLine.match(/^GROUND OPERATIONS$/) ||
-        trimmedLine.match(/^TECHNICAL SUMMARY$/) ||
-        trimmedLine.match(/^DIMENSIONS\/MASS\/STAGES$/) ||
-        trimmedLine.match(/^PROPULSION TYPES$/) ||
-        trimmedLine.match(/^RECOVERY SYSTEMS$/) ||
-        trimmedLine.match(/^GROUND SUPPORT EQUIPMENT$/) ||
-        trimmedLine.match(/^SITE NAMES\/COORDINATES$/) ||
-        trimmedLine.match(/^SITE OPERATOR$/) ||
-        trimmedLine.match(/^AIRSPACE\/MARITIME NOTES$/) ||
-        trimmedLine.match(/^LAUNCH SITE$/) ||
-        trimmedLine.match(/^LAUNCH WINDOW$/) ||
-        trimmedLine.match(/^FLIGHT PATH$/) ||
-        trimmedLine.match(/^LANDING SITE$/) ||
-        trimmedLine.match(/^EARLY RISK ASSESSMENTS$/) ||
-        trimmedLine.match(/^PUBLIC SAFETY CHALLENGES$/) ||
-        trimmedLine.match(/^PLANNED SAFETY TOOLS$/) ||
-        trimmedLine.match(/^FULL APPLICATION TIMELINE$/) ||
-        trimmedLine.match(/^INTENDED WINDOW$/) ||
-        trimmedLine.match(/^LICENSE TYPE INTENT$/) ||
-        trimmedLine.match(/^CLARIFY PART 450$/) ||
-        trimmedLine.match(/^UNIQUE TECH\/INTERNATIONAL$/)) {
-      
-      // Save previous section
-      if (currentSection && currentContent.length > 0) {
-        const cleanSectionName = currentSection.replace(/\*\*/g, '').replace(/:/g, '').trim().toLowerCase();
-        sections[cleanSectionName] = currentContent.join(' ').trim();
-      }
-      
-      // Start new section
-      currentSection = trimmedLine.replace(/\*\*/g, '').replace(/:/g, '').trim();
-      currentContent = [];
-    } else if (trimmedLine.length > 0 && currentSection) {
-      // Add content to current section
-      currentContent.push(trimmedLine);
-    }
-  }
-  
-  // Save last section
-  if (currentSection && currentContent.length > 0) {
-    const cleanSectionName = currentSection.replace(/\*\*/g, '').replace(/:/g, '').trim().toLowerCase();
-    sections[cleanSectionName] = currentContent.join(' ').trim();
-  }
-  
-  return sections;
-}
-
-function findMatchingContent(sections: Record<string, string>, searchTerms: string[]): string | null {
-  for (const [sectionName, content] of Object.entries(sections)) {
-    for (const term of searchTerms) {
-      // Enhanced matching logic
-      const normalizedSectionName = sectionName.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').trim();
-      const normalizedTerm = term.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').trim();
-      
-      // Direct match
-      if (normalizedSectionName.includes(normalizedTerm) || 
-          normalizedTerm.includes(normalizedSectionName)) {
-        return content;
-      }
-      
-      // Word-based matching
-      const sectionWords = normalizedSectionName.split(/\s+/);
-      const termWords = normalizedTerm.split(/\s+/);
-      
-      // Check if any words match
-      if (sectionWords.some(word => termWords.includes(word)) ||
-          termWords.some(word => sectionWords.includes(word))) {
-        return content;
-      }
-      
-      // Handle special cases like "mission objective" vs "missionobjective"
-      const combinedSectionName = normalizedSectionName.replace(/\s+/g, '');
-      const combinedTerm = normalizedTerm.replace(/\s+/g, '');
-      
-      if (combinedSectionName.includes(combinedTerm) || 
-          combinedTerm.includes(combinedSectionName)) {
-        return content;
-      }
-    }
-  }
-  return null;
-}
-
-function detectMissionType(input: string): string | null {
-  if (input.includes('satellite') || input.includes('leo') || input.includes('low earth orbit') || input.includes('earth observation')) return 'satellite';
-  if (input.includes('suborbital') || input.includes('space tourism')) return 'suborbital';
-  if (input.includes('orbital') || input.includes('geo') || input.includes('geosynchronous')) return 'orbital';
-  if (input.includes('test') || input.includes('demonstration')) return 'test';
-  return null;
-}
-
-function generateBasicSuggestions(missionType: string, userInput: string): any[] {
-  const suggestions = [];
-  const lowerInput = userInput.toLowerCase();
-  
-  switch (missionType) {
-    case 'satellite':
-      if (lowerInput.includes('earth observation')) {
-        suggestions.push({
-          field: 'missionObjective',
-          value: 'Launch Earth observation satellite for environmental monitoring and data collection.',
-          confidence: 0.8,
-          reasoning: 'Based on Earth observation satellite mission type detected'
-        });
-      } else {
-        suggestions.push({
-          field: 'missionObjective',
-          value: 'Launch commercial satellite to low Earth orbit for telecommunications and data services.',
-          confidence: 0.7,
-          reasoning: 'Based on satellite mission type detected'
-        });
-      }
-      
-      if (lowerInput.includes('500km')) {
-        suggestions.push({
-          field: 'trajectoryOverview',
-          value: 'Launch trajectory to low Earth orbit at 500km altitude with payload deployment.',
-          confidence: 0.8,
-          reasoning: 'Based on specific altitude mentioned'
-        });
-      } else {
-        suggestions.push({
-          field: 'trajectoryOverview',
-          value: 'Standard launch trajectory to low Earth orbit with payload deployment at target altitude.',
-          confidence: 0.7,
-          reasoning: 'Standard satellite trajectory'
-        });
-      }
-      break;
-    case 'suborbital':
-      suggestions.push({
-        field: 'missionObjective',
-        value: 'Conduct suborbital flight for research, testing, or space tourism purposes.',
-        confidence: 0.7,
-        reasoning: 'Based on suborbital mission type detected'
-      });
-      suggestions.push({
-        field: 'trajectoryOverview',
-        value: 'Suborbital trajectory with apogee above 100km, followed by controlled descent.',
-        confidence: 0.7,
-        reasoning: 'Standard suborbital trajectory'
-      });
-      break;
-  }
-  
-  return suggestions;
-}
-
-function extractRelevantText(aiResponse: string, keywords: string[]): string | null {
-  // Enhanced extraction - look for sentences containing keywords
-  const sentences = aiResponse.split(/[.!?]+/).filter(s => s.trim().length > 0);
-  
-  for (const sentence of sentences) {
-    const lowerSentence = sentence.toLowerCase();
-    if (keywords.some(keyword => lowerSentence.includes(keyword))) {
-      return sentence.trim();
-    }
-  }
-  
-  // If no specific sentence found, return a relevant portion
-  const lowerResponse = aiResponse.toLowerCase();
-  for (const keyword of keywords) {
-    if (lowerResponse.includes(keyword)) {
-      const start = Math.max(0, lowerResponse.indexOf(keyword) - 50);
-      const end = Math.min(aiResponse.length, lowerResponse.indexOf(keyword) + 100);
-      return aiResponse.substring(start, end).trim();
-    }
-  }
-  
-  return null;
-}
-
-function parseAndExecuteCommand(userInput: string, aiResponse: string): any {
-  const lowerInput = userInput.toLowerCase();
-  
-  // Check if this is a replace command
-  if (lowerInput.includes('replace') && lowerInput.includes('with')) {
-    // Extract field name and value using AI response or fallback to regex
-    const fieldMatch = aiResponse.match(/field[:\s]+([^,\n]+)/i);
-    const valueMatch = aiResponse.match(/value[:\s]+([^,\n]+)/i) || 
-                      userInput.match(/with\s+(.+)$/i);
+    const header = lines[0].trim();
+    const content = lines.slice(1).map(line => line.trim()).filter(line => line.startsWith('•'));
     
-    if (fieldMatch && valueMatch) {
+    if (content.length > 0) {
+      switch (header) {
+        case 'KEY TECHNICAL SPECIFICATIONS':
+          insights.technicalSpecifications = content;
+          break;
+        case 'MISSION OBJECTIVES':
+          insights.missionObjectives = content;
+          break;
+        case 'SAFETY CONSIDERATIONS':
+          insights.safetyConsiderations = content;
+          break;
+        case 'TIMELINE INFORMATION':
+          insights.timelineInformation = content;
+          break;
+        case 'MISSING INFORMATION':
+          insights.missingInformation = content;
+          break;
+        case 'COMPLIANCE REQUIREMENTS':
+          insights.complianceRequirements = content;
+          break;
+        case 'INTEGRATION SUGGESTIONS':
+          insights.integrationSuggestions = content;
+          break;
+      }
+    }
+  }
+  
+  return insights;
+}
+
+function parseAndExecuteCommand(userInput: string, aiResponse: string) {
+  // Parse command execution from AI response
+  const commandMatch = aiResponse.match(/COMMAND:\s*(\w+)\s*\nPARAMS:\s*({[\s\S]*})/);
+  
+  if (commandMatch) {
+    try {
+      const command = commandMatch[1];
+      const params = JSON.parse(commandMatch[2]);
+      
       return {
-        type: 'replace',
-        field: fieldMatch[1].trim(),
-        value: valueMatch[1].trim()
+        command,
+        params,
+        success: true
+      };
+    } catch (error) {
+      return {
+        command: 'error',
+        params: { error: 'Failed to parse command parameters' },
+        success: false
       };
     }
   }
   
-  // Check if this is a fill command
-  if (lowerInput.includes('fill') && lowerInput.includes('with')) {
-    return {
-      type: 'fill',
-      content: userInput.match(/with\s+(.+)$/i)?.[1]?.trim() || ''
-    };
-  }
-  
   return {
-    type: 'unknown',
-    message: 'Command not recognized'
+    command: 'none',
+    params: {},
+    success: false
   };
 } 
