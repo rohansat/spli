@@ -289,6 +289,7 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
       } else if (lowerMessage.includes('auto fill') || 
                  lowerMessage.includes('fill form') || 
                  lowerMessage.includes('fill out') ||
+                 lowerMessage.includes('analyze this mission') ||
                  lowerMessage.includes('mission description') ||
                  lowerMessage.includes('satellite') ||
                  lowerMessage.includes('rocket') ||
@@ -299,7 +300,12 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
                  lowerMessage.includes('q3 2024') ||
                  lowerMessage.includes('solid fuel') ||
                  lowerMessage.includes('two-stage') ||
-                 lowerMessage.includes('500km') ||
+                 lowerMessage.includes('500kg') ||
+                 lowerMessage.includes('lunar') ||
+                 lowerMessage.includes('mare tranquillitatis') ||
+                 lowerMessage.includes('methane/oxygen') ||
+                 lowerMessage.includes('nova rocket') ||
+                 lowerMessage.includes('kennedy space center') ||
                  lowerMessage.includes('environmental monitoring') ||
                  lowerMessage.includes('disaster response')) {
         mode = 'form';

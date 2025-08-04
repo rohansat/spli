@@ -171,17 +171,36 @@ FORMATTING:
       }
       
     // For unified mode (default), try to detect if this is an auto-fill request
-      const analytics = {
-        messageLength: userInput.length,
-        responseLength: aiResponse.length,
-        hasSuggestions: false,
-        suggestionCount: 0,
-        isAutoFillRequest: false,
-        timestamp: new Date().toISOString()
-      };
+    const lowerInput = userInput.toLowerCase();
+    const isAutoFillRequest = lowerInput.includes('mission') || 
+                             lowerInput.includes('satellite') || 
+                             lowerInput.includes('rocket') || 
+                             lowerInput.includes('launch') ||
+                             lowerInput.includes('lunar') ||
+                             lowerInput.includes('nova') ||
+                             lowerInput.includes('kennedy space center') ||
+                             lowerInput.includes('cape canaveral') ||
+                             lowerInput.includes('500kg') ||
+                             lowerInput.includes('methane/oxygen') ||
+                             lowerInput.includes('mare tranquillitatis');
+
+    let suggestions: any[] = [];
+    if (isAutoFillRequest) {
+      suggestions = extractFormSuggestions(aiResponse, userInput);
+    }
+
+    const analytics = {
+      messageLength: userInput.length,
+      responseLength: aiResponse.length,
+      hasSuggestions: suggestions.length > 0,
+      suggestionCount: suggestions.length,
+      isAutoFillRequest: isAutoFillRequest,
+      timestamp: new Date().toISOString()
+    };
 
     return NextResponse.json({ 
       message: aiResponse,
+      suggestions,
       mode,
       analytics
     });
