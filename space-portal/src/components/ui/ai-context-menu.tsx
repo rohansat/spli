@@ -42,7 +42,7 @@ export function AIContextMenu({
         type: "section",
         title: section.title,
         icon: getSectionIcon(section.title),
-        path: `Section ${index + 1}: ${section.title}`,
+        path: section.title,
         description: `${section.fields.length} fields available`
       }));
     } else if (viewMode === "fields") {
@@ -55,7 +55,7 @@ export function AIContextMenu({
         title: field.label,
         sectionTitle: section.title,
         icon: getFieldIcon(field.label),
-        path: `${section.title} > ${field.label}`,
+        path: field.label,
         description: getFieldDescription(field.label)
       }));
     } else {

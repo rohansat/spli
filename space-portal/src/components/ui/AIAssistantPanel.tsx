@@ -57,7 +57,7 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
       {
         id: 1,
         sender: "ai",
-        content: "Hi! I am SPLI, your comprehensive space and aerospace AI assistant. I can help you with:\n\n• FAA Part 450 applications and licensing\n• Space mission planning and design\n• Aerospace technology and engineering\n• Interplanetary mission concepts\n• Document analysis and application enhancement\n• Regulatory compliance and best practices\n\nHow can I assist you today?",
+        content: "Hi! I am SPLI. How can I help you today?",
         timestamp: Date.now()
       }
     ]);
@@ -66,7 +66,6 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
     const [input, setInput] = useState("");
     const [isDragging, setIsDragging] = useState(false);
     const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
-    const [showScrollButton, setShowScrollButton] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [copiedMessageId, setCopiedMessageId] = useState<number | null>(null);
     const [showQuickActions, setShowQuickActions] = useState(false);
@@ -100,7 +99,6 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
     const handleScroll = () => {
       const atBottom = isAtBottom();
       setShouldAutoScroll(atBottom);
-      setShowScrollButton(!atBottom);
     };
 
     useImperativeHandle(ref, () => ({
@@ -777,18 +775,7 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
           ref={messagesContainerRef}
           onScroll={handleScroll}
         >
-          {/* Scroll to bottom button */}
-          {showScrollButton && (
-            <button
-              onClick={() => scrollToBottom(true)}
-              className="absolute bottom-4 right-4 z-10 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white p-3 rounded-full shadow-lg transition-all duration-200 hover:scale-110"
-              title="Scroll to bottom"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-              </svg>
-            </button>
-          )}
+
           {messages.length === 0 ? (
             <div className="text-zinc-500 text-center mt-10">Loading chat...</div>
           ) : (
@@ -966,7 +953,7 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
                     handleSend(e);
                   }
                 }}
-                placeholder={isLoading ? "AI is processing..." : "Ask about space, aerospace, FAA licensing, or use @ to auto-complete form fields..."}
+                placeholder={isLoading ? "AI is processing..." : "Type a message..."}
                 className="flex-1 bg-zinc-700 outline-none text-zinc-100 placeholder:text-zinc-400 px-3 py-2 rounded border border-zinc-600 focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 transition-all min-h-[40px] max-h-[150px] overflow-y-auto resize-none"
                 autoResize={true}
                 disabled={isLoading}
