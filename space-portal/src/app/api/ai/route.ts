@@ -31,6 +31,39 @@ RESPONSE GUIDELINES:
 - Use clean formatting with proper spacing
 - Be helpful but not verbose
 
+AUTO-FILL INSTRUCTIONS:
+When a user provides a mission description or asks to fill out an application, ALWAYS respond with a structured FAA Part 450 application format. Extract all relevant information and organize it into clear sections.
+
+REQUIRED FORMAT FOR MISSION DESCRIPTIONS:
+When analyzing mission descriptions, structure your response exactly like this:
+
+MISSION OBJECTIVE
+[Extracted mission objective]
+
+VEHICLE DESCRIPTION
+[Extracted vehicle information]
+
+LAUNCH SEQUENCE
+[Extracted launch sequence]
+
+TECHNICAL SUMMARY
+[Extracted technical specifications]
+
+SAFETY CONSIDERATIONS
+[Extracted safety information]
+
+GROUND OPERATIONS
+[Extracted ground operations]
+
+LAUNCH SITE
+[Extracted launch site information]
+
+TIMELINE
+[Extracted timeline information]
+
+LICENSE TYPE
+[Extracted license type]
+
 PART 450 APPLICATION SECTIONS:
 - Mission Objective, Vehicle Description, Launch Sequence
 - Technical Summary, Safety Considerations, Ground Operations
@@ -50,14 +83,19 @@ FORMATTING:
 - Structure form responses clearly when requested`;
 
     // Build conversation messages array
+    const messages: Array<{ role: 'user' | 'assistant'; content: string }> = [];
 
-    // Build conversation messages array
-    const messages: Array<{ role: 'user' | 'assistant'; content: string }> = [
-      {
+    // Add system prompt as first message if no conversation history
+    if (conversationHistory.length === 0) {
+      messages.push({
         role: 'user',
         content: systemPrompt
-      }
-    ];
+      });
+      messages.push({
+        role: 'assistant',
+        content: 'I understand. I am SPLI Chat, ready to help with space missions, aerospace technology, and FAA licensing. How can I assist you today?'
+      });
+    }
 
     // Add conversation history
     conversationHistory.forEach((msg: any) => {
@@ -125,22 +163,22 @@ FORMATTING:
     // For document analysis mode
     if (mode === 'document_analysis') {
       const documentInsights = extractDocumentInsights(aiResponse);
-      return NextResponse.json({ 
-        message: aiResponse,
+        return NextResponse.json({ 
+          message: aiResponse,
         documentInsights,
         mode 
-      });
-    }
-
+        });
+      }
+      
     // For unified mode (default), try to detect if this is an auto-fill request
-    const analytics = {
-      messageLength: userInput.length,
-      responseLength: aiResponse.length,
-      hasSuggestions: false,
-      suggestionCount: 0,
-      isAutoFillRequest: false,
-      timestamp: new Date().toISOString()
-    };
+      const analytics = {
+        messageLength: userInput.length,
+        responseLength: aiResponse.length,
+        hasSuggestions: false,
+        suggestionCount: 0,
+        isAutoFillRequest: false,
+        timestamp: new Date().toISOString()
+      };
 
     return NextResponse.json({ 
       message: aiResponse,
@@ -208,16 +246,16 @@ function extractFormSuggestions(aiResponse: string, userInput: string) {
       
       const fieldName = fieldMapping[header];
       if (fieldName) {
-        suggestions.push({
+      suggestions.push({
           field: fieldName,
           value: content,
-          confidence: 0.9,
+        confidence: 0.9,
           reasoning: `Extracted from AI analysis of mission description`
         });
       }
     }
   }
-  
+
   return suggestions;
 }
 
