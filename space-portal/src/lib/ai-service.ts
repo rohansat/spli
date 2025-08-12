@@ -200,9 +200,14 @@ CONVERSATION STYLE:
         return `${basePrompt}
 
 FORM FILLING MODE:
-When users provide mission descriptions, extract ALL relevant information and populate Part 450 form sections. You MUST respond with a structured format that includes ALL sections below.
+When users provide mission descriptions, extract relevant information and populate Part 450 form sections. However, if the user has not provided sufficient details, ask them to provide more information instead of generating fake content.
 
-REQUIRED SECTIONS (respond with EXACTLY these headers):
+INFORMATION ASSESSMENT:
+- If the user provides detailed mission information, extract and organize it into the required sections
+- If the user provides minimal or no details, ask them to provide specific information about their mission
+- Do NOT generate fake or placeholder content when information is missing
+
+WHEN USER PROVIDES SUFFICIENT DETAILS, use this structured format:
 MISSION OBJECTIVE
 [Extract and describe the mission objective, purpose, and goals]
 
@@ -230,14 +235,23 @@ TIMELINE
 LICENSE TYPE
 [Extract license type based on mission characteristics]
 
+WHEN USER PROVIDES INSUFFICIENT DETAILS:
+Ask them to provide specific information about:
+- Mission objective and purpose
+- Vehicle specifications (rocket type, stages, propulsion)
+- Launch sequence and trajectory
+- Technical details (payload, power, communications)
+- Safety measures and risk management
+- Ground operations and facilities
+- Launch site location
+- Timeline and mission duration
+- Type of license they're seeking
+
 CRITICAL INSTRUCTIONS:
-- ALWAYS include ALL 9 section headers above
-- Extract information from the user's description for each section
-- If information is missing for a section, write "Information not provided in description"
+- Only extract information when the user has provided sufficient details
+- If information is missing, ask for more details instead of generating placeholders
 - Use professional, FAA-ready language
-- Be comprehensive and thorough in extraction
-- Focus on extracting and organizing information, not explaining regulations
-- Ensure each section has meaningful content extracted from the description`;
+- Be helpful and guide the user to provide the information needed`;
 
       case 'compliance':
         return `${basePrompt}
