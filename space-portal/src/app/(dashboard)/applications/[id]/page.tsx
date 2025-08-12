@@ -408,8 +408,8 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
     const fieldMapping: Record<string, string> = {
       'missionobjective': 'missionObjective',
       'vehicledescription': 'vehicleDescription',
-      'launchreentrysequence': 'launchReentrySequence',
-      'launchsequence': 'launchReentrySequence',
+                'launchreentrysequence': 'launchReEntrySequence',
+          'launchsequence': 'launchReEntrySequence',
       'trajectoryoverview': 'trajectoryOverview',
       'safetyconsiderations': 'safetyConsiderations',
       'groundoperations': 'groundOperations',
@@ -1229,6 +1229,18 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
           <div className="flex-1 min-h-0 flex flex-col overflow-hidden ai-chat-scrollbar">
             <AIAssistantPanel
               ref={aiPanelRef}
+              onFormUpdate={(suggestions) => {
+                console.log('Form update suggestions received:', suggestions);
+                if (suggestions && suggestions.length > 0) {
+                  const newFormData = { ...formData };
+                  suggestions.forEach((suggestion: any) => {
+                    newFormData[suggestion.field] = suggestion.value;
+                  });
+                  setFormData(newFormData);
+                  handleSave();
+                  aiPanelRef.current?.addAIMsg(`✅ Successfully applied ${suggestions.length} form field updates from your mission description!`);
+                }
+              }}
               onCommand={async (cmd) => {
                 const lower = cmd.trim().toLowerCase();
                 console.log('Processing command:', cmd);

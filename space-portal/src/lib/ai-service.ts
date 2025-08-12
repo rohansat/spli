@@ -388,19 +388,40 @@ Always maintain professional expertise while being helpful and engaging.`;
   private extractFormSections(response: string): Record<string, string> {
     const sections: Record<string, string> = {};
     
-    // Define the 7 main Part 450 sections we need to extract
+    // Define the main Part 450 sections we need to extract with multiple variations
     const sectionMappings = {
       'mission objective': 'missionObjective',
-      'vehicle description': 'vehicleDescription', 
-      'launch sequence': 'launchReentrySequence',
+      'missionobjective': 'missionObjective',
+      'objective': 'missionObjective',
+      'vehicle description': 'vehicleDescription',
+      'vehicledescription': 'vehicleDescription',
+      'vehicle': 'vehicleDescription',
+      'launch sequence': 'launchReEntrySequence',
+      'launchreentrysequence': 'launchReEntrySequence',
+      'launchsequence': 'launchReEntrySequence',
+      'reentry sequence': 'launchReEntrySequence',
       'technical summary': 'technicalSummary',
+      'technicalsummary': 'technicalSummary',
+      'technical': 'technicalSummary',
       'safety considerations': 'safetyConsiderations',
+      'safetyconsiderations': 'safetyConsiderations',
+      'safety': 'safetyConsiderations',
       'ground operations': 'groundOperations',
-      'launch site': 'launchSite'
+      'groundoperations': 'groundOperations',
+      'ground ops': 'groundOperations',
+      'launch site': 'launchSite',
+      'launchsite': 'launchSite',
+      'launch location': 'launchSite',
+      'timeline': 'intendedWindow',
+      'intended window': 'intendedWindow',
+      'intendedwindow': 'intendedWindow',
+      'license type': 'licenseTypeIntent',
+      'licensetype': 'licenseTypeIntent',
+      'license type intent': 'licenseTypeIntent'
     };
 
     // Try to extract sections from structured AI response first
-    const sectionRegex = /^([A-Z\s]+):\s*(.+?)(?=\n[A-Z\s]+:|$)/gm;
+    const sectionRegex = /^([A-Z\s\/]+)\s*\n(.+?)(?=\n[A-Z\s\/]+\s*\n|$)/gm;
     let match;
     while ((match = sectionRegex.exec(response)) !== null) {
       const sectionName = match[1].trim().toLowerCase();
@@ -410,6 +431,7 @@ Always maintain professional expertise while being helpful and engaging.`;
       for (const [key, fieldName] of Object.entries(sectionMappings)) {
         if (sectionName.includes(key) || key.includes(sectionName)) {
           sections[fieldName] = content;
+          console.log(`Extracted ${fieldName} from section "${sectionName}":`, content.substring(0, 100) + '...');
           break;
         }
       }
@@ -419,64 +441,105 @@ Always maintain professional expertise while being helpful and engaging.`;
     if (Object.keys(sections).length === 0) {
       const lowerResponse = response.toLowerCase();
       
-      // Extract mission objective
+      // Extract mission objective - look for mission purpose and goals
       if (lowerResponse.includes('mission') || lowerResponse.includes('objective') || lowerResponse.includes('purpose')) {
-        const missionMatch = response.match(/(?:mission|objective|purpose)[:\s]*([^.]+)/i);
+        const missionMatch = response.match(/(?:mission|objective|purpose)[:\s]*([^.]*(?:research|demonstration|deploy|conduct|lunar|commercial)[^.]*)/i);
         if (missionMatch) {
           sections.missionObjective = missionMatch[1].trim();
+        } else {
+          // Fallback: extract mission description from the beginning
+          const lines = response.split('\n');
+          for (const line of lines) {
+            if (line.toLowerCase().includes('planning') && line.toLowerCase().includes('mission')) {
+              sections.missionObjective = line.trim();
+              break;
+            }
+          }
         }
       }
 
-      // Extract vehicle description
-      if (lowerResponse.includes('falcon') || lowerResponse.includes('rocket') || lowerResponse.includes('vehicle') || lowerResponse.includes('stage')) {
-        const vehicleMatch = response.match(/(?:falcon|rocket|vehicle|stage)[^.]*(?:engine|propulsion|meter)[^.]*/i);
-        if (vehicleMatch) {
+      // Extract vehicle description - look for rocket/vehicle details
+      if (lowerResponse.includes('rocket') || lowerResponse.includes('vehicle') || lowerResponse.includes('stage') || lowerResponse.includes('engine')) {
+        const vehicleMatch = response.match(/(?:rocket|vehicle|stage|engine)[^.]*(?:meter|propulsion|engine|stage|nova|falcon)[^.]*/i);
+        if (vehicleMatch && !sections.missionObjective?.includes(vehicleMatch[0])) {
           sections.vehicleDescription = vehicleMatch[0].trim();
+        } else {
+          // Fallback: look for specific vehicle details
+          const lines = response.split('\n');
+          for (const line of lines) {
+            if ((line.toLowerCase().includes('stage') || line.toLowerCase().includes('engine')) && 
+                (line.toLowerCase().includes('meter') || line.toLowerCase().includes('propulsion'))) {
+              sections.vehicleDescription = line.trim();
+              break;
+            }
+          }
         }
       }
 
-      // Extract launch sequence
+      // Extract launch sequence - look for launch process details
       if (lowerResponse.includes('launch') || lowerResponse.includes('sequence') || lowerResponse.includes('stage')) {
-        const launchMatch = response.match(/(?:launch|sequence|stage)[^.]*(?:separation|ignition|burn)[^.]*/i);
-        if (launchMatch) {
-          sections.launchReentrySequence = launchMatch[0].trim();
+        const launchMatch = response.match(/(?:launch|sequence|stage)[^.]*(?:separation|ignition|burn|transfer)[^.]*/i);
+        if (launchMatch && !sections.vehicleDescription?.includes(launchMatch[0])) {
+          sections.launchReEntrySequence = launchMatch[0].trim();
         }
       }
 
-      // Extract technical summary
+      // Extract technical summary - look for technical specifications
       if (lowerResponse.includes('technical') || lowerResponse.includes('specification') || lowerResponse.includes('capacity') || lowerResponse.includes('communication')) {
-        const techMatch = response.match(/(?:technical|specification|capacity|communication)[^.]*/i);
+        const techMatch = response.match(/(?:technical|specification|capacity|communication|payload|solar|network)[^.]*/i);
         if (techMatch) {
           sections.technicalSummary = techMatch[0].trim();
         }
       }
 
-      // Extract safety considerations
-      if (lowerResponse.includes('safety') || lowerResponse.includes('termination') || lowerResponse.includes('monitoring') || lowerResponse.includes('exclusion')) {
-        const safetyMatch = response.match(/(?:safety|termination|monitoring|exclusion)[^.]*/i);
+      // Extract safety considerations - look for safety measures
+      if (lowerResponse.includes('safety') || lowerResponse.includes('termination') || lowerResponse.includes('monitoring') || lowerResponse.includes('collision')) {
+        const safetyMatch = response.match(/(?:safety|termination|monitoring|collision|mitigation)[^.]*/i);
         if (safetyMatch) {
           sections.safetyConsiderations = safetyMatch[0].trim();
         }
       }
 
-      // Extract ground operations
-      if (lowerResponse.includes('ground') || lowerResponse.includes('operation') || lowerResponse.includes('facility') || lowerResponse.includes('processing')) {
-        const groundMatch = response.match(/(?:ground|operation|facility|processing)[^.]*/i);
+      // Extract ground operations - look for ground operations
+      if (lowerResponse.includes('ground') || lowerResponse.includes('operation') || lowerResponse.includes('facility') || lowerResponse.includes('assembly')) {
+        const groundMatch = response.match(/(?:ground|operation|facility|assembly|testing|control)[^.]*/i);
         if (groundMatch) {
           sections.groundOperations = groundMatch[0].trim();
         }
       }
 
-      // Extract launch site
-      if (lowerResponse.includes('cape canaveral') || lowerResponse.includes('kennedy') || lowerResponse.includes('launch complex') || lowerResponse.includes('coordinates')) {
-        const siteMatch = response.match(/(?:cape canaveral|kennedy|launch complex|coordinates)[^.]*/i);
+      // Extract launch site - look for launch location
+      if (lowerResponse.includes('kennedy') || lowerResponse.includes('space center') || lowerResponse.includes('launch complex') || lowerResponse.includes('coordinates')) {
+        const siteMatch = response.match(/(?:kennedy|space center|launch complex|coordinates)[^.]*/i);
         if (siteMatch) {
           sections.launchSite = siteMatch[0].trim();
+        } else {
+          // Fallback: look for specific launch site details
+          const lines = response.split('\n');
+          for (const line of lines) {
+            if (line.toLowerCase().includes('kennedy') || line.toLowerCase().includes('space center')) {
+              sections.launchSite = line.trim();
+              break;
+            }
+          }
         }
       }
 
-      // Note: timeline and license type are not part of the 7 main sections
-      // They are handled separately in the form structure
+      // Extract timeline information
+      if (lowerResponse.includes('timeline') || lowerResponse.includes('q1') || lowerResponse.includes('q2') || lowerResponse.includes('q3') || lowerResponse.includes('q4') || lowerResponse.includes('2024')) {
+        const timelineMatch = response.match(/(?:timeline|application|launch window|q[1-4]|2024)[^.]*/i);
+        if (timelineMatch) {
+          sections.intendedWindow = timelineMatch[0].trim();
+        }
+      }
+
+      // Extract license type information
+      if (lowerResponse.includes('license') || lowerResponse.includes('part 450') || lowerResponse.includes('commercial')) {
+        const licenseMatch = response.match(/(?:license|part 450|commercial)[^.]*/i);
+        if (licenseMatch) {
+          sections.licenseTypeIntent = licenseMatch[0].trim();
+        }
+      }
     }
 
     return sections;

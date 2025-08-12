@@ -27,7 +27,7 @@ export const part450FormTemplate = {
       fields: [
         { name: "missionObjective", label: "Mission Objective", type: "textarea" },
         { name: "vehicleDescription", label: "Vehicle Description", type: "textarea" },
-        { name: "launchReentrySequence", label: "Launch/Reentry Sequence", type: "textarea" },
+        { name: "launchReEntrySequence", label: "Launch/Reentry Sequence", type: "textarea" },
         { name: "trajectoryOverview", label: "Trajectory Overview", type: "textarea" },
         { name: "safetyConsiderations", label: "Safety Considerations", type: "textarea" },
         { name: "groundOperations", label: "Ground Operations", type: "textarea" },
