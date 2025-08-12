@@ -294,32 +294,9 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false, onQu
           </div>
         </div>
 
-        {/* Input Area */}
+        {/* Action Buttons */}
         <div className="p-4 border-t bg-gray-50 flex-shrink-0">
-          <div className="flex gap-2">
-            <Input
-              ref={inputRef}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Ask about FAA licensing, describe your mission, or get help with forms..."
-              className="flex-1"
-              disabled={isLoading}
-            />
-            <Button 
-              onClick={sendMessage} 
-              disabled={!input.trim() || isLoading}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-            >
-              {isLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Send className="h-4 w-4" />
-              )}
-            </Button>
-          </div>
-          
-          <div className="mt-2 flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button
               variant="outline"
               size="sm"
@@ -346,6 +323,32 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false, onQu
             >
               <MessageSquare className="h-3 w-3 mr-1" />
               Analyze Mission
+            </Button>
+          </div>
+        </div>
+
+        {/* Input Area */}
+        <div className="p-4 border-t bg-gray-50 flex-shrink-0">
+          <div className="flex gap-2">
+            <Input
+              ref={inputRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Ask about FAA licensing, describe your mission, or get help with forms..."
+              className="flex-1"
+              disabled={isLoading}
+            />
+            <Button 
+              onClick={sendMessage} 
+              disabled={!input.trim() || isLoading}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+            >
+              {isLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4" />
+              )}
             </Button>
           </div>
         </div>
