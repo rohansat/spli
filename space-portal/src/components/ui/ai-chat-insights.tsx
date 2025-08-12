@@ -294,62 +294,65 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false, onQu
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="p-4 border-t bg-gray-50 flex-shrink-0">
-          <div className="flex flex-wrap gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setInput('Help me fill out a Part 450 application')}
-              disabled={isLoading}
-            >
-              <FileText className="h-3 w-3 mr-1" />
-              Fill Form
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setInput('Check my application for compliance')}
-              disabled={isLoading}
-            >
-              <CheckCircle className="h-3 w-3 mr-1" />
-              Check Compliance
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setInput('Analyze my mission description')}
-              disabled={isLoading}
-            >
-              <MessageSquare className="h-3 w-3 mr-1" />
-              Analyze Mission
-            </Button>
+        {/* Bottom Section - Action Buttons and Input */}
+        <div className="flex-shrink-0">
+          {/* Action Buttons */}
+          <div className="p-4 border-t bg-gray-50">
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setInput('Help me fill out a Part 450 application')}
+                disabled={isLoading}
+              >
+                <FileText className="h-3 w-3 mr-1" />
+                Fill Form
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setInput('Check my application for compliance')}
+                disabled={isLoading}
+              >
+                <CheckCircle className="h-3 w-3 mr-1" />
+                Check Compliance
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setInput('Analyze my mission description')}
+                disabled={isLoading}
+              >
+                <MessageSquare className="h-3 w-3 mr-1" />
+                Analyze Mission
+              </Button>
+            </div>
           </div>
-        </div>
 
-        {/* Input Area */}
-        <div className="p-4 border-t bg-gray-50 flex-shrink-0">
-          <div className="flex gap-2">
-            <Input
-              ref={inputRef}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Ask about FAA licensing, describe your mission, or get help with forms..."
-              className="flex-1"
-              disabled={isLoading}
-            />
-            <Button 
-              onClick={sendMessage} 
-              disabled={!input.trim() || isLoading}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-            >
-              {isLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Send className="h-4 w-4" />
-              )}
-            </Button>
+          {/* Input Area */}
+          <div className="p-4 border-t bg-gray-50">
+            <div className="flex gap-2">
+              <Input
+                ref={inputRef}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="Ask about FAA licensing, describe your mission, or get help with forms..."
+                className="flex-1"
+                disabled={isLoading}
+              />
+              <Button 
+                onClick={sendMessage} 
+                disabled={!input.trim() || isLoading}
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              >
+                {isLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
           </div>
         </div>
       </div>
