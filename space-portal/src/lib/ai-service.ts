@@ -358,16 +358,20 @@ Always maintain professional expertise while being helpful and engaging.`;
     const suggestions: AIFormSuggestion[] = [];
     const sections = this.extractFormSections(response);
     
-    // Process each section
+    // Process each section and only include high-confidence suggestions
     Object.entries(sections).forEach(([section, content]) => {
       if (content && content !== 'Information not provided') {
-        suggestions.push({
-          field: section,
-          value: content,
-          confidence: this.calculateConfidence(content),
-          reasoning: `Extracted from user input based on ${section.toLowerCase()} requirements`,
-          source: 'ai-extraction'
-        });
+        const confidence = this.calculateConfidence(content);
+        // Only include suggestions with medium or high confidence (>= 0.6)
+        if (confidence >= 0.6) {
+          suggestions.push({
+            field: section,
+            value: content,
+            confidence: confidence,
+            reasoning: `Extracted from user input based on ${section.toLowerCase()} requirements`,
+            source: 'ai-extraction'
+          });
+        }
       }
     });
 
@@ -392,9 +396,7 @@ Always maintain professional expertise while being helpful and engaging.`;
       'technical summary': 'technicalSummary',
       'safety considerations': 'safetyConsiderations',
       'ground operations': 'groundOperations',
-      'launch site': 'launchSite',
-      'timeline': 'intendedWindow',
-      'license type': 'licenseTypeIntent'
+      'launch site': 'launchSite'
     };
 
     // Try to extract sections from structured AI response first
@@ -473,18 +475,8 @@ Always maintain professional expertise while being helpful and engaging.`;
         }
       }
 
-      // Extract timeline
-      if (lowerResponse.includes('q3') || lowerResponse.includes('2024') || lowerResponse.includes('timeline') || lowerResponse.includes('window')) {
-        const timelineMatch = response.match(/(?:q3|2024|timeline|window)[^.]*/i);
-        if (timelineMatch) {
-          sections.intendedWindow = timelineMatch[0].trim();
-        }
-      }
-
-      // Extract license type
-      if (lowerResponse.includes('commercial') || lowerResponse.includes('part 450') || lowerResponse.includes('license')) {
-        sections.licenseTypeIntent = 'Commercial launch license for satellite deployment under FAA Part 450';
-      }
+      // Note: timeline and license type are not part of the 7 main sections
+      // They are handled separately in the form structure
     }
 
     return sections;
@@ -517,14 +509,14 @@ Always maintain professional expertise while being helpful and engaging.`;
   // Generate summary
   private generateSummary(suggestions: AIFormSuggestion[]): string {
     const filledSections = suggestions.length;
-    const totalSections = 9; // Total Part 450 sections (9, not 7)
+    const totalSections = 7; // Total Part 450 sections (7, not 9)
     const completionRate = Math.round((filledSections / totalSections) * 100);
     
     if (filledSections === 0) {
       return 'No form sections were extracted from the mission description. Please provide more detailed information about your mission.';
     } else if (filledSections < 3) {
       return `Extracted information for ${filledSections} out of ${totalSections} Part 450 sections (${completionRate}% completion). Please provide more detailed mission information for better form completion.`;
-    } else if (filledSections < 6) {
+    } else if (filledSections < 5) {
       return `Successfully extracted information for ${filledSections} out of ${totalSections} Part 450 sections (${completionRate}% completion). Some sections need additional details.`;
     } else {
       return `Successfully extracted information for ${filledSections} out of ${totalSections} Part 450 sections (${completionRate}% completion). Ready for review and submission.`;
@@ -555,7 +547,7 @@ Always maintain professional expertise while being helpful and engaging.`;
       warnings.push(`${lowConfidenceSuggestions.length} sections have low confidence - please review and verify`);
     }
     
-    const missingSections = 9 - suggestions.length; // Total 9 sections
+    const missingSections = 7 - suggestions.length; // Total 7 sections
     if (missingSections > 0) {
       warnings.push(`${missingSections} sections are missing - manual completion required`);
     }
