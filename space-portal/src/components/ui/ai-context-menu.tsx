@@ -124,36 +124,32 @@ export function AIContextMenu({ onAction, className }: AIContextMenuProps) {
     : quickActions.filter(action => action.category === selectedCategory);
 
   return (
-    <div className={`space-y-6 ${className}`}>
+    <div className={`space-y-4 max-h-full overflow-y-auto ${className}`}>
       {/* AI Features Overview */}
-      <Card className="bg-gradient-to-br from-gray-900 to-gray-800 border-gray-700">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-white">
+      <Card className="bg-zinc-900 border-zinc-800">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-white text-lg">
             <Sparkles className="h-5 w-5 text-blue-400" />
-            SPLI AI Capabilities
-            <Badge variant="secondary" className="ml-auto">
-              <Zap className="h-3 w-3 mr-1" />
-              Professional
-            </Badge>
+            CAPABILITIES
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <CardContent className="pt-0">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {aiFeatures.map((feature, index) => (
-              <div key={index} className="flex items-start gap-3 p-3 rounded-lg bg-gray-800/50 border border-gray-700">
-                <div className="flex-shrink-0 p-2 rounded-lg bg-blue-500/20">
-                  <feature.icon className="h-4 w-4 text-blue-400" />
+              <div key={index} className="flex items-start gap-3 p-3 rounded-lg bg-zinc-800 border border-zinc-700">
+                <div className="flex-shrink-0 p-2 rounded-lg bg-zinc-700">
+                  <feature.icon className="h-4 w-4 text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h4 className="text-sm font-medium text-white mb-1">
+                  <h4 className="text-sm font-bold text-white mb-1 uppercase">
                     {feature.title}
                   </h4>
-                  <p className="text-xs text-gray-400 mb-2">
+                  <p className="text-xs text-zinc-300 mb-2 leading-relaxed">
                     {feature.description}
                   </p>
-                  <Badge variant="outline" className="text-xs bg-green-500/20 text-green-400 border-green-500/30">
+                  <div className="inline-block bg-green-600 text-white text-xs px-2 py-1 rounded font-medium">
                     {feature.benefit}
-                  </Badge>
+                  </div>
                 </div>
               </div>
             ))}
@@ -162,29 +158,30 @@ export function AIContextMenu({ onAction, className }: AIContextMenuProps) {
       </Card>
 
       {/* Quick Actions */}
-      <Card className="bg-gradient-to-br from-gray-900 to-gray-800 border-gray-700">
-        <CardHeader>
-          <CardTitle className="text-white">Quick Actions</CardTitle>
-          <p className="text-sm text-gray-400">
+      <Card className="bg-zinc-900 border-zinc-800">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-white text-lg">Quick Actions</CardTitle>
+          <p className="text-sm text-zinc-400">
             Get instant help with common tasks and AI-powered assistance
           </p>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-0">
           {/* Category Filter */}
-          <div className="flex flex-wrap gap-2 mb-4">
+          <div className="flex flex-wrap gap-1 mb-3 max-w-full overflow-x-auto">
             {categories.map((category) => (
               <Button
                 key={category.id}
                 variant={selectedCategory === category.id ? "default" : "outline"}
                 size="sm"
                 onClick={() => setSelectedCategory(category.id)}
-                className={selectedCategory === category.id 
-                  ? "bg-blue-600 hover:bg-blue-700" 
-                  : "border-gray-600 text-gray-300 hover:bg-gray-700"
-                }
+                className={`whitespace-nowrap text-xs ${
+                  selectedCategory === category.id 
+                    ? "bg-zinc-700 hover:bg-zinc-600" 
+                    : "border-zinc-600 text-zinc-300 hover:bg-zinc-800"
+                }`}
               >
                 {category.name}
-                <Badge variant="secondary" className="ml-2 text-xs">
+                <Badge variant="secondary" className="ml-1 text-xs">
                   {category.count}
                 </Badge>
               </Button>
@@ -192,23 +189,23 @@ export function AIContextMenu({ onAction, className }: AIContextMenuProps) {
           </div>
 
           {/* Action Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-2 max-w-full">
             {filteredActions.map((action) => (
               <Card 
                 key={action.id}
-                className="bg-gray-800/50 border-gray-700 hover:border-gray-600 transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/10 cursor-pointer group"
+                className="bg-zinc-800 border-zinc-700 hover:border-zinc-600 transition-all duration-200 cursor-pointer group"
                 onClick={() => onAction(action.id, action.prompt)}
               >
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-3">
-                    <div className={`flex-shrink-0 p-2 rounded-lg bg-gradient-to-r ${action.color} group-hover:scale-110 transition-transform duration-200`}>
-                      <action.icon className="h-4 w-4 text-white" />
+                <CardContent className="p-2">
+                  <div className="flex items-start gap-2">
+                    <div className="flex-shrink-0 p-1.5 rounded-lg bg-zinc-700 group-hover:bg-zinc-600 transition-colors">
+                      <action.icon className="h-3 w-3 text-white" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h4 className="text-sm font-medium text-white mb-1 group-hover:text-blue-400 transition-colors">
+                      <h4 className="text-xs font-medium text-white mb-1 group-hover:text-blue-400 transition-colors truncate">
                         {action.title}
                       </h4>
-                      <p className="text-xs text-gray-400 leading-relaxed">
+                      <p className="text-xs text-zinc-400 leading-relaxed line-clamp-2">
                         {action.description}
                       </p>
                     </div>
@@ -221,36 +218,36 @@ export function AIContextMenu({ onAction, className }: AIContextMenuProps) {
       </Card>
 
       {/* AI Tips */}
-      <Card className="bg-gradient-to-br from-blue-900/20 to-purple-900/20 border-blue-500/30">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-white">
+      <Card className="bg-zinc-900 border-zinc-800">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-white text-lg">
             <Lightbulb className="h-5 w-5 text-yellow-400" />
             AI Tips for Better Results
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
+        <CardContent className="pt-0">
+          <div className="space-y-2">
             <div className="flex items-start gap-3">
               <div className="flex-shrink-0 w-2 h-2 bg-blue-400 rounded-full mt-2"></div>
-              <p className="text-sm text-gray-300">
+              <p className="text-sm text-zinc-300">
                 <strong>Be Specific:</strong> Include details like payload mass, launch site, and mission objectives for better form auto-fill
               </p>
             </div>
             <div className="flex items-start gap-3">
               <div className="flex-shrink-0 w-2 h-2 bg-green-400 rounded-full mt-2"></div>
-              <p className="text-sm text-gray-300">
+              <p className="text-sm text-zinc-300">
                 <strong>Use Keywords:</strong> Mention terms like "satellite", "safety", "compliance" for targeted assistance
               </p>
             </div>
             <div className="flex items-start gap-3">
               <div className="flex-shrink-0 w-2 h-2 bg-purple-400 rounded-full mt-2"></div>
-              <p className="text-sm text-gray-300">
+              <p className="text-sm text-zinc-300">
                 <strong>Ask for Reviews:</strong> Request compliance checks and safety reviews to ensure application quality
               </p>
             </div>
             <div className="flex items-start gap-3">
               <div className="flex-shrink-0 w-2 h-2 bg-orange-400 rounded-full mt-2"></div>
-              <p className="text-sm text-gray-300">
+              <p className="text-sm text-zinc-300">
                 <strong>Provide Context:</strong> Share mission documents and technical specifications for comprehensive analysis
               </p>
             </div>
