@@ -1,220 +1,350 @@
-"use client";
+'use client';
 
-import React from "react";
+import React, { useState, useRef, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
-  BarChart3, 
-  MessageSquare, 
-  Clock, 
-  TrendingUp, 
-  Zap, 
-  CheckCircle,
-  AlertCircle,
-  Info
-} from "lucide-react";
+  Send, 
+  Bot, 
+  User, 
+  FileText, 
+  CheckCircle, 
+  AlertCircle, 
+  Loader2,
+  Sparkles,
+  MessageSquare,
+  Zap
+} from 'lucide-react';
 
-interface ChatAnalytics {
-  messageLength: number;
-  responseLength: number;
-  hasSuggestions: boolean;
-  suggestionCount: number;
-  isAutoFillRequest: boolean;
-  timestamp: string;
-}
-
-interface ChatInsight {
-  type: 'success' | 'info' | 'warning' | 'error';
-  title: string;
-  description: string;
-  icon: React.ReactNode;
-  metric?: string;
+interface Message {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: Date;
+  suggestions?: Array<{
+    field: string;
+    value: string;
+    confidence: number;
+    reasoning: string;
+  }>;
+  confidence?: number;
+  nextSteps?: string[];
+  warnings?: string[];
 }
 
 interface AIChatInsightsProps {
-  analytics?: ChatAnalytics;
-  messageCount: number;
-  averageResponseTime?: number;
-  suggestionsUsed?: number;
+  onFormUpdate?: (suggestions: any[]) => void;
   className?: string;
 }
 
-export function AIChatInsights({ 
-  analytics, 
-  messageCount, 
-  averageResponseTime = 2.5,
-  suggestionsUsed = 0,
-  className = "" 
-}: AIChatInsightsProps) {
-  
-  const generateInsights = (): ChatInsight[] => {
-    const insights: ChatInsight[] = [];
-    
-    if (!analytics) return insights;
-
-    // Message length insights
-    if (analytics.messageLength > 200) {
-      insights.push({
-        type: 'info',
-        title: 'Detailed Query',
-        description: 'Your message was comprehensive, which helps provide better responses',
-        icon: <MessageSquare className="h-4 w-4" />,
-        metric: `${analytics.messageLength} characters`
-      });
-    } else if (analytics.messageLength < 50) {
-      insights.push({
-        type: 'warning',
-        title: 'Brief Query',
-        description: 'Consider providing more details for better assistance',
-        icon: <AlertCircle className="h-4 w-4" />,
-        metric: `${analytics.messageLength} characters`
-      });
+export function AIChatInsights({ onFormUpdate, className }: AIChatInsightsProps) {
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: '1',
+      role: 'assistant',
+      content: 'Hello! I\'m SPLI Chat, your AI assistant for FAA Part 450 license applications. I can help you fill out forms, answer questions about space licensing, and ensure regulatory compliance. How can I assist you today?',
+      timestamp: new Date(),
     }
+  ]);
+  const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [conversationHistory, setConversationHistory] = useState<any[]>([]);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-    // Auto-fill insights
-    if (analytics.isAutoFillRequest) {
-      insights.push({
-        type: 'success',
-        title: 'Form Auto-fill',
-        description: 'AI detected form-related content and provided suggestions',
-        icon: <Zap className="h-4 w-4" />,
-        metric: `${analytics.suggestionCount} fields`
-      });
-    }
-
-    // Suggestions insights
-    if (analytics.hasSuggestions && analytics.suggestionCount > 0) {
-      insights.push({
-        type: 'success',
-        title: 'Smart Suggestions',
-        description: 'AI provided form field suggestions based on your input',
-        icon: <CheckCircle className="h-4 w-4" />,
-        metric: `${analytics.suggestionCount} suggestions`
-      });
-    }
-
-    // Response quality insights
-    if (analytics.responseLength > 500) {
-      insights.push({
-        type: 'info',
-        title: 'Comprehensive Response',
-        description: 'AI provided a detailed response with extensive information',
-        icon: <TrendingUp className="h-4 w-4" />,
-        metric: `${analytics.responseLength} characters`
-      });
-    }
-
-    return insights;
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const insights = generateInsights();
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
-  if (insights.length === 0 && messageCount === 0) {
-    return null;
-  }
+  const sendMessage = async () => {
+    if (!input.trim() || isLoading) return;
+
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      role: 'user',
+      content: input,
+      timestamp: new Date(),
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setInput('');
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('/api/ai', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userInput: input,
+          conversationHistory: conversationHistory,
+          mode: 'chat'
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      const assistantMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: data.message,
+        timestamp: new Date(),
+        suggestions: data.suggestions,
+        confidence: data.confidence,
+        nextSteps: data.nextSteps,
+        warnings: data.warnings,
+      };
+
+      setMessages(prev => [...prev, assistantMessage]);
+      setConversationHistory(prev => [...prev, 
+        { sender: 'user', content: input },
+        { sender: 'assistant', content: data.message }
+      ]);
+
+      // Update form if suggestions are provided
+      if (data.suggestions && data.suggestions.length > 0 && onFormUpdate) {
+        onFormUpdate(data.suggestions);
+      }
+
+    } catch (error) {
+      console.error('Error sending message:', error);
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: 'I apologize, but I encountered an error processing your request. Please try again.',
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  };
+
+  const getConfidenceColor = (confidence: number) => {
+    if (confidence >= 0.8) return 'bg-green-500';
+    if (confidence >= 0.6) return 'bg-yellow-500';
+    return 'bg-red-500';
+  };
+
+  const getConfidenceText = (confidence: number) => {
+    if (confidence >= 0.8) return 'High';
+    if (confidence >= 0.6) return 'Medium';
+    return 'Low';
+  };
 
   return (
-    <div className={`space-y-4 ${className}`}>
-      {/* Chat Statistics */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div className="bg-gradient-to-br from-blue-500/10 to-purple-600/10 border border-blue-500/20 rounded-lg p-3">
-          <div className="flex items-center gap-2">
-            <MessageSquare className="h-4 w-4 text-blue-400" />
-            <span className="text-xs text-zinc-400">Messages</span>
-          </div>
-          <div className="text-lg font-semibold text-white mt-1">{messageCount}</div>
-        </div>
-        
-        <div className="bg-gradient-to-br from-green-500/10 to-emerald-600/10 border border-green-500/20 rounded-lg p-3">
-          <div className="flex items-center gap-2">
-            <Zap className="h-4 w-4 text-green-400" />
-            <span className="text-xs text-zinc-400">Suggestions</span>
-          </div>
-          <div className="text-lg font-semibold text-white mt-1">{suggestionsUsed}</div>
-        </div>
-        
-        <div className="bg-gradient-to-br from-purple-500/10 to-pink-600/10 border border-purple-500/20 rounded-lg p-3">
-          <div className="flex items-center gap-2">
-            <Clock className="h-4 w-4 text-purple-400" />
-            <span className="text-xs text-zinc-400">Avg Response</span>
-          </div>
-          <div className="text-lg font-semibold text-white mt-1">{averageResponseTime}s</div>
-        </div>
-        
-        <div className="bg-gradient-to-br from-orange-500/10 to-red-600/10 border border-orange-500/20 rounded-lg p-3">
-          <div className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4 text-orange-400" />
-            <span className="text-xs text-zinc-400">Efficiency</span>
-          </div>
-          <div className="text-lg font-semibold text-white mt-1">
-            {messageCount > 0 ? Math.round((suggestionsUsed / messageCount) * 100) : 0}%
-          </div>
-        </div>
-      </div>
-
-      {/* AI Insights */}
-      {insights.length > 0 && (
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium text-zinc-200 flex items-center gap-2">
-            <Info className="h-4 w-4 text-blue-400" />
-            AI Insights
-          </h3>
-          <div className="space-y-2">
-            {insights.map((insight, index) => (
+    <Card className={`w-full max-w-4xl mx-auto ${className}`}>
+      <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+        <CardTitle className="flex items-center gap-2">
+          <Sparkles className="h-5 w-5" />
+          SPLI AI Assistant
+          <Badge variant="secondary" className="ml-auto">
+            <Zap className="h-3 w-3 mr-1" />
+            Professional
+          </Badge>
+        </CardTitle>
+      </CardHeader>
+      
+      <CardContent className="p-0">
+        <ScrollArea className="h-96 p-4">
+          <div className="space-y-4">
+            {messages.map((message) => (
               <div
-                key={index}
-                className={`p-3 rounded-lg border transition-all ${
-                  insight.type === 'success' 
-                    ? 'bg-green-500/10 border-green-500/20' 
-                    : insight.type === 'warning'
-                    ? 'bg-yellow-500/10 border-yellow-500/20'
-                    : insight.type === 'error'
-                    ? 'bg-red-500/10 border-red-500/20'
-                    : 'bg-blue-500/10 border-blue-500/20'
+                key={message.id}
+                className={`flex gap-3 ${
+                  message.role === 'user' ? 'justify-end' : 'justify-start'
                 }`}
               >
-                <div className="flex items-start gap-3">
-                  <div className={`flex-shrink-0 p-1.5 rounded ${
-                    insight.type === 'success' 
-                      ? 'bg-green-500/20 text-green-400' 
-                      : insight.type === 'warning'
-                      ? 'bg-yellow-500/20 text-yellow-400'
-                      : insight.type === 'error'
-                      ? 'bg-red-500/20 text-red-400'
-                      : 'bg-blue-500/20 text-blue-400'
-                  }`}>
-                    {insight.icon}
+                {message.role === 'assistant' && (
+                  <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                    <Bot className="h-4 w-4 text-white" />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <h4 className="text-sm font-medium text-zinc-100">
-                        {insight.title}
-                      </h4>
-                      {insight.metric && (
-                        <span className="text-xs text-zinc-400 bg-zinc-800 px-2 py-1 rounded">
-                          {insight.metric}
-                        </span>
+                )}
+                
+                <div
+                  className={`max-w-[80%] rounded-lg p-3 ${
+                    message.role === 'user'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 text-gray-900'
+                  }`}
+                >
+                  <div className="flex items-start gap-2">
+                    {message.role === 'user' && (
+                      <User className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                    )}
+                    <div className="flex-1">
+                      <p className="text-sm leading-relaxed">{message.content}</p>
+                      
+                      {/* Suggestions */}
+                      {message.suggestions && message.suggestions.length > 0 && (
+                        <div className="mt-3 space-y-2">
+                          <div className="flex items-center gap-2 text-xs text-gray-600">
+                            <FileText className="h-3 w-3" />
+                            <span className="font-medium">Form Suggestions</span>
+                            {message.confidence && (
+                              <Badge 
+                                variant="outline" 
+                                className={`text-xs ${getConfidenceColor(message.confidence)} text-white`}
+                              >
+                                {getConfidenceText(message.confidence)} Confidence
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="space-y-1">
+                            {message.suggestions.map((suggestion, index) => (
+                              <div key={index} className="text-xs bg-white p-2 rounded border">
+                                <div className="font-medium text-gray-800">
+                                  {suggestion.field.replace(/([A-Z])/g, ' $1').trim()}
+                                </div>
+                                <div className="text-gray-600 mt-1">{suggestion.value}</div>
+                                <div className="text-gray-500 mt-1 italic">
+                                  {suggestion.reasoning}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Next Steps */}
+                      {message.nextSteps && message.nextSteps.length > 0 && (
+                        <div className="mt-3">
+                          <div className="flex items-center gap-2 text-xs text-gray-600 mb-2">
+                            <CheckCircle className="h-3 w-3" />
+                            <span className="font-medium">Next Steps</span>
+                          </div>
+                          <ul className="text-xs space-y-1">
+                            {message.nextSteps.map((step, index) => (
+                              <li key={index} className="flex items-start gap-2">
+                                <span className="text-blue-500 mt-0.5">•</span>
+                                <span>{step}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {/* Warnings */}
+                      {message.warnings && message.warnings.length > 0 && (
+                        <div className="mt-3">
+                          <div className="flex items-center gap-2 text-xs text-orange-600 mb-2">
+                            <AlertCircle className="h-3 w-3" />
+                            <span className="font-medium">Warnings</span>
+                          </div>
+                          <ul className="text-xs space-y-1">
+                            {message.warnings.map((warning, index) => (
+                              <li key={index} className="flex items-start gap-2">
+                                <span className="text-orange-500 mt-0.5">⚠</span>
+                                <span className="text-orange-700">{warning}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
                       )}
                     </div>
-                    <p className="text-xs text-zinc-400 mt-1">
-                      {insight.description}
-                    </p>
+                  </div>
+                </div>
+                
+                {message.role === 'user' && (
+                  <div className="flex-shrink-0 w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+                    <User className="h-4 w-4 text-gray-600" />
+                  </div>
+                )}
+              </div>
+            ))}
+            
+            {isLoading && (
+              <div className="flex gap-3 justify-start">
+                <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                  <Bot className="h-4 w-4 text-white" />
+                </div>
+                <div className="bg-gray-100 rounded-lg p-3">
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
+                    <span className="text-sm text-gray-600">Processing your request...</span>
                   </div>
                 </div>
               </div>
-            ))}
+            )}
+            
+            <div ref={messagesEndRef} />
+          </div>
+        </ScrollArea>
+
+        <div className="p-4 border-t bg-gray-50">
+          <div className="flex gap-2">
+            <Input
+              ref={inputRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Ask about FAA licensing, describe your mission, or get help with forms..."
+              className="flex-1"
+              disabled={isLoading}
+            />
+            <Button 
+              onClick={sendMessage} 
+              disabled={!input.trim() || isLoading}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+            >
+              {isLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+          
+          <div className="mt-2 flex flex-wrap gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setInput('Help me fill out a Part 450 application')}
+              disabled={isLoading}
+            >
+              <FileText className="h-3 w-3 mr-1" />
+              Fill Form
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setInput('Check my application for compliance')}
+              disabled={isLoading}
+            >
+              <CheckCircle className="h-3 w-3 mr-1" />
+              Check Compliance
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setInput('Analyze my mission description')}
+              disabled={isLoading}
+            >
+              <MessageSquare className="h-3 w-3 mr-1" />
+              Analyze Mission
+            </Button>
           </div>
         </div>
-      )}
-
-      {/* Tips */}
-      <div className="bg-gradient-to-br from-zinc-800 to-zinc-900 border border-zinc-700 rounded-lg p-4">
-        <h3 className="text-sm font-medium text-zinc-200 mb-2">💡 Tips for Better AI Assistance</h3>
-        <ul className="text-xs text-zinc-400 space-y-1">
-          <li>• Provide detailed mission descriptions for better form auto-fill</li>
-          <li>• Use specific keywords like "satellite", "launch", "safety" for targeted help</li>
-          <li>• Ask for compliance checks to ensure your application meets requirements</li>
-          <li>• Use the quick actions for common tasks and guidance</li>
-        </ul>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 } 

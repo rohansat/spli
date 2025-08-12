@@ -1,391 +1,262 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect, useRef } from "react";
-import { Search, ChevronRight, FileText, Rocket, Shield, MapPin, Clock, Settings, Database, AlertTriangle, Brain } from "lucide-react";
-import { part450FormTemplate } from "@/lib/mock-data";
-
-interface ContextMenuItem {
-  id: string;
-  type: "section" | "field" | "quick_action";
-  title: string;
-  sectionTitle?: string;
-  icon: React.ReactNode;
-  path: string;
-  description?: string;
-}
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { 
+  Sparkles, 
+  FileText, 
+  CheckCircle, 
+  MessageSquare, 
+  Zap, 
+  Lightbulb,
+  Target,
+  Shield,
+  Clock,
+  TrendingUp
+} from 'lucide-react';
 
 interface AIContextMenuProps {
-  isVisible: boolean;
-  position: { x: number; y: number };
-  onSelect: (item: ContextMenuItem) => void;
-  onClose: () => void;
-  searchTerm: string;
+  onAction: (action: string, prompt?: string) => void;
+  className?: string;
 }
 
-export function AIContextMenu({ 
-  isVisible, 
-  position, 
-  onSelect, 
-  onClose, 
-  searchTerm 
-}: AIContextMenuProps) {
-  const [selectedIndex, setSelectedIndex] = useState(0);
-  const [viewMode, setViewMode] = useState<"sections" | "fields" | "quick_actions">("sections");
-  const [selectedSection, setSelectedSection] = useState<string | null>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
+const quickActions = [
+  {
+    id: 'fill-form',
+    title: 'Fill Application',
+    description: 'Auto-fill Part 450 form from mission description',
+    icon: FileText,
+    prompt: 'Help me fill out a Part 450 application with my mission details',
+    color: 'from-blue-500 to-cyan-500',
+    category: 'form'
+  },
+  {
+    id: 'compliance-check',
+    title: 'Compliance Check',
+    description: 'Verify your application meets FAA requirements',
+    icon: CheckCircle,
+    prompt: 'Check my application for compliance with FAA Part 450 regulations',
+    color: 'from-green-500 to-emerald-500',
+    category: 'compliance'
+  },
+  {
+    id: 'mission-analysis',
+    title: 'Mission Analysis',
+    description: 'Get detailed analysis of your space mission',
+    icon: Target,
+    prompt: 'Analyze my mission description and provide insights',
+    color: 'from-purple-500 to-pink-500',
+    category: 'analysis'
+  },
+  {
+    id: 'safety-review',
+    title: 'Safety Review',
+    description: 'Review safety considerations and risk assessments',
+    icon: Shield,
+    prompt: 'Review safety considerations for my launch mission',
+    color: 'from-orange-500 to-red-500',
+    category: 'safety'
+  },
+  {
+    id: 'timeline-planning',
+    title: 'Timeline Planning',
+    description: 'Plan your application and launch timeline',
+    icon: Clock,
+    prompt: 'Help me plan the timeline for my launch application',
+    color: 'from-indigo-500 to-purple-500',
+    category: 'planning'
+  },
+  {
+    id: 'industry-insights',
+    title: 'Industry Insights',
+    description: 'Get insights about the space industry and regulations',
+    icon: TrendingUp,
+    prompt: 'Provide insights about current space industry trends and regulations',
+    color: 'from-teal-500 to-blue-500',
+    category: 'insights'
+  }
+];
 
-  // Generate context menu items with enhanced functionality
-  const generateItems = (): ContextMenuItem[] => {
-    if (viewMode === "sections") {
-      return part450FormTemplate.sections.map((section, index) => ({
-        id: `section-${index}`,
-        type: "section",
-        title: section.title,
-        icon: getSectionIcon(section.title),
-        path: section.title,
-        description: `${section.fields.length} fields available`
-      }));
-    } else if (viewMode === "fields") {
-      // Show fields for selected section
-      const sectionIndex = parseInt(selectedSection?.split('-')[1] || '0');
-      const section = part450FormTemplate.sections[sectionIndex];
-      return section.fields.map((field, index) => ({
-        id: `field-${sectionIndex}-${index}`,
-        type: "field",
-        title: field.label,
-        sectionTitle: section.title,
-        icon: getFieldIcon(field.label),
-        path: field.label,
-        description: getFieldDescription(field.label)
-      }));
-    } else {
-      // Quick actions for common tasks
-      return [
-        {
-          id: 'auto-fill-all',
-          type: "quick_action",
-          title: "Auto-fill All Fields",
-          icon: <Brain className="h-4 w-4" />,
-          path: "Auto-fill All Fields",
-          description: "Automatically fill all form fields from mission description"
-        },
-        {
-          id: 'mission-objective',
-          type: "quick_action",
-          title: "Mission Objective",
-          icon: <Rocket className="h-4 w-4" />,
-          path: "Mission Objective",
-          description: "Help write mission objective and purpose"
-        },
-        {
-          id: 'safety-analysis',
-          type: "quick_action",
-          title: "Safety Analysis",
-          icon: <Shield className="h-4 w-4" />,
-          path: "Safety Analysis",
-          description: "Analyze safety considerations and risks"
-        },
-        {
-          id: 'technical-specs',
-          type: "quick_action",
-          title: "Technical Specifications",
-          icon: <Settings className="h-4 w-4" />,
-          path: "Technical Specifications",
-          description: "Help with technical specifications and data"
-        },
-        {
-          id: 'timeline-planning',
-          type: "quick_action",
-          title: "Timeline Planning",
-          icon: <Clock className="h-4 w-4" />,
-          path: "Timeline Planning",
-          description: "Plan application and launch timeline"
-        },
-        {
-          id: 'site-selection',
-          type: "quick_action",
-          title: "Launch Site Selection",
-          icon: <MapPin className="h-4 w-4" />,
-          path: "Launch Site Selection",
-          description: "Help with launch site requirements and selection"
-        }
-      ];
-    }
-  };
+const aiFeatures = [
+  {
+    title: 'Intelligent Form Filling',
+    description: 'AI automatically extracts information from mission descriptions and populates Part 450 forms',
+    icon: Sparkles,
+    benefit: 'Save 80% of form completion time'
+  },
+  {
+    title: 'Real-time Compliance',
+    description: 'Instant validation against FAA Part 450 requirements with detailed feedback',
+    icon: CheckCircle,
+    benefit: '95% compliance accuracy'
+  },
+  {
+    title: 'Smart Suggestions',
+    description: 'AI-powered recommendations for improving your application quality',
+    icon: Lightbulb,
+    benefit: 'Reduce application rejections'
+  },
+  {
+    title: 'Professional Guidance',
+    description: 'Expert assistance with space licensing and regulatory requirements',
+    icon: MessageSquare,
+    benefit: 'Access to regulatory expertise'
+  }
+];
 
-  const getSectionIcon = (sectionTitle: string): React.ReactNode => {
-    const lowerTitle = sectionTitle.toLowerCase();
-    if (lowerTitle.includes('concept') || lowerTitle.includes('operations')) return <Rocket className="h-4 w-4" />;
-    if (lowerTitle.includes('vehicle')) return <Settings className="h-4 w-4" />;
-    if (lowerTitle.includes('location') || lowerTitle.includes('site')) return <MapPin className="h-4 w-4" />;
-    if (lowerTitle.includes('launch')) return <Rocket className="h-4 w-4" />;
-    if (lowerTitle.includes('risk') || lowerTitle.includes('safety')) return <Shield className="h-4 w-4" />;
-    if (lowerTitle.includes('timeline')) return <Clock className="h-4 w-4" />;
-    if (lowerTitle.includes('question')) return <AlertTriangle className="h-4 w-4" />;
-    return <FileText className="h-4 w-4" />;
-  };
+export function AIContextMenu({ onAction, className }: AIContextMenuProps) {
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
-  const getFieldIcon = (fieldLabel: string): React.ReactNode => {
-    const lowerLabel = fieldLabel.toLowerCase();
-    if (lowerLabel.includes('mission') || lowerLabel.includes('objective')) return <Rocket className="h-4 w-4" />;
-    if (lowerLabel.includes('vehicle') || lowerLabel.includes('technical')) return <Settings className="h-4 w-4" />;
-    if (lowerLabel.includes('safety') || lowerLabel.includes('risk')) return <Shield className="h-4 w-4" />;
-    if (lowerLabel.includes('site') || lowerLabel.includes('location')) return <MapPin className="h-4 w-4" />;
-    if (lowerLabel.includes('timeline') || lowerLabel.includes('window')) return <Clock className="h-4 w-4" />;
-    if (lowerLabel.includes('propulsion') || lowerLabel.includes('engine')) return <Rocket className="h-4 w-4" />;
-    if (lowerLabel.includes('trajectory') || lowerLabel.includes('path')) return <Database className="h-4 w-4" />;
-    return <FileText className="h-4 w-4" />;
-  };
+  const categories = [
+    { id: 'all', name: 'All Actions', count: quickActions.length },
+    { id: 'form', name: 'Form Filling', count: quickActions.filter(a => a.category === 'form').length },
+    { id: 'compliance', name: 'Compliance', count: quickActions.filter(a => a.category === 'compliance').length },
+    { id: 'analysis', name: 'Analysis', count: quickActions.filter(a => a.category === 'analysis').length },
+    { id: 'safety', name: 'Safety', count: quickActions.filter(a => a.category === 'safety').length },
+    { id: 'planning', name: 'Planning', count: quickActions.filter(a => a.category === 'planning').length },
+    { id: 'insights', name: 'Insights', count: quickActions.filter(a => a.category === 'insights').length }
+  ];
 
-  const getFieldDescription = (fieldLabel: string): string => {
-    const lowerLabel = fieldLabel.toLowerCase();
-    if (lowerLabel.includes('mission objective')) return "Primary purpose and goals of the mission";
-    if (lowerLabel.includes('vehicle description')) return "Launch vehicle specifications and characteristics";
-    if (lowerLabel.includes('safety considerations')) return "Safety measures and risk mitigation";
-    if (lowerLabel.includes('technical summary')) return "Technical specifications and data";
-    if (lowerLabel.includes('launch site')) return "Exact launch location and facility";
-    if (lowerLabel.includes('timeline')) return "Application and launch schedule";
-    if (lowerLabel.includes('propulsion')) return "Propulsion systems and engines";
-    if (lowerLabel.includes('trajectory')) return "Flight path and orbital parameters";
-    return "Form field for Part 450 application";
-  };
-
-  const items = generateItems();
-  const filteredItems = items.filter(item => {
-    const searchLower = searchTerm.toLowerCase().trim();
-    const titleLower = item.title.toLowerCase();
-    const pathLower = item.path.toLowerCase();
-    const descriptionLower = item.description?.toLowerCase() || '';
-    
-    // If search is empty, show all items
-    if (!searchLower) return true;
-    
-    // Check if search term matches title, path, or description
-    if (titleLower.includes(searchLower) || 
-        pathLower.includes(searchLower) || 
-        descriptionLower.includes(searchLower)) {
-      return true;
-    }
-    
-    // Check individual words for better matching
-    const searchWords = searchLower.split(' ').filter(word => word.length > 0);
-    const titleWords = titleLower.split(' ').filter(word => word.length > 0);
-    const pathWords = pathLower.split(' ').filter(word => word.length > 0);
-    const descriptionWords = descriptionLower.split(' ').filter(word => word.length > 0);
-    
-    // Check if all search words are found in title, path, or description
-    return searchWords.every(searchWord => 
-      titleWords.some(titleWord => titleWord.includes(searchWord)) ||
-      pathWords.some(pathWord => pathWord.includes(searchWord)) ||
-      descriptionWords.some(descWord => descWord.includes(searchWord))
-    );
-  });
-
-  // Handle keyboard navigation
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (!isVisible) return;
-
-      switch (e.key) {
-        case "ArrowDown":
-          e.preventDefault();
-          setSelectedIndex(prev => 
-            prev < filteredItems.length - 1 ? prev + 1 : 0
-          );
-          break;
-        case "ArrowUp":
-          e.preventDefault();
-          setSelectedIndex(prev => 
-            prev > 0 ? prev - 1 : filteredItems.length - 1
-          );
-          break;
-        case "Enter":
-          e.preventDefault();
-          if (filteredItems[selectedIndex]) {
-            handleItemSelect(filteredItems[selectedIndex]);
-          }
-          break;
-        case "Escape":
-          e.preventDefault();
-          onClose();
-          break;
-        case "ArrowRight":
-          e.preventDefault();
-          if (viewMode === "sections" && filteredItems[selectedIndex]) {
-            setSelectedSection(filteredItems[selectedIndex].id);
-            setViewMode("fields");
-            setSelectedIndex(0);
-          }
-          break;
-        case "ArrowLeft":
-          e.preventDefault();
-          if (viewMode === "fields") {
-            setViewMode("sections");
-            setSelectedSection(null);
-            setSelectedIndex(0);
-          } else if (viewMode === "quick_actions") {
-            setViewMode("sections");
-            setSelectedIndex(0);
-          }
-          break;
-        case "Tab":
-          e.preventDefault();
-          if (viewMode === "sections") {
-            setViewMode("quick_actions");
-            setSelectedIndex(0);
-          } else if (viewMode === "quick_actions") {
-            setViewMode("sections");
-            setSelectedIndex(0);
-          }
-          break;
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [isVisible, filteredItems, selectedIndex, viewMode, onClose]);
-
-  // Reset selection when search term changes
-  useEffect(() => {
-    setSelectedIndex(0);
-  }, [searchTerm]);
-
-  // Reset when menu becomes visible
-  useEffect(() => {
-    if (isVisible) {
-      setSelectedIndex(0);
-      setViewMode("sections");
-      setSelectedSection(null);
-    }
-  }, [isVisible]);
-
-  const handleItemSelect = (item: ContextMenuItem) => {
-    if (viewMode === "sections") {
-      setSelectedSection(item.id);
-      setViewMode("fields");
-      setSelectedIndex(0);
-    } else {
-      onSelect(item);
-    }
-  };
-
-  const handleItemClick = (item: ContextMenuItem) => {
-    handleItemSelect(item);
-  };
-
-  if (!isVisible) return null;
+  const filteredActions = selectedCategory === 'all' 
+    ? quickActions 
+    : quickActions.filter(action => action.category === selectedCategory);
 
   return (
-    <div
-      ref={menuRef}
-      className="absolute z-50 bg-zinc-800 border border-zinc-700 rounded-lg shadow-xl min-w-64 max-w-80 context-menu"
-      style={{
-        left: position.x,
-        top: position.y,
-        maxHeight: '300px',
-      }}
-    >
-      {/* Header */}
-      <div className="flex items-center justify-between p-2 border-b border-zinc-700">
-        <div className="flex items-center gap-2">
-          <Search className="h-4 w-4 text-zinc-400" />
-          <span className="text-sm font-medium text-zinc-200">
-            {viewMode === "sections" ? "Select Section" : 
-             viewMode === "fields" ? "Select Field" : "Quick Actions"}
-          </span>
-        </div>
-        <div className="flex items-center gap-1">
-          {viewMode === "fields" && (
-            <button
-              onClick={() => {
-                setViewMode("sections");
-                setSelectedSection(null);
-                setSelectedIndex(0);
-              }}
-              className="text-zinc-400 hover:text-zinc-300 text-xs"
-            >
-              ← Back
-            </button>
-          )}
-          {(viewMode === "sections" || viewMode === "quick_actions") && (
-            <button
-              onClick={() => {
-                setViewMode(viewMode === "sections" ? "quick_actions" : "sections");
-                setSelectedIndex(0);
-              }}
-              className="text-zinc-400 hover:text-zinc-300 text-xs"
-            >
-              {viewMode === "sections" ? "Quick Actions" : "Sections"}
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Search input */}
-      <div className="p-1 border-b border-zinc-700">
-        <input
-          type="text"
-          placeholder="Search sections, fields, and actions..."
-          className="w-full px-2 py-1 text-sm bg-zinc-700 border border-zinc-600 rounded text-zinc-200 placeholder-zinc-400 focus:outline-none focus:border-zinc-500"
-          value={searchTerm}
-          readOnly
-        />
-      </div>
-
-      {/* Items list */}
-      <div className="max-h-48 overflow-y-auto" style={{
-        scrollbarWidth: 'thin',
-        scrollbarColor: '#52525b #27272a'
-      }}>
-        {filteredItems.length === 0 ? (
-          <div className="p-3 text-center text-zinc-400 text-sm">
-            No items found
-          </div>
-        ) : (
-          filteredItems.map((item, index) => (
-            <div
-              key={item.id}
-              className={`flex items-start gap-2 px-2 py-1 cursor-pointer transition-colors ${
-                index === selectedIndex
-                  ? "bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-zinc-100 border border-blue-500/30"
-                  : "text-zinc-300 hover:bg-zinc-700 hover:text-zinc-100"
-              }`}
-              onClick={() => handleItemClick(item)}
-            >
-              <div className="flex-shrink-0 text-zinc-400 mt-0.5">
-                {item.icon}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium truncate">
-                  {item.title}
+    <div className={`space-y-6 ${className}`}>
+      {/* AI Features Overview */}
+      <Card className="bg-gradient-to-br from-gray-900 to-gray-800 border-gray-700">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-white">
+            <Sparkles className="h-5 w-5 text-blue-400" />
+            SPLI AI Capabilities
+            <Badge variant="secondary" className="ml-auto">
+              <Zap className="h-3 w-3 mr-1" />
+              Professional
+            </Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {aiFeatures.map((feature, index) => (
+              <div key={index} className="flex items-start gap-3 p-3 rounded-lg bg-gray-800/50 border border-gray-700">
+                <div className="flex-shrink-0 p-2 rounded-lg bg-blue-500/20">
+                  <feature.icon className="h-4 w-4 text-blue-400" />
                 </div>
-                {item.sectionTitle && (
-                  <div className="text-xs text-zinc-500 truncate">
-                    {item.sectionTitle}
-                  </div>
-                )}
-                {item.description && (
-                  <div className="text-xs text-zinc-500 truncate mt-1">
-                    {item.description}
-                  </div>
-                )}
+                <div className="flex-1 min-w-0">
+                  <h4 className="text-sm font-medium text-white mb-1">
+                    {feature.title}
+                  </h4>
+                  <p className="text-xs text-gray-400 mb-2">
+                    {feature.description}
+                  </p>
+                  <Badge variant="outline" className="text-xs bg-green-500/20 text-green-400 border-green-500/30">
+                    {feature.benefit}
+                  </Badge>
+                </div>
               </div>
-              {viewMode === "sections" && (
-                <ChevronRight className="h-4 w-4 text-zinc-400 flex-shrink-0 mt-0.5" />
-              )}
-            </div>
-          ))
-        )}
-      </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
-      {/* Footer with keyboard shortcuts */}
-      <div className="p-2 border-t border-zinc-700 bg-zinc-900">
-        <div className="flex items-center justify-between text-xs text-zinc-500">
-          <span>Use ↑↓ to navigate</span>
-          <span>Enter to select</span>
-          <span>Esc to close</span>
-        </div>
-      </div>
+      {/* Quick Actions */}
+      <Card className="bg-gradient-to-br from-gray-900 to-gray-800 border-gray-700">
+        <CardHeader>
+          <CardTitle className="text-white">Quick Actions</CardTitle>
+          <p className="text-sm text-gray-400">
+            Get instant help with common tasks and AI-powered assistance
+          </p>
+        </CardHeader>
+        <CardContent>
+          {/* Category Filter */}
+          <div className="flex flex-wrap gap-2 mb-4">
+            {categories.map((category) => (
+              <Button
+                key={category.id}
+                variant={selectedCategory === category.id ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedCategory(category.id)}
+                className={selectedCategory === category.id 
+                  ? "bg-blue-600 hover:bg-blue-700" 
+                  : "border-gray-600 text-gray-300 hover:bg-gray-700"
+                }
+              >
+                {category.name}
+                <Badge variant="secondary" className="ml-2 text-xs">
+                  {category.count}
+                </Badge>
+              </Button>
+            ))}
+          </div>
+
+          {/* Action Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredActions.map((action) => (
+              <Card 
+                key={action.id}
+                className="bg-gray-800/50 border-gray-700 hover:border-gray-600 transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/10 cursor-pointer group"
+                onClick={() => onAction(action.id, action.prompt)}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-start gap-3">
+                    <div className={`flex-shrink-0 p-2 rounded-lg bg-gradient-to-r ${action.color} group-hover:scale-110 transition-transform duration-200`}>
+                      <action.icon className="h-4 w-4 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-sm font-medium text-white mb-1 group-hover:text-blue-400 transition-colors">
+                        {action.title}
+                      </h4>
+                      <p className="text-xs text-gray-400 leading-relaxed">
+                        {action.description}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* AI Tips */}
+      <Card className="bg-gradient-to-br from-blue-900/20 to-purple-900/20 border-blue-500/30">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-white">
+            <Lightbulb className="h-5 w-5 text-yellow-400" />
+            AI Tips for Better Results
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0 w-2 h-2 bg-blue-400 rounded-full mt-2"></div>
+              <p className="text-sm text-gray-300">
+                <strong>Be Specific:</strong> Include details like payload mass, launch site, and mission objectives for better form auto-fill
+              </p>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0 w-2 h-2 bg-green-400 rounded-full mt-2"></div>
+              <p className="text-sm text-gray-300">
+                <strong>Use Keywords:</strong> Mention terms like "satellite", "safety", "compliance" for targeted assistance
+              </p>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0 w-2 h-2 bg-purple-400 rounded-full mt-2"></div>
+              <p className="text-sm text-gray-300">
+                <strong>Ask for Reviews:</strong> Request compliance checks and safety reviews to ensure application quality
+              </p>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0 w-2 h-2 bg-orange-400 rounded-full mt-2"></div>
+              <p className="text-sm text-gray-300">
+                <strong>Provide Context:</strong> Share mission documents and technical specifications for comprehensive analysis
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 } 
