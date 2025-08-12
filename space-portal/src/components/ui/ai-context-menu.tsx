@@ -145,13 +145,9 @@ export function AIContextMenu({ onAction, className }: AIContextMenuProps) {
                     <h4 className="text-sm font-bold text-white mb-3 uppercase leading-tight">
                       {feature.title}
                     </h4>
-                    <div className="text-xs text-zinc-300 leading-relaxed space-y-1">
-                      {feature.description.split(' ').map((word, wordIndex) => (
-                        <div key={wordIndex} className="break-words">
-                          {word}
-                        </div>
-                      ))}
-                    </div>
+                    <p className="text-xs text-zinc-300 leading-relaxed text-center">
+                      {feature.description}
+                    </p>
                   </div>
                 </div>
                 <div className="mt-auto pt-2">
