@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, forwardRef, useImperativeHandle } from 'react';
+import React, { useState, useRef, forwardRef, useImperativeHandle, useEffect } from 'react';
 import { AIChatInsights } from './ai-chat-insights';
 import { AIContextMenu } from './ai-context-menu';
 import { Button } from './button';
@@ -39,6 +39,7 @@ export interface AIAssistantPanelHandle {
 
 export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPanelProps>(({ 
   onFormUpdate, 
+  onCommand,
   className,
   isCollapsed = false,
   onToggleCollapse,
@@ -47,6 +48,17 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
   const [activeTab, setActiveTab] = useState('chat');
   const [isMinimized, setIsMinimized] = useState(false);
   const [messages, setMessages] = useState<any[]>([]);
+  const [quickActionPrompt, setQuickActionPrompt] = useState<string>('');
+
+  // Clear the prompt after it's been sent
+  useEffect(() => {
+    if (quickActionPrompt) {
+      const timer = setTimeout(() => {
+        setQuickActionPrompt('');
+      }, 2000); // Clear after 2 seconds
+      return () => clearTimeout(timer);
+    }
+  }, [quickActionPrompt]);
 
   // Expose methods via ref
   useImperativeHandle(ref, () => ({
@@ -87,10 +99,16 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
     }
   }));
 
-  const handleContextAction = (action: string, prompt?: string) => {
-    // This would typically trigger the chat with the specific prompt
+  const handleContextAction = async (action: string, prompt?: string) => {
     console.log('Context action:', action, prompt);
+    
+    // Switch to chat tab
     setActiveTab('chat');
+    
+    // Set the prompt to be sent to the chat
+    if (prompt) {
+      setQuickActionPrompt(prompt);
+    }
   };
 
   const handleFormUpdate = (suggestions: any[]) => {
@@ -182,6 +200,7 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
                   onFormUpdate={handleFormUpdate}
                   className="border-0 shadow-none flex-1 min-h-0"
                   isInline={true}
+                  initialPrompt={quickActionPrompt}
                 />
               </TabsContent>
 

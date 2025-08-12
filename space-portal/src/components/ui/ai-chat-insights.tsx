@@ -40,9 +40,11 @@ interface AIChatInsightsProps {
   onFormUpdate?: (suggestions: any[]) => void;
   className?: string;
   isInline?: boolean; // New prop to control inline vs card layout
+  onQuickAction?: (action: string, prompt: string) => void; // New prop for quick actions
+  initialPrompt?: string; // New prop for initial prompt from quick actions
 }
 
-export function AIChatInsights({ onFormUpdate, className, isInline = false }: AIChatInsightsProps) {
+export function AIChatInsights({ onFormUpdate, className, isInline = false, onQuickAction, initialPrompt }: AIChatInsightsProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -57,15 +59,26 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false }: AI
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Handle initial prompt from quick actions
+  useEffect(() => {
+    if (initialPrompt && initialPrompt.trim()) {
+      setInput(initialPrompt);
+      // Send the message automatically after a short delay
+      setTimeout(() => {
+        sendMessageWithContent(initialPrompt);
+      }, 100);
+    }
+  }, [initialPrompt]);
+
   // Removed automatic scrolling to prevent page from scrolling down when sending messages
 
-  const sendMessage = async () => {
-    if (!input.trim() || isLoading) return;
+  const sendMessageWithContent = async (content: string) => {
+    if (!content.trim() || isLoading) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
-      content: input,
+      content: content,
       timestamp: new Date(),
     };
 
@@ -80,7 +93,7 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false }: AI
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          userInput: input,
+          userInput: content,
           conversationHistory: conversationHistory,
           mode: 'chat'
         }),
@@ -105,7 +118,7 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false }: AI
 
       setMessages(prev => [...prev, assistantMessage]);
       setConversationHistory(prev => [...prev, 
-        { sender: 'user', content: input },
+        { sender: 'user', content: content },
         { sender: 'assistant', content: data.message }
       ]);
 
@@ -126,6 +139,10 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false }: AI
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const sendMessage = async () => {
+    await sendMessageWithContent(input);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
