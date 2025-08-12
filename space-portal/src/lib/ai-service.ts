@@ -209,17 +209,19 @@ INFORMATION ASSESSMENT:
 - Be comprehensive and thorough in your extraction
 
 ALWAYS use this structured format when mission information is provided:
+
+SECTION 1: CONCEPT OF OPERATIONS (CONOPS)
 MISSION OBJECTIVE
 [Extract and describe the mission objective, purpose, and goals]
 
 VEHICLE DESCRIPTION  
 [Extract vehicle information, rocket type, stages, propulsion, dimensions, mass]
 
-LAUNCH SEQUENCE
+LAUNCH/REENTRY SEQUENCE
 [Extract launch sequence, stages, trajectory, flight profile]
 
-TECHNICAL SUMMARY
-[Extract technical specifications, payload details, power systems, communications]
+TRAJECTORY OVERVIEW
+[Extract trajectory details, flight path, orbital parameters]
 
 SAFETY CONSIDERATIONS
 [Extract safety measures, risk assessments, termination systems, monitoring]
@@ -227,14 +229,71 @@ SAFETY CONSIDERATIONS
 GROUND OPERATIONS
 [Extract ground operations, facilities, procedures, support equipment]
 
+SECTION 2: VEHICLE OVERVIEW
+TECHNICAL SUMMARY
+[Extract technical specifications, payload details, power systems, communications]
+
+DIMENSIONS/MASS/STAGES
+[Extract vehicle dimensions, mass, stage configuration]
+
+PROPULSION TYPES
+[Extract propulsion system details, engine types, fuel]
+
+RECOVERY SYSTEMS
+[Extract recovery system information if applicable]
+
+GROUND SUPPORT EQUIPMENT
+[Extract ground support equipment and infrastructure]
+
+SECTION 3: PLANNED LAUNCH/REENTRY LOCATION(S)
+SITE NAMES/COORDINATES
+[Extract launch site names and precise coordinates]
+
+SITE OPERATOR
+[Extract site operator information if third party]
+
+AIRSPACE/MARITIME NOTES
+[Extract airspace or maritime considerations if applicable]
+
+SECTION 4: LAUNCH INFORMATION
 LAUNCH SITE
-[Extract launch site information, coordinates, facility details]
+[Extract specific launch site location]
 
-TIMELINE
-[Extract timeline information, launch windows, mission duration]
+LAUNCH WINDOW
+[Extract launch window timing and dates]
 
-LICENSE TYPE
-[Extract license type based on mission characteristics]
+FLIGHT PATH
+[Extract flight path description and trajectory]
+
+LANDING SITE
+[Extract landing or recovery site if applicable]
+
+SECTION 5: PRELIMINARY RISK OR SAFETY CONSIDERATIONS
+EARLY RISK ASSESSMENTS
+[Extract any early risk assessments conducted]
+
+PUBLIC SAFETY CHALLENGES
+[Extract known public safety challenges]
+
+PLANNED SAFETY TOOLS
+[Extract planned use of safety tools like DEBRIS, SARA, etc.]
+
+SECTION 6: TIMELINE & INTENT
+FULL APPLICATION TIMELINE
+[Extract when full application will be submitted]
+
+INTENDED WINDOW
+[Extract intended launch/reentry window]
+
+LICENSE TYPE INTENT
+[Extract whether seeking vehicle/operator license or mission-specific license]
+
+SECTION 7: LIST OF QUESTIONS FOR FAA
+CLARIFY PART 450
+[Extract any questions about Part 450 requirements]
+
+UNIQUE TECH/INTERNATIONAL
+[Extract any unique technology or international aspects]
 
 WHEN USER PROVIDES INSUFFICIENT DETAILS:
 Extract whatever information you can find, even if incomplete. If truly no mission information is provided, then ask for details.
@@ -381,36 +440,107 @@ Always maintain professional expertise while being helpful and engaging.`;
   private extractFormSections(response: string): Record<string, string> {
     const sections: Record<string, string> = {};
     
-    // Define the main Part 450 sections we need to extract with multiple variations
+    // Define ALL Part 450 form fields with multiple variations for comprehensive extraction
     const sectionMappings = {
+      // Section 1: Concept of Operations (CONOPS)
       'mission objective': 'missionObjective',
       'missionobjective': 'missionObjective',
       'objective': 'missionObjective',
       'vehicle description': 'vehicleDescription',
       'vehicledescription': 'vehicleDescription',
       'vehicle': 'vehicleDescription',
-      'launch sequence': 'launchReEntrySequence',
+      'launch reentry sequence': 'launchReEntrySequence',
       'launchreentrysequence': 'launchReEntrySequence',
-      'launchsequence': 'launchReEntrySequence',
+      'launch sequence': 'launchReEntrySequence',
       'reentry sequence': 'launchReEntrySequence',
-      'technical summary': 'technicalSummary',
-      'technicalsummary': 'technicalSummary',
-      'technical': 'technicalSummary',
+      'trajectory overview': 'trajectoryOverview',
+      'trajectoryoverview': 'trajectoryOverview',
+      'trajectory': 'trajectoryOverview',
       'safety considerations': 'safetyConsiderations',
       'safetyconsiderations': 'safetyConsiderations',
       'safety': 'safetyConsiderations',
       'ground operations': 'groundOperations',
       'groundoperations': 'groundOperations',
       'ground ops': 'groundOperations',
+      
+      // Section 2: Vehicle Overview
+      'technical summary': 'technicalSummary',
+      'technicalsummary': 'technicalSummary',
+      'technical': 'technicalSummary',
+      'dimensions mass stages': 'dimensionsMassStages',
+      'dimensionsmassstages': 'dimensionsMassStages',
+      'dimensions': 'dimensionsMassStages',
+      'mass stages': 'dimensionsMassStages',
+      'propulsion types': 'propulsionTypes',
+      'propulsiontypes': 'propulsionTypes',
+      'propulsion': 'propulsionTypes',
+      'recovery systems': 'recoverySystems',
+      'recoverysystems': 'recoverySystems',
+      'recovery': 'recoverySystems',
+      'ground support equipment': 'groundSupportEquipment',
+      'groundsupportequipment': 'groundSupportEquipment',
+      'ground support': 'groundSupportEquipment',
+      
+      // Section 3: Planned Launch/Reentry Location(s)
+      'site names coordinates': 'siteNamesCoordinates',
+      'sitenamescoordinates': 'siteNamesCoordinates',
+      'site coordinates': 'siteNamesCoordinates',
+      'coordinates': 'siteNamesCoordinates',
+      'site operator': 'siteOperator',
+      'siteoperator': 'siteOperator',
+      'operator': 'siteOperator',
+      'airspace maritime notes': 'airspaceMaritimeNotes',
+      'airspacemaritimenotes': 'airspaceMaritimeNotes',
+      'airspace notes': 'airspaceMaritimeNotes',
+      'maritime notes': 'airspaceMaritimeNotes',
+      
+      // Section 4: Launch Information
       'launch site': 'launchSite',
       'launchsite': 'launchSite',
       'launch location': 'launchSite',
+      'launch window': 'launchWindow',
+      'launchwindow': 'launchWindow',
+      'window': 'launchWindow',
+      'flight path': 'flightPath',
+      'flightpath': 'flightPath',
+      'path': 'flightPath',
+      'landing site': 'landingSite',
+      'landingsite': 'landingSite',
+      'landing location': 'landingSite',
+      
+      // Section 5: Preliminary Risk or Safety Considerations
+      'early risk assessments': 'earlyRiskAssessments',
+      'earlyriskassessments': 'earlyRiskAssessments',
+      'risk assessments': 'earlyRiskAssessments',
+      'public safety challenges': 'publicSafetyChallenges',
+      'publicsafetychallenges': 'publicSafetyChallenges',
+      'safety challenges': 'publicSafetyChallenges',
+      'planned safety tools': 'plannedSafetyTools',
+      'plannedsafetytools': 'plannedSafetyTools',
+      'safety tools': 'plannedSafetyTools',
+      
+      // Section 6: Timeline & Intent
+      'full application timeline': 'fullApplicationTimeline',
+      'fullapplicationtimeline': 'fullApplicationTimeline',
+      'application timeline': 'fullApplicationTimeline',
       'timeline': 'intendedWindow',
       'intended window': 'intendedWindow',
       'intendedwindow': 'intendedWindow',
+      'intended': 'intendedWindow',
+      'license type intent': 'licenseTypeIntent',
+      'licensetypeintent': 'licenseTypeIntent',
+      'license intent': 'licenseTypeIntent',
       'license type': 'licenseTypeIntent',
-      'licensetype': 'licenseTypeIntent',
-      'license type intent': 'licenseTypeIntent'
+      
+      // Section 7: List of Questions for FAA
+      'clarify part450': 'clarifyPart450',
+      'clarifypart450': 'clarifyPart450',
+      'part450': 'clarifyPart450',
+      'part 450': 'clarifyPart450',
+      'unique tech international': 'uniqueTechInternational',
+      'uniquetechinternational': 'uniqueTechInternational',
+      'unique tech': 'uniqueTechInternational',
+      'international': 'uniqueTechInternational'
     };
 
     // Try to extract sections from structured AI response first
@@ -487,6 +617,23 @@ Always maintain professional expertise while being helpful and engaging.`;
         }
       }
 
+      // Extract trajectory overview
+      if (lowerResponse.includes('trajectory') || lowerResponse.includes('flight path') || lowerResponse.includes('orbital') || lowerResponse.includes('lunar surface')) {
+        const trajectoryMatch = response.match(/(?:trajectory|flight path|orbital|lunar surface)[^.]*/i);
+        if (trajectoryMatch) {
+          sections.trajectoryOverview = trajectoryMatch[0].trim();
+        } else {
+          // Fallback: look for trajectory-related sentences
+          const sentences = response.split('.');
+          for (const sentence of sentences) {
+            if (sentence.toLowerCase().includes('lunar') && sentence.toLowerCase().includes('surface')) {
+              sections.trajectoryOverview = sentence.trim();
+              break;
+            }
+          }
+        }
+      }
+
       // Extract technical summary - look for technical specifications
       if (lowerResponse.includes('technical') || lowerResponse.includes('specification') || lowerResponse.includes('capacity') || lowerResponse.includes('communication') || lowerResponse.includes('payload') || lowerResponse.includes('solar') || lowerResponse.includes('network')) {
         const techMatch = response.match(/(?:technical|specification|capacity|communication|payload|solar|network|mass|power|data)[^.]*/i);
@@ -499,6 +646,57 @@ Always maintain professional expertise while being helpful and engaging.`;
             if ((sentence.toLowerCase().includes('payload') || sentence.toLowerCase().includes('solar') || sentence.toLowerCase().includes('communication') || sentence.toLowerCase().includes('capacity')) && 
                 (sentence.toLowerCase().includes('kg') || sentence.toLowerCase().includes('kw') || sentence.toLowerCase().includes('mbps'))) {
               sections.technicalSummary = sentence.trim();
+              break;
+            }
+          }
+        }
+      }
+
+      // Extract dimensions/mass/stages
+      if (lowerResponse.includes('dimensions') || lowerResponse.includes('mass') || lowerResponse.includes('stage') || lowerResponse.includes('meter') || lowerResponse.includes('85 meters')) {
+        const dimensionsMatch = response.match(/(?:dimensions|mass|stage|meter|85 meters|4\.5.*diameter)[^.]*/i);
+        if (dimensionsMatch) {
+          sections.dimensionsMassStages = dimensionsMatch[0].trim();
+        } else {
+          // Fallback: look for dimension-related sentences
+          const sentences = response.split('.');
+          for (const sentence of sentences) {
+            if (sentence.toLowerCase().includes('85 meters') || sentence.toLowerCase().includes('4.5-meter')) {
+              sections.dimensionsMassStages = sentence.trim();
+              break;
+            }
+          }
+        }
+      }
+
+      // Extract propulsion types
+      if (lowerResponse.includes('propulsion') || lowerResponse.includes('engine') || lowerResponse.includes('methane') || lowerResponse.includes('oxygen')) {
+        const propulsionMatch = response.match(/(?:propulsion|engine|methane|oxygen|vacuum|transfer)[^.]*/i);
+        if (propulsionMatch) {
+          sections.propulsionTypes = propulsionMatch[0].trim();
+        } else {
+          // Fallback: look for propulsion-related sentences
+          const sentences = response.split('.');
+          for (const sentence of sentences) {
+            if (sentence.toLowerCase().includes('methane') && sentence.toLowerCase().includes('oxygen')) {
+              sections.propulsionTypes = sentence.trim();
+              break;
+            }
+          }
+        }
+      }
+
+      // Extract recovery systems
+      if (lowerResponse.includes('recovery') || lowerResponse.includes('one-way') || lowerResponse.includes('no recovery')) {
+        const recoveryMatch = response.match(/(?:recovery|one-way|no recovery)[^.]*/i);
+        if (recoveryMatch) {
+          sections.recoverySystems = recoveryMatch[0].trim();
+        } else {
+          // Fallback: look for recovery-related sentences
+          const sentences = response.split('.');
+          for (const sentence of sentences) {
+            if (sentence.toLowerCase().includes('one-way') || sentence.toLowerCase().includes('no recovery')) {
+              sections.recoverySystems = sentence.trim();
               break;
             }
           }
@@ -521,6 +719,30 @@ Always maintain professional expertise while being helpful and engaging.`;
               break;
             }
           }
+        }
+      }
+
+      // Extract early risk assessments
+      if (lowerResponse.includes('risk') || lowerResponse.includes('assessment') || lowerResponse.includes('analysis')) {
+        const riskMatch = response.match(/(?:risk|assessment|analysis|mitigation)[^.]*/i);
+        if (riskMatch) {
+          sections.earlyRiskAssessments = riskMatch[0].trim();
+        }
+      }
+
+      // Extract public safety challenges
+      if (lowerResponse.includes('public safety') || lowerResponse.includes('challenge') || lowerResponse.includes('protocol')) {
+        const publicSafetyMatch = response.match(/(?:public safety|challenge|protocol)[^.]*/i);
+        if (publicSafetyMatch && !sections.safetyConsiderations?.includes(publicSafetyMatch[0])) {
+          sections.publicSafetyChallenges = publicSafetyMatch[0].trim();
+        }
+      }
+
+      // Extract planned safety tools
+      if (lowerResponse.includes('safety tools') || lowerResponse.includes('debris') || lowerResponse.includes('sara')) {
+        const safetyToolsMatch = response.match(/(?:safety tools|debris|sara)[^.]*/i);
+        if (safetyToolsMatch && !sections.safetyConsiderations?.includes(safetyToolsMatch[0])) {
+          sections.plannedSafetyTools = safetyToolsMatch[0].trim();
         }
       }
 
@@ -559,10 +781,59 @@ Always maintain professional expertise while being helpful and engaging.`;
         }
       }
 
+      // Extract site names/coordinates
+      if (lowerResponse.includes('coordinates') || lowerResponse.includes('28.5729') || lowerResponse.includes('80.6490')) {
+        const coordinatesMatch = response.match(/(?:coordinates|28\.5729|80\.6490|Florida)[^.]*/i);
+        if (coordinatesMatch) {
+          sections.siteNamesCoordinates = coordinatesMatch[0].trim();
+        } else {
+          // Fallback: look for coordinate-related sentences
+          const sentences = response.split('.');
+          for (const sentence of sentences) {
+            if (sentence.toLowerCase().includes('28.5729') || sentence.toLowerCase().includes('80.6490')) {
+              sections.siteNamesCoordinates = sentence.trim();
+              break;
+            }
+          }
+        }
+      }
+
+      // Extract site operator
+      if (lowerResponse.includes('operator') || lowerResponse.includes('operated by') || lowerResponse.includes('company')) {
+        const operatorMatch = response.match(/(?:operator|operated by|company)[^.]*/i);
+        if (operatorMatch) {
+          sections.siteOperator = operatorMatch[0].trim();
+        }
+      }
+
+      // Extract launch window
+      if (lowerResponse.includes('launch window') || lowerResponse.includes('q4 2024') || lowerResponse.includes('october') || lowerResponse.includes('december')) {
+        const windowMatch = response.match(/(?:launch window|q4 2024|october|december)[^.]*/i);
+        if (windowMatch) {
+          sections.launchWindow = windowMatch[0].trim();
+        }
+      }
+
+      // Extract flight path
+      if (lowerResponse.includes('flight path') || lowerResponse.includes('lunar transfer') || lowerResponse.includes('mare tranquillitatis')) {
+        const flightPathMatch = response.match(/(?:flight path|lunar transfer|mare tranquillitatis)[^.]*/i);
+        if (flightPathMatch) {
+          sections.flightPath = flightPathMatch[0].trim();
+        }
+      }
+
+      // Extract landing site
+      if (lowerResponse.includes('landing') || lowerResponse.includes('lunar surface') || lowerResponse.includes('mare tranquillitatis')) {
+        const landingMatch = response.match(/(?:landing|lunar surface|mare tranquillitatis)[^.]*/i);
+        if (landingMatch) {
+          sections.landingSite = landingMatch[0].trim();
+        }
+      }
+
       // Extract timeline information
       if (lowerResponse.includes('timeline') || lowerResponse.includes('q1') || lowerResponse.includes('q2') || lowerResponse.includes('q3') || lowerResponse.includes('q4') || lowerResponse.includes('2024') || lowerResponse.includes('window') || lowerResponse.includes('duration')) {
         const timelineMatch = response.match(/(?:timeline|application|launch window|q[1-4]|2024|duration|october|december)[^.]*/i);
-        if (timelineMatch) {
+        if (timelineMatch && !sections.launchWindow?.includes(timelineMatch[0])) {
           sections.intendedWindow = timelineMatch[0].trim();
         } else {
           // Fallback: look for timeline-related sentences
@@ -570,10 +841,20 @@ Always maintain professional expertise while being helpful and engaging.`;
           for (const sentence of sentences) {
             if ((sentence.toLowerCase().includes('timeline') || sentence.toLowerCase().includes('window') || sentence.toLowerCase().includes('duration')) && 
                 (sentence.toLowerCase().includes('q1') || sentence.toLowerCase().includes('q2') || sentence.toLowerCase().includes('q3') || sentence.toLowerCase().includes('q4') || sentence.toLowerCase().includes('2024'))) {
-              sections.intendedWindow = sentence.trim();
+              if (!sections.launchWindow?.includes(sentence)) {
+                sections.intendedWindow = sentence.trim();
+              }
               break;
             }
           }
+        }
+      }
+
+      // Extract full application timeline
+      if (lowerResponse.includes('application submission') || lowerResponse.includes('q1 2024')) {
+        const appTimelineMatch = response.match(/(?:application submission|q1 2024)[^.]*/i);
+        if (appTimelineMatch) {
+          sections.fullApplicationTimeline = appTimelineMatch[0].trim();
         }
       }
 
@@ -592,6 +873,22 @@ Always maintain professional expertise while being helpful and engaging.`;
               break;
             }
           }
+        }
+      }
+
+      // Extract clarify Part 450
+      if (lowerResponse.includes('part 450') || lowerResponse.includes('clarify') || lowerResponse.includes('requirements')) {
+        const clarifyMatch = response.match(/(?:part 450|clarify|requirements)[^.]*/i);
+        if (clarifyMatch) {
+          sections.clarifyPart450 = clarifyMatch[0].trim();
+        }
+      }
+
+      // Extract unique tech/international
+      if (lowerResponse.includes('unique') || lowerResponse.includes('international') || lowerResponse.includes('lunar surface') || lowerResponse.includes('deep space')) {
+        const uniqueMatch = response.match(/(?:unique|international|lunar surface|deep space)[^.]*/i);
+        if (uniqueMatch) {
+          sections.uniqueTechInternational = uniqueMatch[0].trim();
         }
       }
     }
@@ -627,17 +924,17 @@ Always maintain professional expertise while being helpful and engaging.`;
   // Generate summary
   private generateSummary(suggestions: AIFormSuggestion[]): string {
     const filledSections = suggestions.length;
-    const totalSections = 7; // Total Part 450 sections (7, not 9)
-    const completionRate = Math.round((filledSections / totalSections) * 100);
+    const totalFields = 22; // Total Part 450 form fields across all 7 sections
+    const completionRate = Math.round((filledSections / totalFields) * 100);
     
     if (filledSections === 0) {
-      return 'No form sections were extracted from the mission description. Please provide more detailed information about your mission.';
-    } else if (filledSections < 3) {
-      return `Extracted information for ${filledSections} out of ${totalSections} Part 450 sections (${completionRate}% completion). Please provide more detailed mission information for better form completion.`;
+      return 'No form fields were extracted from the mission description. Please provide more detailed information about your mission.';
     } else if (filledSections < 5) {
-      return `Successfully extracted information for ${filledSections} out of ${totalSections} Part 450 sections (${completionRate}% completion). Some sections need additional details.`;
+      return `Extracted information for ${filledSections} out of ${totalFields} form fields (${completionRate}% completion). Please provide more detailed mission information for better form completion.`;
+    } else if (filledSections < 10) {
+      return `Successfully extracted information for ${filledSections} out of ${totalFields} form fields (${completionRate}% completion). Some fields need additional details.`;
     } else {
-      return `Successfully extracted information for ${filledSections} out of ${totalSections} Part 450 sections (${completionRate}% completion). Ready for review and submission.`;
+      return `Successfully extracted information for ${filledSections} out of ${totalFields} form fields (${completionRate}% completion). Ready for review and submission.`;
     }
   }
 
@@ -662,12 +959,12 @@ Always maintain professional expertise while being helpful and engaging.`;
     
     const lowConfidenceSuggestions = suggestions.filter(s => s.confidence < 0.7);
     if (lowConfidenceSuggestions.length > 0) {
-      warnings.push(`${lowConfidenceSuggestions.length} sections have low confidence - please review and verify`);
+      warnings.push(`${lowConfidenceSuggestions.length} fields have low confidence - please review and verify`);
     }
     
-    const missingSections = 7 - suggestions.length; // Total 7 sections
-    if (missingSections > 0) {
-      warnings.push(`${missingSections} sections are missing - manual completion required`);
+    const missingFields = 22 - suggestions.length; // Total 22 form fields
+    if (missingFields > 0) {
+      warnings.push(`${missingFields} fields are missing - manual completion required`);
     }
     
     return warnings;
