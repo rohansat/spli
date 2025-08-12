@@ -134,22 +134,24 @@ export function AIContextMenu({ onAction, className }: AIContextMenuProps) {
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-0">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {aiFeatures.map((feature, index) => (
-              <div key={index} className="flex items-start gap-3 p-3 rounded-lg bg-zinc-800 border border-zinc-700">
-                <div className="flex-shrink-0 p-2 rounded-lg bg-zinc-700">
-                  <feature.icon className="h-4 w-4 text-white" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h4 className="text-sm font-bold text-white mb-1 uppercase">
-                    {feature.title}
-                  </h4>
-                  <p className="text-xs text-zinc-300 mb-2 leading-relaxed">
-                    {feature.description}
-                  </p>
-                  <div className="inline-block bg-green-600 text-white text-xs px-2 py-1 rounded font-medium">
-                    {feature.benefit}
+              <div key={index} className="p-4 rounded-lg bg-zinc-800 border border-zinc-700">
+                <div className="flex items-start gap-3 mb-3">
+                  <div className="flex-shrink-0 p-2 rounded-lg bg-zinc-700">
+                    <feature.icon className="h-4 w-4 text-white" />
                   </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-sm font-bold text-white mb-2 uppercase">
+                      {feature.title}
+                    </h4>
+                    <p className="text-xs text-zinc-300 leading-relaxed">
+                      {feature.description}
+                    </p>
+                  </div>
+                </div>
+                <div className="bg-green-600 text-white text-xs px-3 py-2 rounded font-medium text-center">
+                  {feature.benefit}
                 </div>
               </div>
             ))}
