@@ -295,7 +295,7 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false, onQu
         </div>
 
         {/* Fixed Bottom Section - Action Buttons and Input */}
-        <div className="absolute bottom-0 left-0 right-0 bg-gray-50">
+        <div className="absolute bottom-0 left-0 right-0 bg-gray-50 z-10">
           {/* Action Buttons */}
           <div className="p-4 border-t">
             <div className="flex flex-wrap gap-2">
