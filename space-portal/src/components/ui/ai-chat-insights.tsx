@@ -167,9 +167,9 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false, onQu
   // If inline mode, render without card wrapper
   if (isInline) {
     return (
-      <div className={`relative h-full ${className}`}>
+      <div className={`flex flex-col h-full ${className}`}>
         {/* Messages Area */}
-        <div className="absolute inset-0 bottom-0 overflow-y-auto p-4 pb-64">
+        <div className="flex-1 overflow-y-auto p-4">
           <div className="space-y-4">
             {messages.map((message) => (
               <div
@@ -294,8 +294,8 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false, onQu
           </div>
         </div>
 
-        {/* Fixed Bottom Section - Action Buttons and Input */}
-        <div className="absolute bottom-0 left-0 right-0 bg-gray-50 z-10">
+        {/* Bottom Section - Action Buttons and Input */}
+        <div className="flex-shrink-0 bg-gray-50">
           {/* Action Buttons */}
           <div className="p-4 border-t">
             <div className="flex flex-wrap gap-2">
