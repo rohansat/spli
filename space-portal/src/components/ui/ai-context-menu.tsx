@@ -136,21 +136,25 @@ export function AIContextMenu({ onAction, className }: AIContextMenuProps) {
         <CardContent className="pt-0">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {aiFeatures.map((feature, index) => (
-              <div key={index} className="p-4 rounded-lg bg-zinc-800 border border-zinc-700 flex flex-col">
+              <div key={index} className="p-4 rounded-lg bg-zinc-800 border border-zinc-700 flex flex-col h-full">
                 <div className="flex items-start gap-3 mb-4">
                   <div className="flex-shrink-0 p-2 rounded-lg bg-zinc-700">
                     <feature.icon className="h-4 w-4 text-white" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h4 className="text-sm font-bold text-white mb-2 uppercase">
+                    <h4 className="text-sm font-bold text-white mb-3 uppercase leading-tight">
                       {feature.title}
                     </h4>
-                    <p className="text-xs text-zinc-300 leading-relaxed">
-                      {feature.description}
-                    </p>
+                    <div className="text-xs text-zinc-300 leading-relaxed space-y-1">
+                      {feature.description.split(' ').map((word, wordIndex) => (
+                        <div key={wordIndex} className="break-words">
+                          {word}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
-                <div className="mt-auto">
+                <div className="mt-auto pt-2">
                   <div className="bg-green-600 text-white text-xs px-3 py-2 rounded font-medium text-center w-full">
                     {feature.benefit}
                   </div>
