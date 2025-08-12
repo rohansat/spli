@@ -4,17 +4,14 @@ import React, { useState, useRef, forwardRef, useImperativeHandle, useEffect } f
 import { AIChatInsights } from './ai-chat-insights';
 import { AIContextMenu } from './ai-context-menu';
 import { Button } from './button';
-import { Card, CardContent, CardHeader, CardTitle } from './card';
+import { Card, CardContent } from './card';
 import { Badge } from './badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './tabs';
 import { 
   MessageSquare, 
   Sparkles, 
   Zap, 
-  Settings,
-  X,
-  Minimize2,
-  Maximize2
+  Settings
 } from 'lucide-react';
 
 interface AIAssistantPanelProps {
@@ -145,40 +142,9 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
   return (
     <div className={containerClasses}>
       <Card className="bg-zinc-900 border-zinc-800 shadow-2xl h-full">
-        <CardHeader className="bg-zinc-900 border-b border-zinc-800 text-white pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <div className="w-6 h-6 flex items-center justify-center">
-                <span style={{fontSize: '1.5rem', lineHeight: 1}}>🚀</span>
-              </div>
-              SPLI Chat
-            </CardTitle>
-            <div className="flex items-center gap-1">
-              {isFloating && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setIsMinimized(!isMinimized)}
-                  className="text-white hover:bg-white/10 h-8 w-8 p-0"
-                >
-                  {isMinimized ? <Maximize2 className="h-4 w-4" /> : <Minimize2 className="h-4 w-4" />}
-                </Button>
-              )}
-              {onToggleCollapse && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={onToggleCollapse}
-                  className="text-white hover:bg-white/10 h-8 w-8 p-0"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
-          </div>
-          
-          {(!isFloating || !isMinimized) && (
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full mt-3">
+        {(!isFloating || !isMinimized) && (
+          <div className="p-3 border-b border-zinc-800 bg-zinc-900">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="grid w-full grid-cols-2 bg-zinc-800">
                 <TabsTrigger 
                   value="chat" 
@@ -196,8 +162,8 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
                 </TabsTrigger>
               </TabsList>
             </Tabs>
-          )}
-        </CardHeader>
+          </div>
+        )}
 
         {(!isFloating || !isMinimized) && (
           <div className="flex-1 flex flex-col min-h-0">
