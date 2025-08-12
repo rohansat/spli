@@ -169,7 +169,7 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false, onQu
     return (
       <div className={`relative h-full ${className}`}>
         {/* Messages Area */}
-        <div className="absolute inset-0 bottom-32 overflow-y-auto p-4">
+        <div className="absolute inset-0 bottom-48 overflow-y-auto p-4">
           <div className="space-y-4">
             {messages.map((message) => (
               <div
