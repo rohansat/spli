@@ -23,9 +23,7 @@ export function AIFormChat({ onFillForm, formFields, onClose, aiAnalyze }: AIFor
   const [isProcessing, setIsProcessing] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  // Removed automatic scrolling to prevent page from scrolling down when sending messages
 
   const handleSend = async () => {
     if (!userInput.trim()) return;

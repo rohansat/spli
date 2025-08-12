@@ -57,13 +57,7 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false }: AI
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+  // Removed automatic scrolling to prevent page from scrolling down when sending messages
 
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return;
