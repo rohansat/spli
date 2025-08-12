@@ -200,25 +200,44 @@ CONVERSATION STYLE:
         return `${basePrompt}
 
 FORM FILLING MODE:
-When users provide mission descriptions, extract ALL relevant information and populate Part 450 form sections:
+When users provide mission descriptions, extract ALL relevant information and populate Part 450 form sections. You MUST respond with a structured format that includes ALL sections below.
 
-REQUIRED SECTIONS:
-1. MISSION OBJECTIVE - Purpose, goals, intended outcomes
-2. VEHICLE DESCRIPTION - Rocket type, stages, propulsion, specifications
-3. LAUNCH SEQUENCE - Flight profile, stages, trajectory
-4. TECHNICAL SUMMARY - Payload details, systems, capabilities
-5. SAFETY CONSIDERATIONS - Risk assessments, safety measures
-6. GROUND OPERATIONS - Facilities, procedures, support equipment
-7. LAUNCH SITE - Location, coordinates, facility details
-8. TIMELINE - Launch windows, mission duration, schedules
-9. LICENSE TYPE - Appropriate license classification
+REQUIRED SECTIONS (respond with EXACTLY these headers):
+MISSION OBJECTIVE
+[Extract and describe the mission objective, purpose, and goals]
 
-RESPONSE FORMAT:
-- Structured, professional language
-- Complete sections even if information is missing
-- Use "Information not provided" for missing details
-- Include confidence levels for extracted information
-- Provide next steps and recommendations`;
+VEHICLE DESCRIPTION  
+[Extract vehicle information, rocket type, stages, propulsion, dimensions, mass]
+
+LAUNCH SEQUENCE
+[Extract launch sequence, stages, trajectory, flight profile]
+
+TECHNICAL SUMMARY
+[Extract technical specifications, payload details, power systems, communications]
+
+SAFETY CONSIDERATIONS
+[Extract safety measures, risk assessments, termination systems, monitoring]
+
+GROUND OPERATIONS
+[Extract ground operations, facilities, procedures, support equipment]
+
+LAUNCH SITE
+[Extract launch site information, coordinates, facility details]
+
+TIMELINE
+[Extract timeline information, launch windows, mission duration]
+
+LICENSE TYPE
+[Extract license type based on mission characteristics]
+
+CRITICAL INSTRUCTIONS:
+- ALWAYS include ALL 9 section headers above
+- Extract information from the user's description for each section
+- If information is missing for a section, write "Information not provided in description"
+- Use professional, FAA-ready language
+- Be comprehensive and thorough in extraction
+- Focus on extracting and organizing information, not explaining regulations
+- Ensure each section has meaningful content extracted from the description`;
 
       case 'compliance':
         return `${basePrompt}
@@ -328,15 +347,110 @@ Always maintain professional expertise while being helpful and engaging.`;
   // Extract form sections from AI response
   private extractFormSections(response: string): Record<string, string> {
     const sections: Record<string, string> = {};
-    const sectionRegex = /^([A-Z\s]+):\s*(.+?)(?=\n[A-Z\s]+:|$)/gm;
     
+    // Define the 7 main Part 450 sections we need to extract
+    const sectionMappings = {
+      'mission objective': 'missionObjective',
+      'vehicle description': 'vehicleDescription', 
+      'launch sequence': 'launchReentrySequence',
+      'technical summary': 'technicalSummary',
+      'safety considerations': 'safetyConsiderations',
+      'ground operations': 'groundOperations',
+      'launch site': 'launchSite',
+      'timeline': 'intendedWindow',
+      'license type': 'licenseTypeIntent'
+    };
+
+    // Try to extract sections from structured AI response first
+    const sectionRegex = /^([A-Z\s]+):\s*(.+?)(?=\n[A-Z\s]+:|$)/gm;
     let match;
     while ((match = sectionRegex.exec(response)) !== null) {
-      const sectionName = match[1].trim().toLowerCase().replace(/\s+/g, '');
+      const sectionName = match[1].trim().toLowerCase();
       const content = match[2].trim();
-      sections[sectionName] = content;
+      
+      // Map section names to our field names
+      for (const [key, fieldName] of Object.entries(sectionMappings)) {
+        if (sectionName.includes(key) || key.includes(sectionName)) {
+          sections[fieldName] = content;
+          break;
+        }
+      }
     }
-    
+
+    // If no structured sections found, try intelligent extraction from the full response
+    if (Object.keys(sections).length === 0) {
+      const lowerResponse = response.toLowerCase();
+      
+      // Extract mission objective
+      if (lowerResponse.includes('mission') || lowerResponse.includes('objective') || lowerResponse.includes('purpose')) {
+        const missionMatch = response.match(/(?:mission|objective|purpose)[:\s]*([^.]+)/i);
+        if (missionMatch) {
+          sections.missionObjective = missionMatch[1].trim();
+        }
+      }
+
+      // Extract vehicle description
+      if (lowerResponse.includes('falcon') || lowerResponse.includes('rocket') || lowerResponse.includes('vehicle') || lowerResponse.includes('stage')) {
+        const vehicleMatch = response.match(/(?:falcon|rocket|vehicle|stage)[^.]*(?:engine|propulsion|meter)[^.]*/i);
+        if (vehicleMatch) {
+          sections.vehicleDescription = vehicleMatch[0].trim();
+        }
+      }
+
+      // Extract launch sequence
+      if (lowerResponse.includes('launch') || lowerResponse.includes('sequence') || lowerResponse.includes('stage')) {
+        const launchMatch = response.match(/(?:launch|sequence|stage)[^.]*(?:separation|ignition|burn)[^.]*/i);
+        if (launchMatch) {
+          sections.launchReentrySequence = launchMatch[0].trim();
+        }
+      }
+
+      // Extract technical summary
+      if (lowerResponse.includes('technical') || lowerResponse.includes('specification') || lowerResponse.includes('capacity') || lowerResponse.includes('communication')) {
+        const techMatch = response.match(/(?:technical|specification|capacity|communication)[^.]*/i);
+        if (techMatch) {
+          sections.technicalSummary = techMatch[0].trim();
+        }
+      }
+
+      // Extract safety considerations
+      if (lowerResponse.includes('safety') || lowerResponse.includes('termination') || lowerResponse.includes('monitoring') || lowerResponse.includes('exclusion')) {
+        const safetyMatch = response.match(/(?:safety|termination|monitoring|exclusion)[^.]*/i);
+        if (safetyMatch) {
+          sections.safetyConsiderations = safetyMatch[0].trim();
+        }
+      }
+
+      // Extract ground operations
+      if (lowerResponse.includes('ground') || lowerResponse.includes('operation') || lowerResponse.includes('facility') || lowerResponse.includes('processing')) {
+        const groundMatch = response.match(/(?:ground|operation|facility|processing)[^.]*/i);
+        if (groundMatch) {
+          sections.groundOperations = groundMatch[0].trim();
+        }
+      }
+
+      // Extract launch site
+      if (lowerResponse.includes('cape canaveral') || lowerResponse.includes('kennedy') || lowerResponse.includes('launch complex') || lowerResponse.includes('coordinates')) {
+        const siteMatch = response.match(/(?:cape canaveral|kennedy|launch complex|coordinates)[^.]*/i);
+        if (siteMatch) {
+          sections.launchSite = siteMatch[0].trim();
+        }
+      }
+
+      // Extract timeline
+      if (lowerResponse.includes('q3') || lowerResponse.includes('2024') || lowerResponse.includes('timeline') || lowerResponse.includes('window')) {
+        const timelineMatch = response.match(/(?:q3|2024|timeline|window)[^.]*/i);
+        if (timelineMatch) {
+          sections.intendedWindow = timelineMatch[0].trim();
+        }
+      }
+
+      // Extract license type
+      if (lowerResponse.includes('commercial') || lowerResponse.includes('part 450') || lowerResponse.includes('license')) {
+        sections.licenseTypeIntent = 'Commercial launch license for satellite deployment under FAA Part 450';
+      }
+    }
+
     return sections;
   }
 
@@ -367,10 +481,18 @@ Always maintain professional expertise while being helpful and engaging.`;
   // Generate summary
   private generateSummary(suggestions: AIFormSuggestion[]): string {
     const filledSections = suggestions.length;
-    const totalSections = 9; // Total Part 450 sections
+    const totalSections = 9; // Total Part 450 sections (9, not 7)
     const completionRate = Math.round((filledSections / totalSections) * 100);
     
-    return `Successfully extracted information for ${filledSections} out of ${totalSections} Part 450 sections (${completionRate}% completion). Ready for review and submission.`;
+    if (filledSections === 0) {
+      return 'No form sections were extracted from the mission description. Please provide more detailed information about your mission.';
+    } else if (filledSections < 3) {
+      return `Extracted information for ${filledSections} out of ${totalSections} Part 450 sections (${completionRate}% completion). Please provide more detailed mission information for better form completion.`;
+    } else if (filledSections < 6) {
+      return `Successfully extracted information for ${filledSections} out of ${totalSections} Part 450 sections (${completionRate}% completion). Some sections need additional details.`;
+    } else {
+      return `Successfully extracted information for ${filledSections} out of ${totalSections} Part 450 sections (${completionRate}% completion). Ready for review and submission.`;
+    }
   }
 
   // Generate next steps
@@ -397,7 +519,7 @@ Always maintain professional expertise while being helpful and engaging.`;
       warnings.push(`${lowConfidenceSuggestions.length} sections have low confidence - please review and verify`);
     }
     
-    const missingSections = 9 - suggestions.length;
+    const missingSections = 9 - suggestions.length; // Total 9 sections
     if (missingSections > 0) {
       warnings.push(`${missingSections} sections are missing - manual completion required`);
     }

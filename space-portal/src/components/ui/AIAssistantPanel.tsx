@@ -26,6 +26,7 @@ interface AIAssistantPanelProps {
   className?: string;
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
+  isFloating?: boolean; // New prop to control positioning
 }
 
 export interface AIAssistantPanelHandle {
@@ -40,7 +41,8 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
   onFormUpdate, 
   className,
   isCollapsed = false,
-  onToggleCollapse
+  onToggleCollapse,
+  isFloating = false
 }, ref) => {
   const [activeTab, setActiveTab] = useState('chat');
   const [isMinimized, setIsMinimized] = useState(false);
@@ -97,7 +99,8 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
     }
   };
 
-  if (isCollapsed) {
+  // If collapsed and floating, show floating button
+  if (isCollapsed && isFloating) {
     return (
       <div className={`fixed bottom-4 right-4 z-50 ${className}`}>
         <Button
@@ -110,9 +113,19 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
     );
   }
 
+  // If collapsed and not floating, show nothing
+  if (isCollapsed && !isFloating) {
+    return null;
+  }
+
+  // Main component - either floating or inline
+  const containerClasses = isFloating 
+    ? `fixed bottom-4 right-4 z-50 w-96 max-h-[600px] ${className}`
+    : `w-full h-full ${className}`;
+
   return (
-    <div className={`fixed bottom-4 right-4 z-50 w-96 max-h-[600px] ${className}`}>
-      <Card className="bg-gradient-to-br from-gray-900 to-gray-800 border-gray-700 shadow-2xl">
+    <div className={containerClasses}>
+      <Card className="bg-gradient-to-br from-gray-900 to-gray-800 border-gray-700 shadow-2xl h-full">
         <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2 text-lg">
@@ -124,14 +137,16 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
               </Badge>
             </CardTitle>
             <div className="flex items-center gap-1">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsMinimized(!isMinimized)}
-                className="text-white hover:bg-white/10 h-8 w-8 p-0"
-              >
-                {isMinimized ? <Maximize2 className="h-4 w-4" /> : <Minimize2 className="h-4 w-4" />}
-              </Button>
+              {isFloating && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsMinimized(!isMinimized)}
+                  className="text-white hover:bg-white/10 h-8 w-8 p-0"
+                >
+                  {isMinimized ? <Maximize2 className="h-4 w-4" /> : <Minimize2 className="h-4 w-4" />}
+                </Button>
+              )}
               {onToggleCollapse && (
                 <Button
                   variant="ghost"
@@ -146,9 +161,9 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
           </div>
         </CardHeader>
 
-        {!isMinimized && (
-          <CardContent className="p-0">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        {(!isFloating || !isMinimized) && (
+          <CardContent className="p-0 flex-1 flex flex-col">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex-1 flex flex-col">
               <TabsList className="grid w-full grid-cols-2 bg-gray-800">
                 <TabsTrigger 
                   value="chat" 
@@ -166,15 +181,16 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="chat" className="mt-0">
+              <TabsContent value="chat" className="mt-0 flex-1 flex flex-col">
                 <AIChatInsights 
                   onFormUpdate={handleFormUpdate}
-                  className="border-0 shadow-none"
+                  className="border-0 shadow-none flex-1"
+                  isInline={true}
                 />
               </TabsContent>
 
-              <TabsContent value="actions" className="mt-0">
-                <div className="max-h-[500px] overflow-y-auto">
+              <TabsContent value="actions" className="mt-0 flex-1">
+                <div className="h-full overflow-y-auto">
                   <AIContextMenu 
                     onAction={handleContextAction}
                     className="p-4"
