@@ -11,7 +11,6 @@ import {
   MessageSquare, 
   Sparkles, 
   Zap, 
-  Bot, 
   Settings,
   X,
   Minimize2,
@@ -125,7 +124,9 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
           onClick={onToggleCollapse}
           className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full w-12 h-12 shadow-lg"
         >
-          <Bot className="h-5 w-5" />
+          <div className="w-5 h-5 flex items-center justify-center">
+            <span style={{fontSize: '1.25rem', lineHeight: 1}}>🚀</span>
+          </div>
         </Button>
       </div>
     );
@@ -147,7 +148,9 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
         <CardHeader className="bg-zinc-900 border-b border-zinc-800 text-white pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2 text-lg">
-              <Bot className="h-5 w-5" />
+              <div className="w-6 h-6 flex items-center justify-center">
+                <span style={{fontSize: '1.5rem', lineHeight: 1}}>🚀</span>
+              </div>
               SPLI Chat
             </CardTitle>
             <div className="flex items-center gap-1">
@@ -173,11 +176,9 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
               )}
             </div>
           </div>
-        </CardHeader>
-
-        {(!isFloating || !isMinimized) && (
-          <div className="flex-1 flex flex-col min-h-0">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex-1 flex flex-col">
+          
+          {(!isFloating || !isMinimized) && (
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full mt-3">
               <TabsList className="grid w-full grid-cols-2 bg-zinc-800">
                 <TabsTrigger 
                   value="chat" 
@@ -194,7 +195,13 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
                   Actions
                 </TabsTrigger>
               </TabsList>
+            </Tabs>
+          )}
+        </CardHeader>
 
+        {(!isFloating || !isMinimized) && (
+          <div className="flex-1 flex flex-col min-h-0">
+            {activeTab === 'chat' && (
               <TabsContent value="chat" className="mt-0 flex-1 flex flex-col min-h-0">
                 <AIChatInsights 
                   onFormUpdate={handleFormUpdate}
@@ -203,7 +210,9 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
                   initialPrompt={quickActionPrompt}
                 />
               </TabsContent>
+            )}
 
+            {activeTab === 'actions' && (
               <TabsContent value="actions" className="mt-0 flex-1 min-h-0">
                 <div className="h-full overflow-y-auto ai-chat-scrollbar">
                   <AIContextMenu 
@@ -212,7 +221,7 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
                   />
                 </div>
               </TabsContent>
-            </Tabs>
+            )}
           </div>
         )}
       </Card>
@@ -229,7 +238,9 @@ export function FloatingAIButton({ onClick }: { onClick: () => void }) {
       onClick={onClick}
       className="fixed bottom-4 right-4 z-50 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full w-14 h-14 shadow-lg animate-pulse"
     >
-      <Bot className="h-6 w-6" />
+      <div className="w-6 h-6 flex items-center justify-center">
+        <span style={{fontSize: '1.5rem', lineHeight: 1}}>🚀</span>
+      </div>
     </Button>
   );
 }
