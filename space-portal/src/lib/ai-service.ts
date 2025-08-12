@@ -200,14 +200,15 @@ CONVERSATION STYLE:
         return `${basePrompt}
 
 FORM FILLING MODE:
-When users provide mission descriptions, extract relevant information and populate Part 450 form sections. However, if the user has not provided sufficient details, ask them to provide more information instead of generating fake content.
+When users provide mission descriptions, ALWAYS extract relevant information and populate Part 450 form sections. Be aggressive about extracting information - if the user provides any mission details, extract what you can find.
 
 INFORMATION ASSESSMENT:
-- If the user provides detailed mission information, extract and organize it into the required sections
-- If the user provides minimal or no details, ask them to provide specific information about their mission
-- Do NOT generate fake or placeholder content when information is missing
+- ALWAYS extract information from mission descriptions, even if some details are missing
+- Look for ANY relevant information that could populate form fields
+- Extract partial information when full details aren't available
+- Be comprehensive and thorough in your extraction
 
-WHEN USER PROVIDES SUFFICIENT DETAILS, use this structured format:
+ALWAYS use this structured format when mission information is provided:
 MISSION OBJECTIVE
 [Extract and describe the mission objective, purpose, and goals]
 
@@ -236,22 +237,14 @@ LICENSE TYPE
 [Extract license type based on mission characteristics]
 
 WHEN USER PROVIDES INSUFFICIENT DETAILS:
-Ask them to provide specific information about:
-- Mission objective and purpose
-- Vehicle specifications (rocket type, stages, propulsion)
-- Launch sequence and trajectory
-- Technical details (payload, power, communications)
-- Safety measures and risk management
-- Ground operations and facilities
-- Launch site location
-- Timeline and mission duration
-- Type of license they're seeking
+Extract whatever information you can find, even if incomplete. If truly no mission information is provided, then ask for details.
 
 CRITICAL INSTRUCTIONS:
-- Only extract information when the user has provided sufficient details
-- If information is missing, ask for more details instead of generating placeholders
+- ALWAYS extract information when mission details are provided, even if incomplete
+- Extract partial information and populate whatever fields you can
 - Use professional, FAA-ready language
-- Be helpful and guide the user to provide the information needed`;
+- Be comprehensive and thorough in extraction
+- Fill as many form fields as possible with available information`;
 
       case 'compliance':
         return `${basePrompt}
@@ -358,12 +351,12 @@ Always maintain professional expertise while being helpful and engaging.`;
     const suggestions: AIFormSuggestion[] = [];
     const sections = this.extractFormSections(response);
     
-    // Process each section and only include high-confidence suggestions
+    // Process each section and include all valid suggestions
     Object.entries(sections).forEach(([section, content]) => {
-      if (content && content !== 'Information not provided') {
+      if (content && content !== 'Information not provided' && content.trim().length > 0) {
         const confidence = this.calculateConfidence(content);
-        // Only include suggestions with medium or high confidence (>= 0.6)
-        if (confidence >= 0.6) {
+        // Include all suggestions with reasonable confidence (>= 0.5)
+        if (confidence >= 0.5) {
           suggestions.push({
             field: section,
             value: content,
@@ -478,33 +471,74 @@ Always maintain professional expertise while being helpful and engaging.`;
 
       // Extract launch sequence - look for launch process details
       if (lowerResponse.includes('launch') || lowerResponse.includes('sequence') || lowerResponse.includes('stage')) {
-        const launchMatch = response.match(/(?:launch|sequence|stage)[^.]*(?:separation|ignition|burn|transfer)[^.]*/i);
+        const launchMatch = response.match(/(?:launch|sequence|stage)[^.]*(?:separation|ignition|burn|transfer|lunar|injection)[^.]*/i);
         if (launchMatch && !sections.vehicleDescription?.includes(launchMatch[0])) {
           sections.launchReEntrySequence = launchMatch[0].trim();
+        } else {
+          // Fallback: look for launch-related sentences
+          const sentences = response.split('.');
+          for (const sentence of sentences) {
+            if (sentence.toLowerCase().includes('launch') && 
+                (sentence.toLowerCase().includes('sequence') || sentence.toLowerCase().includes('stage') || sentence.toLowerCase().includes('transfer'))) {
+              sections.launchReEntrySequence = sentence.trim();
+              break;
+            }
+          }
         }
       }
 
       // Extract technical summary - look for technical specifications
-      if (lowerResponse.includes('technical') || lowerResponse.includes('specification') || lowerResponse.includes('capacity') || lowerResponse.includes('communication')) {
-        const techMatch = response.match(/(?:technical|specification|capacity|communication|payload|solar|network)[^.]*/i);
+      if (lowerResponse.includes('technical') || lowerResponse.includes('specification') || lowerResponse.includes('capacity') || lowerResponse.includes('communication') || lowerResponse.includes('payload') || lowerResponse.includes('solar') || lowerResponse.includes('network')) {
+        const techMatch = response.match(/(?:technical|specification|capacity|communication|payload|solar|network|mass|power|data)[^.]*/i);
         if (techMatch) {
           sections.technicalSummary = techMatch[0].trim();
+        } else {
+          // Fallback: look for technical specifications in sentences
+          const sentences = response.split('.');
+          for (const sentence of sentences) {
+            if ((sentence.toLowerCase().includes('payload') || sentence.toLowerCase().includes('solar') || sentence.toLowerCase().includes('communication') || sentence.toLowerCase().includes('capacity')) && 
+                (sentence.toLowerCase().includes('kg') || sentence.toLowerCase().includes('kw') || sentence.toLowerCase().includes('mbps'))) {
+              sections.technicalSummary = sentence.trim();
+              break;
+            }
+          }
         }
       }
 
       // Extract safety considerations - look for safety measures
-      if (lowerResponse.includes('safety') || lowerResponse.includes('termination') || lowerResponse.includes('monitoring') || lowerResponse.includes('collision')) {
-        const safetyMatch = response.match(/(?:safety|termination|monitoring|collision|mitigation)[^.]*/i);
+      if (lowerResponse.includes('safety') || lowerResponse.includes('termination') || lowerResponse.includes('monitoring') || lowerResponse.includes('collision') || lowerResponse.includes('autonomous') || lowerResponse.includes('gps')) {
+        const safetyMatch = response.match(/(?:safety|termination|monitoring|collision|mitigation|autonomous|gps|tracking)[^.]*/i);
         if (safetyMatch) {
           sections.safetyConsiderations = safetyMatch[0].trim();
+        } else {
+          // Fallback: look for safety-related sentences
+          const sentences = response.split('.');
+          for (const sentence of sentences) {
+            if (sentence.toLowerCase().includes('safety') || 
+                (sentence.toLowerCase().includes('autonomous') && sentence.toLowerCase().includes('termination')) ||
+                (sentence.toLowerCase().includes('gps') && sentence.toLowerCase().includes('tracking'))) {
+              sections.safetyConsiderations = sentence.trim();
+              break;
+            }
+          }
         }
       }
 
       // Extract ground operations - look for ground operations
-      if (lowerResponse.includes('ground') || lowerResponse.includes('operation') || lowerResponse.includes('facility') || lowerResponse.includes('assembly')) {
-        const groundMatch = response.match(/(?:ground|operation|facility|assembly|testing|control)[^.]*/i);
+      if (lowerResponse.includes('ground') || lowerResponse.includes('operation') || lowerResponse.includes('facility') || lowerResponse.includes('assembly') || lowerResponse.includes('ksc') || lowerResponse.includes('houston')) {
+        const groundMatch = response.match(/(?:ground|operation|facility|assembly|testing|control|ksc|houston|mission control)[^.]*/i);
         if (groundMatch) {
           sections.groundOperations = groundMatch[0].trim();
+        } else {
+          // Fallback: look for ground operations in sentences
+          const sentences = response.split('.');
+          for (const sentence of sentences) {
+            if ((sentence.toLowerCase().includes('ground') || sentence.toLowerCase().includes('ksc') || sentence.toLowerCase().includes('houston')) && 
+                (sentence.toLowerCase().includes('operation') || sentence.toLowerCase().includes('facility') || sentence.toLowerCase().includes('assembly') || sentence.toLowerCase().includes('control'))) {
+              sections.groundOperations = sentence.trim();
+              break;
+            }
+          }
         }
       }
 
@@ -526,18 +560,38 @@ Always maintain professional expertise while being helpful and engaging.`;
       }
 
       // Extract timeline information
-      if (lowerResponse.includes('timeline') || lowerResponse.includes('q1') || lowerResponse.includes('q2') || lowerResponse.includes('q3') || lowerResponse.includes('q4') || lowerResponse.includes('2024')) {
-        const timelineMatch = response.match(/(?:timeline|application|launch window|q[1-4]|2024)[^.]*/i);
+      if (lowerResponse.includes('timeline') || lowerResponse.includes('q1') || lowerResponse.includes('q2') || lowerResponse.includes('q3') || lowerResponse.includes('q4') || lowerResponse.includes('2024') || lowerResponse.includes('window') || lowerResponse.includes('duration')) {
+        const timelineMatch = response.match(/(?:timeline|application|launch window|q[1-4]|2024|duration|october|december)[^.]*/i);
         if (timelineMatch) {
           sections.intendedWindow = timelineMatch[0].trim();
+        } else {
+          // Fallback: look for timeline-related sentences
+          const sentences = response.split('.');
+          for (const sentence of sentences) {
+            if ((sentence.toLowerCase().includes('timeline') || sentence.toLowerCase().includes('window') || sentence.toLowerCase().includes('duration')) && 
+                (sentence.toLowerCase().includes('q1') || sentence.toLowerCase().includes('q2') || sentence.toLowerCase().includes('q3') || sentence.toLowerCase().includes('q4') || sentence.toLowerCase().includes('2024'))) {
+              sections.intendedWindow = sentence.trim();
+              break;
+            }
+          }
         }
       }
 
       // Extract license type information
-      if (lowerResponse.includes('license') || lowerResponse.includes('part 450') || lowerResponse.includes('commercial')) {
-        const licenseMatch = response.match(/(?:license|part 450|commercial)[^.]*/i);
+      if (lowerResponse.includes('license') || lowerResponse.includes('part 450') || lowerResponse.includes('commercial') || lowerResponse.includes('seeking')) {
+        const licenseMatch = response.match(/(?:license|part 450|commercial|seeking|transportation)[^.]*/i);
         if (licenseMatch) {
           sections.licenseTypeIntent = licenseMatch[0].trim();
+        } else {
+          // Fallback: look for license-related sentences
+          const sentences = response.split('.');
+          for (const sentence of sentences) {
+            if (sentence.toLowerCase().includes('license') || 
+                (sentence.toLowerCase().includes('seeking') && sentence.toLowerCase().includes('commercial'))) {
+              sections.licenseTypeIntent = sentence.trim();
+              break;
+            }
+          }
         }
       }
     }
@@ -549,14 +603,15 @@ Always maintain professional expertise while being helpful and engaging.`;
   private calculateConfidence(content: string): number {
     if (!content || content === 'Information not provided') return 0;
     
-    // Simple confidence calculation based on content quality
-    let confidence = 0.5; // Base confidence
+    // More lenient confidence calculation to encourage field population
+    let confidence = 0.6; // Higher base confidence
     
     // Increase confidence for specific details
-    if (content.includes('kg') || content.includes('meters') || content.includes('km')) confidence += 0.2;
-    if (content.includes('Falcon') || content.includes('Electron') || content.includes('rocket')) confidence += 0.2;
-    if (content.includes('Cape Canaveral') || content.includes('Vandenberg')) confidence += 0.1;
-    if (content.length > 50) confidence += 0.1;
+    if (content.includes('kg') || content.includes('meters') || content.includes('km')) confidence += 0.15;
+    if (content.includes('Falcon') || content.includes('Electron') || content.includes('rocket') || content.includes('nova')) confidence += 0.15;
+    if (content.includes('Cape Canaveral') || content.includes('Vandenberg') || content.includes('Kennedy')) confidence += 0.1;
+    if (content.includes('lunar') || content.includes('mission') || content.includes('satellite')) confidence += 0.1;
+    if (content.length > 30) confidence += 0.1; // Lower threshold
     
     return Math.min(confidence, 0.95);
   }

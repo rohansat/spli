@@ -36,7 +36,33 @@ export async function POST(request: NextRequest) {
     // Determine processing mode
     let processingMode: 'chat' | 'form-fill' | 'analysis' | 'compliance' = 'chat';
     
-    if (mode === 'form-fill' || userInput.toLowerCase().includes('fill form') || userInput.toLowerCase().includes('application')) {
+    // Check if this looks like a mission description that should auto-fill the form
+    const lowerInput = userInput.toLowerCase();
+    const isMissionDescription = userInput.length > 50 && (
+      lowerInput.includes('mission') || 
+      lowerInput.includes('satellite') || 
+      lowerInput.includes('rocket') || 
+      lowerInput.includes('launch') ||
+      lowerInput.includes('lunar') ||
+      lowerInput.includes('space') ||
+      lowerInput.includes('we are') ||
+      lowerInput.includes('our mission') ||
+      lowerInput.includes('planning') ||
+      lowerInput.includes('deploy') ||
+      lowerInput.includes('conduct') ||
+      lowerInput.includes('kg') ||
+      lowerInput.includes('stage') ||
+      lowerInput.includes('engine') ||
+      lowerInput.includes('propulsion') ||
+      lowerInput.includes('kennedy space center') ||
+      lowerInput.includes('cape canaveral') ||
+      lowerInput.includes('timeline') ||
+      lowerInput.includes('specifications') ||
+      lowerInput.includes('safety') ||
+      lowerInput.includes('operations')
+    );
+    
+    if (mode === 'form-fill' || userInput.toLowerCase().includes('fill form') || userInput.toLowerCase().includes('application') || isMissionDescription) {
       processingMode = 'form-fill';
     } else if (mode === 'compliance' || userInput.toLowerCase().includes('compliance') || userInput.toLowerCase().includes('check')) {
       processingMode = 'compliance';
