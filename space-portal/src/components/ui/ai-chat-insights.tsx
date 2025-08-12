@@ -157,7 +157,7 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false }: AI
     return (
       <div className={`flex flex-col h-full ${className}`}>
         {/* Messages Area */}
-        <ScrollArea className="flex-1 p-4">
+        <ScrollArea className="flex-1 p-4 min-h-0">
           <div className="space-y-4">
             {messages.map((message) => (
               <div
@@ -283,7 +283,7 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false }: AI
         </ScrollArea>
 
         {/* Input Area */}
-        <div className="p-4 border-t bg-gray-50">
+        <div className="p-4 border-t bg-gray-50 flex-shrink-0">
           <div className="flex gap-2">
             <Input
               ref={inputRef}
@@ -356,7 +356,7 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false }: AI
       </CardHeader>
       
       <CardContent className="p-0">
-        <ScrollArea className="h-96 p-4">
+        <ScrollArea className="h-96 p-4 min-h-0">
           <div className="space-y-4">
             {messages.map((message) => (
               <div
@@ -481,6 +481,7 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false }: AI
           </div>
         </ScrollArea>
 
+        {/* Input Area */}
         <div className="p-4 border-t bg-gray-50">
           <div className="flex gap-2">
             <Input
