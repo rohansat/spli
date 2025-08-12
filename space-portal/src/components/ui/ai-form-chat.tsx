@@ -70,7 +70,7 @@ export function AIFormChat({ onFillForm, formFields, onClose, aiAnalyze }: AIFor
       <div className="flex-1 min-h-0 flex flex-col">
         {/* Message area or suggestions area */}
         {messages.length === 0 || !messages[messages.length - 1].suggestions ? (
-          <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4">
+          <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 ai-chat-scrollbar">
             {messages.map((msg, idx) => (
               <div key={idx} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div className={`max-w-[80%] rounded-lg px-4 py-2 text-sm shadow ${
@@ -127,7 +127,7 @@ export function AIFormChat({ onFillForm, formFields, onClose, aiAnalyze }: AIFor
             <div ref={chatEndRef} />
           </div>
         ) : (
-          <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 max-h-[calc(100vh-200px)]">
+          <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 max-h-[calc(100vh-200px)] ai-chat-scrollbar">
             {messages.map((msg, idx) => (
               <div key={idx} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div className={`max-w-[80%] rounded-lg px-4 py-2 text-sm shadow ${

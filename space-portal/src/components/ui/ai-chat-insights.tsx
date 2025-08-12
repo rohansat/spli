@@ -355,7 +355,7 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false }: AI
       </CardHeader>
       
       <CardContent className="p-0">
-        <div className="h-96 p-4 min-h-0 overflow-y-auto">
+        <div className="h-96 p-4 min-h-0 overflow-y-auto ai-chat-scrollbar">
           <div className="space-y-4">
             {messages.map((message) => (
               <div

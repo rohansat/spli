@@ -190,7 +190,7 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
               </TabsContent>
 
               <TabsContent value="actions" className="mt-0 flex-1 min-h-0">
-                <div className="h-full overflow-y-auto">
+                <div className="h-full overflow-y-auto ai-chat-scrollbar">
                   <AIContextMenu 
                     onAction={handleContextAction}
                     className="p-4"

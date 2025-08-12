@@ -119,10 +119,13 @@
 
   /* Force scrollbar to be visible */
   .ai-chat-scrollbar {
-    overflow-y: scroll !important;
+    overflow-y: auto !important;
     scrollbar-width: thin !important;
     scrollbar-color: #374151 #111827 !important;
     scroll-behavior: smooth !important;
+    -webkit-overflow-scrolling: touch !important;
+    max-height: 100% !important;
+    min-height: 0 !important;
   }
   .space-container {
     @apply container mx-auto px-4 sm:px-6 lg:px-8;

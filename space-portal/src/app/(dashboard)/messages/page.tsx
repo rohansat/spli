@@ -279,7 +279,7 @@ export default function MessagesPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="space-y-1 max-h-[500px] overflow-y-auto pr-2">
+              <div className="space-y-1 max-h-[500px] overflow-y-auto pr-2 ai-chat-scrollbar">
                 {filteredMessages.length > 0 ? (
                   filteredMessages.map((message) => (
                     <div

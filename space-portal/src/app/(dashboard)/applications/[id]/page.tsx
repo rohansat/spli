@@ -1246,7 +1246,7 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
               ×
             </button>
           </div>
-          <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+          <div className="flex-1 min-h-0 flex flex-col overflow-hidden ai-chat-scrollbar">
             <AIAssistantPanel
               ref={aiPanelRef}
               onCommand={async (cmd) => {
