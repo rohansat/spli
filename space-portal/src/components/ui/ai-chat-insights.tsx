@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
   Send, 
   Bot, 
@@ -157,7 +156,7 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false }: AI
     return (
       <div className={`flex flex-col h-full ${className}`}>
         {/* Messages Area */}
-        <ScrollArea className="flex-1 p-4 min-h-0">
+        <div className="flex-1 p-4 min-h-0 overflow-y-auto">
           <div className="space-y-4">
             {messages.map((message) => (
               <div
@@ -280,7 +279,7 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false }: AI
             
             <div ref={messagesEndRef} />
           </div>
-        </ScrollArea>
+        </div>
 
         {/* Input Area */}
         <div className="p-4 border-t bg-gray-50 flex-shrink-0">
@@ -356,7 +355,7 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false }: AI
       </CardHeader>
       
       <CardContent className="p-0">
-        <ScrollArea className="h-96 p-4 min-h-0">
+        <div className="h-96 p-4 min-h-0 overflow-y-auto">
           <div className="space-y-4">
             {messages.map((message) => (
               <div
@@ -479,7 +478,7 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false }: AI
             
             <div ref={messagesEndRef} />
           </div>
-        </ScrollArea>
+        </div>
 
         {/* Input Area */}
         <div className="p-4 border-t bg-gray-50">
