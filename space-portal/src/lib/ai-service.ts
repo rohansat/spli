@@ -333,6 +333,28 @@ Always maintain professional expertise while being helpful and engaging.`;
 
   // Process form filling responses
   private processFormFillResponse(response: string): AIAnalysisResponse {
+    // Check if the AI is asking for more information instead of providing form data
+    const isAskingForInfo = response.toLowerCase().includes('please provide') || 
+                           response.toLowerCase().includes('please share') ||
+                           response.toLowerCase().includes('please describe') ||
+                           response.toLowerCase().includes('please tell me') ||
+                           response.toLowerCase().includes('i need more information') ||
+                           response.toLowerCase().includes('could you provide') ||
+                           response.toLowerCase().includes('can you provide') ||
+                           response.toLowerCase().includes('what is your') ||
+                           response.toLowerCase().includes('tell me about');
+
+    if (isAskingForInfo) {
+      // AI is asking for more information - return simple response without suggestions
+      return {
+        suggestions: [],
+        summary: response,
+        confidence: 0.0,
+        nextSteps: [],
+        warnings: []
+      };
+    }
+
     const suggestions: AIFormSuggestion[] = [];
     const sections = this.extractFormSections(response);
     
