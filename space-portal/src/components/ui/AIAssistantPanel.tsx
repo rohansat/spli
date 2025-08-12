@@ -125,16 +125,12 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
 
   return (
     <div className={containerClasses}>
-      <Card className="bg-gradient-to-br from-gray-900 to-gray-800 border-gray-700 shadow-2xl h-full">
-        <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white pb-3">
+      <Card className="bg-zinc-900 border-zinc-800 shadow-2xl h-full">
+        <CardHeader className="bg-zinc-900 border-b border-zinc-800 text-white pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2 text-lg">
-              <Sparkles className="h-5 w-5" />
-              SPLI AI Assistant
-              <Badge variant="secondary" className="ml-2">
-                <Zap className="h-3 w-3 mr-1" />
-                Professional
-              </Badge>
+              <Bot className="h-5 w-5" />
+              SPLI Chat
             </CardTitle>
             <div className="flex items-center gap-1">
               {isFloating && (
@@ -162,19 +158,19 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
         </CardHeader>
 
         {(!isFloating || !isMinimized) && (
-          <CardContent className="p-0 flex-1 flex flex-col">
+          <div className="flex-1 flex flex-col min-h-0">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex-1 flex flex-col">
-              <TabsList className="grid w-full grid-cols-2 bg-gray-800">
+              <TabsList className="grid w-full grid-cols-2 bg-zinc-800">
                 <TabsTrigger 
                   value="chat" 
-                  className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+                  className="data-[state=active]:bg-zinc-700 data-[state=active]:text-white"
                 >
                   <MessageSquare className="h-4 w-4 mr-2" />
                   Chat
                 </TabsTrigger>
                 <TabsTrigger 
                   value="actions" 
-                  className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+                  className="data-[state=active]:bg-zinc-700 data-[state=active]:text-white"
                 >
                   <Sparkles className="h-4 w-4 mr-2" />
                   Actions
@@ -198,7 +194,7 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
                 </div>
               </TabsContent>
             </Tabs>
-          </CardContent>
+          </div>
         )}
       </Card>
     </div>
