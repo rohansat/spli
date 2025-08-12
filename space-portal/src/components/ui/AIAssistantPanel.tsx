@@ -201,7 +201,7 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
 
         {(!isFloating || !isMinimized) && (
           <div className="flex-1 flex flex-col min-h-0">
-            {activeTab === 'chat' && (
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex-1 flex flex-col">
               <TabsContent value="chat" className="mt-0 flex-1 flex flex-col min-h-0">
                 <AIChatInsights 
                   onFormUpdate={handleFormUpdate}
@@ -210,9 +210,7 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
                   initialPrompt={quickActionPrompt}
                 />
               </TabsContent>
-            )}
 
-            {activeTab === 'actions' && (
               <TabsContent value="actions" className="mt-0 flex-1 min-h-0">
                 <div className="h-full overflow-y-auto ai-chat-scrollbar">
                   <AIContextMenu 
@@ -221,7 +219,7 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
                   />
                 </div>
               </TabsContent>
-            )}
+            </Tabs>
           </div>
         )}
       </Card>
