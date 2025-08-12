@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, forwardRef, useImperativeHandle } from 'react';
 import { AIChatInsights } from './ai-chat-insights';
 import { AIContextMenu } from './ai-context-menu';
 import { Button } from './button';
@@ -20,19 +20,70 @@ import {
 
 interface AIAssistantPanelProps {
   onFormUpdate?: (suggestions: any[]) => void;
+  onCommand?: (command: string) => void;
+  onFileDrop?: (files: FileList | File[]) => void;
+  hideTabs?: boolean;
   className?: string;
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
 }
 
-export function AIAssistantPanel({ 
+export interface AIAssistantPanelHandle {
+  addAIMsg: (msg: string) => void;
+  addDiffMsg: (msg: string, oldContent: string, newContent: string, filePath: string, description: string) => void;
+  addDocumentAnalysisMsg: (msg: string, insights: any) => void;
+  showTypingIndicator: () => void;
+  hideTypingIndicator: () => void;
+}
+
+export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPanelProps>(({ 
   onFormUpdate, 
   className,
   isCollapsed = false,
   onToggleCollapse
-}: AIAssistantPanelProps) {
+}, ref) => {
   const [activeTab, setActiveTab] = useState('chat');
   const [isMinimized, setIsMinimized] = useState(false);
+  const [messages, setMessages] = useState<any[]>([]);
+
+  // Expose methods via ref
+  useImperativeHandle(ref, () => ({
+    addAIMsg: (msg: string) => {
+      setMessages(prev => [...prev, { id: Date.now(), sender: 'ai', content: msg, timestamp: Date.now() }]);
+    },
+    addDiffMsg: (msg: string, oldContent: string, newContent: string, filePath: string, description: string) => {
+      setMessages(prev => [...prev, { 
+        id: Date.now(), 
+        sender: 'ai', 
+        content: msg, 
+        timestamp: Date.now(),
+        type: 'diff',
+        diffData: { oldContent, newContent, filePath, description }
+      }]);
+    },
+    addDocumentAnalysisMsg: (msg: string, insights: any) => {
+      setMessages(prev => [...prev, { 
+        id: Date.now(), 
+        sender: 'ai', 
+        content: msg, 
+        timestamp: Date.now(),
+        type: 'document_analysis',
+        documentInsights: insights
+      }]);
+    },
+    showTypingIndicator: () => {
+      setMessages(prev => [...prev, { 
+        id: Date.now(), 
+        sender: 'ai', 
+        content: '', 
+        timestamp: Date.now(),
+        isTyping: true
+      }]);
+    },
+    hideTypingIndicator: () => {
+      setMessages(prev => prev.filter(msg => !msg.isTyping));
+    }
+  }));
 
   const handleContextAction = (action: string, prompt?: string) => {
     // This would typically trigger the chat with the specific prompt
@@ -136,7 +187,9 @@ export function AIAssistantPanel({
       </Card>
     </div>
   );
-}
+});
+
+AIAssistantPanel.displayName = 'AIAssistantPanel';
 
 // Floating AI Button for mobile/compact view
 export function FloatingAIButton({ onClick }: { onClick: () => void }) {

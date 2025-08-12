@@ -56,6 +56,28 @@ export interface ConversationContext {
   }>;
 }
 
+// Mock AI analysis for backward compatibility
+export async function mockAIAnalysis(input: string): Promise<AIAnalysisResponse> {
+  return {
+    suggestions: [
+      {
+        field: 'missionObjective',
+        value: 'Sample mission objective extracted from input',
+        confidence: 0.8,
+        reasoning: 'Extracted from user input'
+      }
+    ],
+    summary: 'AI analysis completed successfully',
+    confidence: 0.8
+  };
+}
+
+// Dashboard AI analysis function
+export async function dashboardAIAnalysis(input: string): Promise<AIAnalysisResponse> {
+  const aiService = getSPLIAIService();
+  return aiService.analyze(input);
+}
+
 // Professional AI Service Class
 export class SPLIAIService {
   private anthropic: Anthropic;
@@ -306,7 +328,7 @@ Always maintain professional expertise while being helpful and engaging.`;
   // Extract form sections from AI response
   private extractFormSections(response: string): Record<string, string> {
     const sections: Record<string, string> = {};
-    const sectionRegex = /^([A-Z\s]+):\s*(.+?)(?=\n[A-Z\s]+:|$)/gms;
+    const sectionRegex = /^([A-Z\s]+):\s*(.+?)(?=\n[A-Z\s]+:|$)/gm;
     
     let match;
     while ((match = sectionRegex.exec(response)) !== null) {
@@ -456,7 +478,7 @@ Always maintain professional expertise while being helpful and engaging.`;
   private handleError(error: any): AIAnalysisResponse {
     return {
       suggestions: [],
-      summary: 'I apologize, but I encountered an issue processing your request. Please try again or contact support if the problem persists.',
+      summary: 'I apologize, but I encountered an issue processing your request. Please try again.',
       confidence: 0,
       warnings: ['Service temporarily unavailable']
     };
