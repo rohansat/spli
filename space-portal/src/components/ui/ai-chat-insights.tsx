@@ -171,7 +171,7 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false, onQu
     return (
       <div className={`flex flex-col h-full ${className}`}>
         {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto p-4">
+        <div className="flex-1 overflow-y-auto p-4 pb-20">
           <div className="space-y-4">
             {messages.map((message) => (
               <div
@@ -297,7 +297,7 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false, onQu
         </div>
 
         {/* Input Area */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t bg-zinc-900">
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t bg-zinc-900 z-10">
           <div className="flex gap-2">
             <Button
               onClick={() => setShowDropdown(!showDropdown)}
