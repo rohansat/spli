@@ -18,6 +18,9 @@ export function Footer() {
             <Link href="/terms" className="text-sm hover:text-white transition-colors">
               TERMS OF SERVICE
             </Link>
+            <Link href="/compliance" className="text-sm hover:text-white transition-colors">
+              COMPLIANCE
+            </Link>
             <Link href="/contact" className="text-sm hover:text-white transition-colors">
               CONTACT
             </Link>

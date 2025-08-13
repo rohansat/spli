@@ -12,6 +12,9 @@ export function Footer() {
           <Link href="/terms-of-service" className="text-zinc-500 hover:text-white transition-colors">
             TERMS OF SERVICE
           </Link>
+          <Link href="/compliance" className="text-zinc-500 hover:text-white transition-colors">
+            COMPLIANCE
+          </Link>
           <Link href="/contact" className="text-zinc-500 hover:text-white transition-colors">
             CONTACT
           </Link>

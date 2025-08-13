@@ -21,9 +21,7 @@ export function PublicNav({ transparent = false }: PublicNavProps) {
           <Link href="/demo" className="text-sm font-medium text-white/80 hover:text-white transition-colors">
             DEMO
           </Link>
-          <Link href="/compliance" className="text-sm font-medium text-white/80 hover:text-white transition-colors">
-            COMPLIANCE
-          </Link>
+
           <Link href="/signin" className="text-sm font-medium text-white/80 hover:text-white transition-colors">
             LOG IN
           </Link>

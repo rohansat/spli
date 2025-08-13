@@ -45,12 +45,7 @@ export function Navbar({ userInitials = 'U', userImage }: NavbarProps) {
             >
               DEMO
             </Link>
-            <Link
-              href="/compliance"
-              className="text-sm font-medium text-white/80 hover:text-white transition-colors"
-            >
-              COMPLIANCE
-            </Link>
+
             <Link
               href="/signin"
               className="text-sm font-medium text-white/80 hover:text-white transition-colors"
