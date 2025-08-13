@@ -39,12 +39,7 @@ export function Navbar({ userInitials = 'U', userImage }: NavbarProps) {
             >
               COMPANY
             </Link>
-            <Link
-              href="/demo"
-              className="text-sm font-medium text-white/80 hover:text-white transition-colors"
-            >
-              DEMO
-            </Link>
+
 
             <Link
               href="/signin"
