@@ -171,7 +171,7 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false, onQu
     return (
       <div className={`flex flex-col h-full ${className}`}>
         {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto p-4 pb-20">
+        <div className="flex-1 overflow-y-auto p-4 pb-32">
           <div className="space-y-4">
             {messages.map((message) => (
               <div
