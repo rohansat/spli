@@ -36,6 +36,7 @@ export interface AIAssistantPanelHandle {
 export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPanelProps>(({ 
   onFormUpdate, 
   onCommand,
+  onFileDrop,
   className,
   isCollapsed = false,
   onToggleCollapse,
@@ -171,6 +172,7 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
               <TabsContent value="chat" className="mt-0 flex-1 flex flex-col min-h-0">
                 <AIChatInsights 
                   onFormUpdate={handleFormUpdate}
+                  onFileDrop={onFileDrop}
                   className="border-0 shadow-none flex-1 min-h-0"
                   isInline={true}
                   initialPrompt={quickActionPrompt}

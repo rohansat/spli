@@ -8,16 +8,15 @@ import { AICursorButton } from "@/components/ui/ai-cursor-button";
 import { AIAssistantPanel, AIAssistantPanelHandle } from "@/components/ui/AIAssistantPanel";
 import { Toaster } from "@/components/ui/toaster";
 import React, { useRef, useState } from "react";
+import { useApplication } from "@/components/providers/ApplicationProvider";
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+function DashboardContent({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
   const pathname = usePathname();
   const [showFloatingChat, setShowFloatingChat] = useState(false);
   const floatingChatRef = useRef<AIAssistantPanelHandle>(null);
+  const { uploadDocument } = useApplication();
+  const user = session?.user;
 
   if (status === 'loading') {
     return (
@@ -38,7 +37,7 @@ export default function DashboardLayout({
   }
 
   return (
-    <ApplicationProvider>
+    <>
       <Navbar />
       <div className="min-h-screen bg-black">
         <div className="flex flex-col min-h-screen">
@@ -59,7 +58,20 @@ export default function DashboardLayout({
                         floatingChatRef.current?.addAIMsg("This is a general assistant. For form-specific actions, open the application form.");
                       }}
                       onFileDrop={async (files) => {
-                        floatingChatRef.current?.addAIMsg("File upload is only available on the application form page.");
+                        if (!user) return;
+                        for (const file of files) {
+                          const newDocument = {
+                            name: file.name,
+                            type: "attachment" as const,
+                            applicationId: undefined,
+                            applicationName: undefined,
+                            fileSize: `${(file.size / (1024 * 1024)).toFixed(2)} MB`,
+                            url: URL.createObjectURL(file),
+                            userId: user.email || "",
+                          };
+                          await uploadDocument(newDocument);
+                          floatingChatRef.current?.addAIMsg(`Document "${file.name}" uploaded successfully and added to Document Management. You can find it in the Documents tab.`);
+                        }
                       }}
                     />
                     <div className="flex justify-end p-2 bg-zinc-900 border-t border-zinc-800">
@@ -79,6 +91,18 @@ export default function DashboardLayout({
         </div>
       </div>
       <Toaster />
+    </>
+  );
+}
+
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <ApplicationProvider>
+      <DashboardContent>{children}</DashboardContent>
     </ApplicationProvider>
   );
 }

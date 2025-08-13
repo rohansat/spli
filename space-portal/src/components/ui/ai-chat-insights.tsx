@@ -18,7 +18,9 @@ import {
   Zap,
   Plus,
   Mic,
-  ChevronDown
+  ChevronDown,
+  Upload,
+  Paperclip
 } from 'lucide-react';
 
 interface Message {
@@ -43,9 +45,10 @@ interface AIChatInsightsProps {
   isInline?: boolean; // New prop to control inline vs card layout
   onQuickAction?: (action: string, prompt: string) => void; // New prop for quick actions
   initialPrompt?: string; // New prop for initial prompt from quick actions
+  onFileDrop?: (files: FileList | File[]) => void; // New prop for file upload handling
 }
 
-export function AIChatInsights({ onFormUpdate, className, isInline = false, onQuickAction, initialPrompt }: AIChatInsightsProps) {
+export function AIChatInsights({ onFormUpdate, className, isInline = false, onQuickAction, initialPrompt, onFileDrop }: AIChatInsightsProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -58,8 +61,10 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false, onQu
   const [isLoading, setIsLoading] = useState(false);
   const [conversationHistory, setConversationHistory] = useState<any[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Handle initial prompt from quick actions
   useEffect(() => {
@@ -73,6 +78,40 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false, onQu
   }, [initialPrompt]);
 
   // Removed automatic scrolling to prevent page from scrolling down when sending messages
+
+  // File upload handlers
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files && files.length > 0 && onFileDrop) {
+      onFileDrop(files);
+      // Clear the input
+      event.target.value = '';
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0 && onFileDrop) {
+      onFileDrop(files);
+    }
+  };
+
+  const handleFileUploadClick = () => {
+    fileInputRef.current?.click();
+  };
 
   const sendMessageWithContent = async (content: string) => {
     if (!content.trim() || isLoading) return;
@@ -169,7 +208,12 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false, onQu
   // If inline mode, render without card wrapper
   if (isInline) {
     return (
-      <div className={`flex flex-col h-full ${className}`}>
+      <div 
+        className={`flex flex-col h-full ${className} ${isDragOver ? 'bg-blue-50 border-2 border-blue-300 border-dashed' : ''}`}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
         {/* Messages Area */}
         <div className="flex-1 overflow-y-auto p-4 pb-32">
           <div className="space-y-4">
@@ -298,6 +342,16 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false, onQu
 
         {/* Input Area */}
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t bg-zinc-900 z-10">
+          {/* Hidden file input */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
+            onChange={handleFileSelect}
+            className="hidden"
+          />
+          
           <div className="flex gap-2">
             <Button
               onClick={() => setShowDropdown(!showDropdown)}
@@ -328,6 +382,14 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false, onQu
                 }}
               />
             </div>
+            <Button
+              onClick={handleFileUploadClick}
+              className="h-10 w-10 p-0 bg-transparent hover:bg-gray-200 border border-gray-300 rounded-md flex items-center justify-center"
+              disabled={isLoading}
+              title="Upload document"
+            >
+              <Paperclip className="h-4 w-4 text-gray-500" />
+            </Button>
             <Button 
               onClick={sendMessage} 
               disabled={!input.trim() || isLoading}
@@ -388,7 +450,12 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false, onQu
 
   // Default card layout
   return (
-    <div className={`w-full h-full flex flex-col bg-zinc-900 ${className}`}>
+    <div 
+      className={`w-full h-full flex flex-col bg-zinc-900 ${className} ${isDragOver ? 'bg-blue-50 border-2 border-blue-300 border-dashed' : ''}`}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
       <div className="flex-1 min-h-0 overflow-y-auto ai-chat-scrollbar p-4">
         <div className="space-y-4">
           {messages.map((message) => (
@@ -541,6 +608,15 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false, onQu
               />
             </div>
             <div className="flex gap-2">
+              <Button 
+                variant="ghost"
+                size="sm"
+                onClick={handleFileUploadClick}
+                className="w-10 h-10 p-0 bg-zinc-700 hover:bg-zinc-600 rounded-full"
+                title="Upload document"
+              >
+                <Paperclip className="h-4 w-4 text-white" />
+              </Button>
               <Button 
                 variant="ghost"
                 size="sm"
