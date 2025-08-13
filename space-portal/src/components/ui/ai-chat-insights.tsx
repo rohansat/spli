@@ -17,7 +17,8 @@ import {
   MessageSquare,
   Zap,
   Plus,
-  Mic
+  Mic,
+  ChevronDown
 } from 'lucide-react';
 
 interface Message {
@@ -56,6 +57,7 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false, onQu
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [conversationHistory, setConversationHistory] = useState<any[]>([]);
+  const [showDropdown, setShowDropdown] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -294,44 +296,10 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false, onQu
           </div>
         </div>
 
-        {/* Bottom Section - Action Buttons and Input */}
-        <div className="flex-shrink-0 bg-gray-50">
-          {/* Action Buttons */}
-          <div className="p-4 border-t">
-            <div className="flex flex-wrap gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setInput('Help me fill out a Part 450 application')}
-                disabled={isLoading}
-              >
-                <FileText className="h-3 w-3 mr-1" />
-                Fill Form
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setInput('Check my application for compliance')}
-                disabled={isLoading}
-              >
-                <CheckCircle className="h-3 w-3 mr-1" />
-                Check Compliance
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setInput('Analyze my mission description')}
-                disabled={isLoading}
-              >
-                <MessageSquare className="h-3 w-3 mr-1" />
-                Analyze Mission
-              </Button>
-            </div>
-          </div>
-
-          {/* Input Area */}
-          <div className="absolute bottom-0 left-0 right-0 p-4 border-t bg-zinc-900">
-            <div className="flex gap-2">
+        {/* Input Area */}
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t bg-zinc-900">
+          <div className="flex gap-2">
+            <div className="relative flex-1">
               <Input
                 ref={inputRef}
                 value={input}
@@ -341,19 +309,67 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false, onQu
                 className="flex-1"
                 disabled={isLoading}
               />
-              <Button 
-                onClick={sendMessage} 
-                disabled={!input.trim() || isLoading}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              <Button
+                onClick={() => setShowDropdown(!showDropdown)}
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 bg-transparent hover:bg-gray-200"
+                disabled={isLoading}
               >
-                {isLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Send className="h-4 w-4" />
-                )}
+                <Plus className="h-4 w-4 text-gray-500" />
               </Button>
             </div>
+            <Button 
+              onClick={sendMessage} 
+              disabled={!input.trim() || isLoading}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+            >
+              {isLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4" />
+              )}
+            </Button>
           </div>
+          
+          {/* Dropdown Menu */}
+          {showDropdown && (
+            <div className="absolute bottom-full left-0 right-0 mb-2 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+              <div className="p-2 space-y-1">
+                <button
+                  onClick={() => {
+                    setInput('Help me fill out a Part 450 application');
+                    setShowDropdown(false);
+                  }}
+                  className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 rounded flex items-center gap-2"
+                  disabled={isLoading}
+                >
+                  <FileText className="h-3 w-3" />
+                  Fill Form
+                </button>
+                <button
+                  onClick={() => {
+                    setInput('Check my application for compliance');
+                    setShowDropdown(false);
+                  }}
+                  className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 rounded flex items-center gap-2"
+                  disabled={isLoading}
+                >
+                  <CheckCircle className="h-3 w-3" />
+                  Check Compliance
+                </button>
+                <button
+                  onClick={() => {
+                    setInput('Analyze my mission description');
+                    setShowDropdown(false);
+                  }}
+                  className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 rounded flex items-center gap-2"
+                  disabled={isLoading}
+                >
+                  <MessageSquare className="h-3 w-3" />
+                  Analyze Mission
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     );
