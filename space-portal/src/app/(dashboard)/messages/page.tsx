@@ -283,7 +283,7 @@ export default function MessagesPage() {
           <Card className="space-card">
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle>Inbox</CardTitle>
+                <CardTitle className="text-white">Inbox</CardTitle>
                 <span className="text-xs bg-blue-500/20 text-blue-300 px-2 py-1 rounded-full">
                   {messages.filter((m) => !m.isRead).length} Unread
                 </span>
@@ -384,7 +384,7 @@ export default function MessagesPage() {
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <div>
-                    <CardTitle>{selectedMessage.subject}</CardTitle>
+                    <CardTitle className="text-white">{selectedMessage.subject}</CardTitle>
                     <CardDescription className="text-white/60 mt-1">
                       From: {selectedMessage.sender} | To: {selectedMessage.recipient}
                     </CardDescription>
@@ -427,7 +427,7 @@ export default function MessagesPage() {
                 <div className="prose prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: selectedMessage.body }} />
 
                 <div className="mt-8 border-t border-white/10 pt-6">
-                  <p className="text-sm font-medium mb-3">Reply</p>
+                  <p className="text-sm font-medium mb-3 text-white">Reply</p>
                   <Textarea
                     placeholder="Type your reply here..."
                     rows={4}
