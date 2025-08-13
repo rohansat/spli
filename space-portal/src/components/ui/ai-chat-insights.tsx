@@ -352,14 +352,24 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false, onQu
             className="hidden"
           />
           
-          <div className="flex gap-2">
-            <Button
-              onClick={() => setShowDropdown(!showDropdown)}
-              className="h-10 w-10 p-0 bg-transparent hover:bg-gray-200 border border-gray-300 rounded-md flex items-center justify-center"
-              disabled={isLoading}
-            >
-              <Plus className="h-4 w-4 text-gray-500" />
-            </Button>
+          <div className="flex gap-2 items-center">
+            <div className="flex gap-1">
+              <Button
+                onClick={() => setShowDropdown(!showDropdown)}
+                className="h-8 w-8 p-0 bg-transparent hover:bg-gray-200 border border-gray-300 rounded-md flex items-center justify-center"
+                disabled={isLoading}
+              >
+                <Plus className="h-3 w-3 text-gray-500" />
+              </Button>
+              <Button
+                onClick={handleFileUploadClick}
+                className="h-8 w-8 p-0 bg-transparent hover:bg-gray-200 border border-gray-300 rounded-md flex items-center justify-center"
+                disabled={isLoading}
+                title="Upload document"
+              >
+                <Paperclip className="h-3 w-3 text-gray-500" />
+              </Button>
+            </div>
             <div className="relative flex-1">
               <textarea
                 ref={inputRef}
@@ -382,18 +392,10 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false, onQu
                 }}
               />
             </div>
-            <Button
-              onClick={handleFileUploadClick}
-              className="h-10 w-10 p-0 bg-transparent hover:bg-gray-200 border border-gray-300 rounded-md flex items-center justify-center"
-              disabled={isLoading}
-              title="Upload document"
-            >
-              <Paperclip className="h-4 w-4 text-gray-500" />
-            </Button>
             <Button 
               onClick={sendMessage} 
               disabled={!input.trim() || isLoading}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              className="h-10 w-10 p-0 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 rounded-md flex items-center justify-center"
             >
               {isLoading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -583,9 +585,27 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false, onQu
 
         {/* Input Area */}
         <div className="p-4 border-t border-zinc-800 bg-zinc-900">
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
+            <div className="flex gap-1">
+              <Button 
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowDropdown(!showDropdown)}
+                className="w-8 h-8 p-0 bg-zinc-700 hover:bg-zinc-600 rounded-md flex items-center justify-center"
+              >
+                <Plus className="h-3 w-3 text-white" />
+              </Button>
+              <Button 
+                variant="ghost"
+                size="sm"
+                onClick={handleFileUploadClick}
+                className="w-8 h-8 p-0 bg-zinc-700 hover:bg-zinc-600 rounded-md flex items-center justify-center"
+                title="Upload document"
+              >
+                <Paperclip className="h-3 w-3 text-white" />
+              </Button>
+            </div>
             <div className="flex items-center gap-2 flex-1 bg-zinc-800 rounded-lg px-3 py-2">
-              <Plus className="h-4 w-4 text-zinc-400" />
               <textarea
                 ref={inputRef}
                 value={input}
@@ -608,15 +628,6 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false, onQu
               />
             </div>
             <div className="flex gap-2">
-              <Button 
-                variant="ghost"
-                size="sm"
-                onClick={handleFileUploadClick}
-                className="w-10 h-10 p-0 bg-zinc-700 hover:bg-zinc-600 rounded-full"
-                title="Upload document"
-              >
-                <Paperclip className="h-4 w-4 text-white" />
-              </Button>
               <Button 
                 variant="ghost"
                 size="sm"
