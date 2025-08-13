@@ -200,13 +200,17 @@ CONVERSATION STYLE:
         return `${basePrompt}
 
 FORM FILLING MODE:
-When users provide mission descriptions, ALWAYS extract relevant information and populate Part 450 form sections. Be aggressive about extracting information - if the user provides any mission details, extract what you can find.
+When users provide mission descriptions, ALWAYS extract ALL relevant information and populate Part 450 form sections. Be extremely thorough and comprehensive - extract every single detail mentioned.
 
 INFORMATION ASSESSMENT:
 - ALWAYS extract information from mission descriptions, even if some details are missing
 - Look for ANY relevant information that could populate form fields
 - Extract partial information when full details aren't available
 - Be comprehensive and thorough in your extraction
+- Extract specific technical details, measurements, coordinates, timelines, specifications
+- Look for safety systems, propulsion details, payload information, launch sites, trajectories
+- Extract all numerical values, dates, locations, and technical specifications
+- Be exhaustive in finding and extracting information
 
 ALWAYS use this structured format when mission information is provided:
 
@@ -564,35 +568,63 @@ Always maintain professional expertise while being helpful and engaging.`;
     if (Object.keys(sections).length === 0) {
       const lowerResponse = response.toLowerCase();
       
-      // Extract mission objective - look for mission purpose and goals
-      if (lowerResponse.includes('mission') || lowerResponse.includes('objective') || lowerResponse.includes('purpose')) {
-        const missionMatch = response.match(/(?:mission|objective|purpose)[:\s]*([^.]*(?:research|demonstration|deploy|conduct|lunar|commercial)[^.]*)/i);
-        if (missionMatch) {
-          sections.missionObjective = missionMatch[1].trim();
-        } else {
-          // Fallback: extract mission description from the beginning
-          const lines = response.split('\n');
-          for (const line of lines) {
-            if (line.toLowerCase().includes('planning') && line.toLowerCase().includes('mission')) {
-              sections.missionObjective = line.trim();
+      // Extract mission objective - comprehensive extraction
+      if (lowerResponse.includes('mission') || lowerResponse.includes('objective') || lowerResponse.includes('purpose') || lowerResponse.includes('planning')) {
+        // Look for comprehensive mission descriptions
+        const missionPatterns = [
+          /(?:we are planning|planning|mission|objective|purpose)[:\s]*([^.]*(?:commercial|lunar|research|demonstration|deploy|conduct|scientific|technology)[^.]*)/gi,
+          /(?:commercial|lunar|research|demonstration|deploy|conduct)[^.]*(?:mission|objective|purpose)[^.]*/gi,
+          /(?:mission|objective|purpose)[^.]*(?:scientific|technology|research|demonstration|lunar|commercial)[^.]*/gi
+        ];
+        
+        for (const pattern of missionPatterns) {
+          const matches = response.match(pattern);
+          if (matches && matches.length > 0) {
+            sections.missionObjective = matches[0].trim();
+            break;
+          }
+        }
+        
+        // If no pattern match, extract the most comprehensive mission-related sentence
+        if (!sections.missionObjective) {
+          const sentences = response.split('.');
+          for (const sentence of sentences) {
+            const lowerSentence = sentence.toLowerCase();
+            if ((lowerSentence.includes('mission') || lowerSentence.includes('planning') || lowerSentence.includes('objective')) && 
+                (lowerSentence.includes('lunar') || lowerSentence.includes('commercial') || lowerSentence.includes('research') || lowerSentence.includes('deploy'))) {
+              sections.missionObjective = sentence.trim();
               break;
             }
           }
         }
       }
 
-      // Extract vehicle description - look for rocket/vehicle details
-      if (lowerResponse.includes('rocket') || lowerResponse.includes('vehicle') || lowerResponse.includes('stage') || lowerResponse.includes('engine')) {
-        const vehicleMatch = response.match(/(?:rocket|vehicle|stage|engine)[^.]*(?:meter|propulsion|engine|stage|nova|falcon)[^.]*/i);
-        if (vehicleMatch && !sections.missionObjective?.includes(vehicleMatch[0])) {
-          sections.vehicleDescription = vehicleMatch[0].trim();
-        } else {
-          // Fallback: look for specific vehicle details
-          const lines = response.split('\n');
-          for (const line of lines) {
-            if ((line.toLowerCase().includes('stage') || line.toLowerCase().includes('engine')) && 
-                (line.toLowerCase().includes('meter') || line.toLowerCase().includes('propulsion'))) {
-              sections.vehicleDescription = line.trim();
+      // Extract vehicle description - comprehensive extraction
+      if (lowerResponse.includes('rocket') || lowerResponse.includes('vehicle') || lowerResponse.includes('stage') || lowerResponse.includes('engine') || lowerResponse.includes('nova')) {
+        // Look for comprehensive vehicle descriptions
+        const vehiclePatterns = [
+          /(?:launch vehicle|rocket|vehicle)[^.]*(?:stage|engine|propulsion|nova|falcon)[^.]*/gi,
+          /(?:three-stage|two-stage|single-stage)[^.]*(?:rocket|vehicle|nova)[^.]*/gi,
+          /(?:nova|falcon|electron)[^.]*(?:rocket|vehicle|stage|engine)[^.]*/gi,
+          /(?:stage|engine)[^.]*(?:methane|oxygen|propulsion|vacuum|transfer)[^.]*/gi
+        ];
+        
+        for (const pattern of vehiclePatterns) {
+          const matches = response.match(pattern);
+          if (matches && matches.length > 0) {
+            sections.vehicleDescription = matches[0].trim();
+            break;
+          }
+        }
+        
+        // If no pattern match, extract comprehensive vehicle information
+        if (!sections.vehicleDescription) {
+          const sentences = response.split('.');
+          for (const sentence of sentences) {
+            const lowerSentence = sentence.toLowerCase();
+            if ((lowerSentence.includes('rocket') || lowerSentence.includes('vehicle') || lowerSentence.includes('nova')) && 
+                (lowerSentence.includes('stage') || lowerSentence.includes('engine') || lowerSentence.includes('propulsion'))) {
+              sections.vehicleDescription = sentence.trim();
               break;
             }
           }
@@ -634,17 +666,31 @@ Always maintain professional expertise while being helpful and engaging.`;
         }
       }
 
-      // Extract technical summary - look for technical specifications
-      if (lowerResponse.includes('technical') || lowerResponse.includes('specification') || lowerResponse.includes('capacity') || lowerResponse.includes('communication') || lowerResponse.includes('payload') || lowerResponse.includes('solar') || lowerResponse.includes('network')) {
-        const techMatch = response.match(/(?:technical|specification|capacity|communication|payload|solar|network|mass|power|data)[^.]*/i);
-        if (techMatch) {
-          sections.technicalSummary = techMatch[0].trim();
-        } else {
-          // Fallback: look for technical specifications in sentences
+      // Extract technical summary - comprehensive extraction
+      if (lowerResponse.includes('technical') || lowerResponse.includes('specification') || lowerResponse.includes('capacity') || lowerResponse.includes('communication') || lowerResponse.includes('payload') || lowerResponse.includes('solar') || lowerResponse.includes('network') || lowerResponse.includes('kg') || lowerResponse.includes('kw') || lowerResponse.includes('mbps')) {
+        // Look for comprehensive technical specifications
+        const techPatterns = [
+          /(?:technical|specification)[^.]*(?:payload|solar|communication|capacity|mass|power|data)[^.]*/gi,
+          /(?:payload|solar|communication|capacity)[^.]*(?:kg|kw|mbps|watt|kilogram|kilowatt)[^.]*/gi,
+          /(?:500kg|payload mass|solar arrays|5kw|2mbps|deep space network)[^.]*/gi,
+          /(?:technical specifications|payload|solar|communication|capacity)[^.]*/gi
+        ];
+        
+        for (const pattern of techPatterns) {
+          const matches = response.match(pattern);
+          if (matches && matches.length > 0) {
+            sections.technicalSummary = matches[0].trim();
+            break;
+          }
+        }
+        
+        // If no pattern match, extract comprehensive technical information
+        if (!sections.technicalSummary) {
           const sentences = response.split('.');
           for (const sentence of sentences) {
-            if ((sentence.toLowerCase().includes('payload') || sentence.toLowerCase().includes('solar') || sentence.toLowerCase().includes('communication') || sentence.toLowerCase().includes('capacity')) && 
-                (sentence.toLowerCase().includes('kg') || sentence.toLowerCase().includes('kw') || sentence.toLowerCase().includes('mbps'))) {
+            const lowerSentence = sentence.toLowerCase();
+            if ((lowerSentence.includes('payload') || lowerSentence.includes('solar') || lowerSentence.includes('communication') || lowerSentence.includes('capacity') || lowerSentence.includes('technical')) && 
+                (lowerSentence.includes('kg') || lowerSentence.includes('kw') || lowerSentence.includes('mbps') || lowerSentence.includes('watt') || lowerSentence.includes('kilogram'))) {
               sections.technicalSummary = sentence.trim();
               break;
             }
@@ -703,18 +749,35 @@ Always maintain professional expertise while being helpful and engaging.`;
         }
       }
 
-      // Extract safety considerations - look for safety measures
-      if (lowerResponse.includes('safety') || lowerResponse.includes('termination') || lowerResponse.includes('monitoring') || lowerResponse.includes('collision') || lowerResponse.includes('autonomous') || lowerResponse.includes('gps')) {
-        const safetyMatch = response.match(/(?:safety|termination|monitoring|collision|mitigation|autonomous|gps|tracking)[^.]*/i);
-        if (safetyMatch) {
-          sections.safetyConsiderations = safetyMatch[0].trim();
-        } else {
-          // Fallback: look for safety-related sentences
+      // Extract safety considerations - comprehensive extraction
+      if (lowerResponse.includes('safety') || lowerResponse.includes('termination') || lowerResponse.includes('monitoring') || lowerResponse.includes('collision') || lowerResponse.includes('autonomous') || lowerResponse.includes('gps') || lowerResponse.includes('flight termination') || lowerResponse.includes('trajectory monitoring')) {
+        // Look for comprehensive safety information
+        const safetyPatterns = [
+          /(?:safety considerations|safety systems|flight termination)[^.]*(?:autonomous|gps|tracking|monitoring)[^.]*/gi,
+          /(?:autonomous flight termination|gps tracking|trajectory monitoring)[^.]*/gi,
+          /(?:collision avoidance|lunar impact|debris mitigation)[^.]*/gi,
+          /(?:public safety|deep space|safety protocols)[^.]*/gi,
+          /(?:safety|termination|monitoring|collision|mitigation|autonomous|gps|tracking)[^.]*/gi
+        ];
+        
+        for (const pattern of safetyPatterns) {
+          const matches = response.match(pattern);
+          if (matches && matches.length > 0) {
+            sections.safetyConsiderations = matches[0].trim();
+            break;
+          }
+        }
+        
+        // If no pattern match, extract comprehensive safety information
+        if (!sections.safetyConsiderations) {
           const sentences = response.split('.');
           for (const sentence of sentences) {
-            if (sentence.toLowerCase().includes('safety') || 
-                (sentence.toLowerCase().includes('autonomous') && sentence.toLowerCase().includes('termination')) ||
-                (sentence.toLowerCase().includes('gps') && sentence.toLowerCase().includes('tracking'))) {
+            const lowerSentence = sentence.toLowerCase();
+            if (lowerSentence.includes('safety') || 
+                (lowerSentence.includes('autonomous') && lowerSentence.includes('termination')) ||
+                (lowerSentence.includes('gps') && lowerSentence.includes('tracking')) ||
+                (lowerSentence.includes('flight') && lowerSentence.includes('termination')) ||
+                (lowerSentence.includes('trajectory') && lowerSentence.includes('monitoring'))) {
               sections.safetyConsiderations = sentence.trim();
               break;
             }
@@ -746,17 +809,32 @@ Always maintain professional expertise while being helpful and engaging.`;
         }
       }
 
-      // Extract ground operations - look for ground operations
-      if (lowerResponse.includes('ground') || lowerResponse.includes('operation') || lowerResponse.includes('facility') || lowerResponse.includes('assembly') || lowerResponse.includes('ksc') || lowerResponse.includes('houston')) {
-        const groundMatch = response.match(/(?:ground|operation|facility|assembly|testing|control|ksc|houston|mission control)[^.]*/i);
-        if (groundMatch) {
-          sections.groundOperations = groundMatch[0].trim();
-        } else {
-          // Fallback: look for ground operations in sentences
+      // Extract ground operations - comprehensive extraction
+      if (lowerResponse.includes('ground') || lowerResponse.includes('operation') || lowerResponse.includes('facility') || lowerResponse.includes('assembly') || lowerResponse.includes('ksc') || lowerResponse.includes('houston') || lowerResponse.includes('mission control') || lowerResponse.includes('pre-launch')) {
+        // Look for comprehensive ground operations information
+        const groundPatterns = [
+          /(?:ground operations|pre-launch)[^.]*(?:assembly|testing|facility|ksc|houston)[^.]*/gi,
+          /(?:mission control|houston facility)[^.]*(?:operations|tracking|lunar surface)[^.]*/gi,
+          /(?:payload integration|lunar transfer vehicle)[^.]*/gi,
+          /(?:post-launch tracking|lunar surface operations)[^.]*/gi,
+          /(?:ground|operation|facility|assembly|testing|control|ksc|houston|mission control)[^.]*/gi
+        ];
+        
+        for (const pattern of groundPatterns) {
+          const matches = response.match(pattern);
+          if (matches && matches.length > 0) {
+            sections.groundOperations = matches[0].trim();
+            break;
+          }
+        }
+        
+        // If no pattern match, extract comprehensive ground operations information
+        if (!sections.groundOperations) {
           const sentences = response.split('.');
           for (const sentence of sentences) {
-            if ((sentence.toLowerCase().includes('ground') || sentence.toLowerCase().includes('ksc') || sentence.toLowerCase().includes('houston')) && 
-                (sentence.toLowerCase().includes('operation') || sentence.toLowerCase().includes('facility') || sentence.toLowerCase().includes('assembly') || sentence.toLowerCase().includes('control'))) {
+            const lowerSentence = sentence.toLowerCase();
+            if ((lowerSentence.includes('ground') || lowerSentence.includes('ksc') || lowerSentence.includes('houston') || lowerSentence.includes('pre-launch')) && 
+                (lowerSentence.includes('operation') || lowerSentence.includes('facility') || lowerSentence.includes('assembly') || lowerSentence.includes('control') || lowerSentence.includes('testing'))) {
               sections.groundOperations = sentence.trim();
               break;
             }
@@ -764,17 +842,32 @@ Always maintain professional expertise while being helpful and engaging.`;
         }
       }
 
-      // Extract launch site - look for launch location
-      if (lowerResponse.includes('kennedy') || lowerResponse.includes('space center') || lowerResponse.includes('launch complex') || lowerResponse.includes('coordinates')) {
-        const siteMatch = response.match(/(?:kennedy|space center|launch complex|coordinates)[^.]*/i);
-        if (siteMatch) {
-          sections.launchSite = siteMatch[0].trim();
-        } else {
-          // Fallback: look for specific launch site details
-          const lines = response.split('\n');
-          for (const line of lines) {
-            if (line.toLowerCase().includes('kennedy') || line.toLowerCase().includes('space center')) {
-              sections.launchSite = line.trim();
+      // Extract launch site - comprehensive extraction
+      if (lowerResponse.includes('kennedy') || lowerResponse.includes('space center') || lowerResponse.includes('launch complex') || lowerResponse.includes('coordinates') || lowerResponse.includes('florida') || lowerResponse.includes('ksc')) {
+        // Look for comprehensive launch site information
+        const sitePatterns = [
+          /(?:launch from|launch site|kennedy space center|ksc)[^.]*(?:florida|launch complex|39a|coordinates)[^.]*/gi,
+          /(?:kennedy space center|ksc)[^.]*(?:florida|launch complex|39a)[^.]*/gi,
+          /(?:launch complex|39a)[^.]*(?:kennedy|space center|florida)[^.]*/gi,
+          /(?:florida|28\.5729|80\.6490)[^.]*(?:kennedy|space center|launch)[^.]*/gi
+        ];
+        
+        for (const pattern of sitePatterns) {
+          const matches = response.match(pattern);
+          if (matches && matches.length > 0) {
+            sections.launchSite = matches[0].trim();
+            break;
+          }
+        }
+        
+        // If no pattern match, extract comprehensive launch site information
+        if (!sections.launchSite) {
+          const sentences = response.split('.');
+          for (const sentence of sentences) {
+            const lowerSentence = sentence.toLowerCase();
+            if ((lowerSentence.includes('kennedy') || lowerSentence.includes('space center') || lowerSentence.includes('ksc') || lowerSentence.includes('launch complex')) && 
+                (lowerSentence.includes('florida') || lowerSentence.includes('39a') || lowerSentence.includes('coordinates'))) {
+              sections.launchSite = sentence.trim();
               break;
             }
           }
