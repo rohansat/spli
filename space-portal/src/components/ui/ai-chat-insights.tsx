@@ -366,7 +366,7 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false, onQu
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="Ask about FAA licensing, describe your mission, or get help with forms..."
+                placeholder="How can I help?"
                 className="w-full min-h-[40px] max-h-[120px] p-3 border border-gray-300 rounded-md resize-none overflow-y-auto focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 disabled={isLoading}
                 rows={1}
@@ -591,7 +591,7 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false, onQu
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="Ask anything"
+                placeholder="How can I help?"
                 className="flex-1 bg-transparent border-0 text-white placeholder:text-zinc-400 focus:ring-0 focus:outline-none resize-none overflow-y-auto"
                 disabled={isLoading}
                 rows={1}
