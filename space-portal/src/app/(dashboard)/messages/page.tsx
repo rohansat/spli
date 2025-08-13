@@ -6,7 +6,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Mail, Search, Star, Trash2, Send, Plus, MessageSquare, AlertTriangle } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
+import { Mail, Search, Star, Trash2, Send, Plus, MessageSquare, AlertTriangle, Filter, X } from "lucide-react";
 import { messages as mockMessages } from "@/lib/mock-data";
 import { Message } from "@/types";
 import { cn } from "@/lib/utils";
@@ -32,6 +34,15 @@ export default function MessagesPage() {
     body: "",
   });
   const [mailbox, setMailbox] = useState<'inbox' | 'sent'>('inbox');
+  
+  // Filter states
+  const [applicationFilter, setApplicationFilter] = useState<string>("all");
+  const [applicationStatusFilter, setApplicationStatusFilter] = useState<string>("all");
+  const [applicationTypeFilter, setApplicationTypeFilter] = useState<string>("all");
+  const [faaFilter, setFaaFilter] = useState<string>("all");
+  const [complianceFilter, setComplianceFilter] = useState<string>("all");
+  const [licenseStatusFilter, setLicenseStatusFilter] = useState<string>("all");
+  const [activeFilters, setActiveFilters] = useState<string[]>([]);
 
   // Fetch Outlook emails from Microsoft Graph API
   useEffect(() => {
@@ -80,7 +91,7 @@ export default function MessagesPage() {
     fetchEmails();
   }, [accessToken]);
 
-  // Filter messages based on mailbox
+  // Filter messages based on mailbox and search
   const userEmail = session?.user?.email || '';
   const filteredMessages = messages.filter((msg) => {
     if (mailbox === 'inbox') {
@@ -93,7 +104,107 @@ export default function MessagesPage() {
       msg.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
       msg.body.toLowerCase().includes(searchQuery.toLowerCase()) ||
       msg.sender.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  ).filter((msg) => {
+    // Application-related filters
+    if (applicationFilter !== "all" && msg.applicationId !== applicationFilter) {
+      return false;
+    }
+    
+    // Application status filter (check subject/body for status keywords)
+    if (applicationStatusFilter !== "all") {
+      const content = `${msg.subject} ${msg.body}`.toLowerCase();
+      const statusKeywords = {
+        "pending": ["pending", "under review", "in progress", "submitted"],
+        "approved": ["approved", "approval", "granted", "authorized"],
+        "rejected": ["rejected", "denied", "not approved", "declined"]
+      };
+      if (!statusKeywords[applicationStatusFilter as keyof typeof statusKeywords]?.some(keyword => content.includes(keyword))) {
+        return false;
+      }
+    }
+    
+    // Application type filter
+    if (applicationTypeFilter !== "all") {
+      const content = `${msg.subject} ${msg.body}`.toLowerCase();
+      const typeKeywords = {
+        "Part 450": ["part 450", "450", "commercial space"],
+        "License Amendment": ["amendment", "modification", "change"],
+        "Safety Approval": ["safety", "safety approval", "safety assessment"],
+        "Site License": ["site license", "launch site", "facility"]
+      };
+      if (!typeKeywords[applicationTypeFilter as keyof typeof typeKeywords]?.some(keyword => content.includes(keyword))) {
+        return false;
+      }
+    }
+    
+    // FAA Communications filter
+    if (faaFilter !== "all") {
+      const isFaaEmail = msg.sender.toLowerCase().includes("faa.gov") || 
+                        msg.sender.toLowerCase().includes("faa") ||
+                        msg.subject.toLowerCase().includes("faa") ||
+                        msg.body.toLowerCase().includes("faa");
+      if (faaFilter === "faa" && !isFaaEmail) return false;
+      if (faaFilter === "non-faa" && isFaaEmail) return false;
+    }
+    
+    // Compliance Updates filter
+    if (complianceFilter !== "all") {
+      const content = `${msg.subject} ${msg.body}`.toLowerCase();
+      const complianceKeywords = ["compliance", "regulation", "regulatory", "requirement", "standard", "policy"];
+      const hasComplianceContent = complianceKeywords.some(keyword => content.includes(keyword));
+      if (complianceFilter === "compliance" && !hasComplianceContent) return false;
+      if (complianceFilter === "non-compliance" && hasComplianceContent) return false;
+    }
+    
+    // License Status filter
+    if (licenseStatusFilter !== "all") {
+      const content = `${msg.subject} ${msg.body}`.toLowerCase();
+      const licenseKeywords = {
+        "approval": ["license approved", "approval granted", "authorized"],
+        "rejection": ["license denied", "rejection", "not approved"],
+        "pending": ["license pending", "under review", "in process"]
+      };
+      if (!licenseKeywords[licenseStatusFilter as keyof typeof licenseKeywords]?.some(keyword => content.includes(keyword))) {
+        return false;
+      }
+    }
+    
+    return true;
+  });
+
+  // Helper functions for filters
+  const clearAllFilters = () => {
+    setApplicationFilter("all");
+    setApplicationStatusFilter("all");
+    setApplicationTypeFilter("all");
+    setFaaFilter("all");
+    setComplianceFilter("all");
+    setLicenseStatusFilter("all");
+    setActiveFilters([]);
+  };
+
+  const getActiveFiltersCount = () => {
+    let count = 0;
+    if (applicationFilter !== "all") count++;
+    if (applicationStatusFilter !== "all") count++;
+    if (applicationTypeFilter !== "all") count++;
+    if (faaFilter !== "all") count++;
+    if (complianceFilter !== "all") count++;
+    if (licenseStatusFilter !== "all") count++;
+    return count;
+  };
+
+  // Update active filters display
+  useEffect(() => {
+    const active: string[] = [];
+    if (applicationFilter !== "all") active.push(`Application: ${applicationFilter}`);
+    if (applicationStatusFilter !== "all") active.push(`Status: ${applicationStatusFilter}`);
+    if (applicationTypeFilter !== "all") active.push(`Type: ${applicationTypeFilter}`);
+    if (faaFilter !== "all") active.push(`FAA: ${faaFilter === "faa" ? "FAA Only" : "Non-FAA"}`);
+    if (complianceFilter !== "all") active.push(`Compliance: ${complianceFilter === "compliance" ? "Compliance Only" : "Non-Compliance"}`);
+    if (licenseStatusFilter !== "all") active.push(`License: ${licenseStatusFilter}`);
+    setActiveFilters(active);
+  }, [applicationFilter, applicationStatusFilter, applicationTypeFilter, faaFilter, complianceFilter, licenseStatusFilter]);
 
   // Format date for display
   const formatDate = (dateString: string) => {
@@ -277,6 +388,171 @@ export default function MessagesPage() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
+              
+              {/* Filter Controls */}
+              <div className="flex flex-wrap gap-2 mt-3">
+                {/* Application Filter */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="h-8 text-xs border-white/20 text-white/80 hover:text-white">
+                      <Filter className="h-3 w-3 mr-1" />
+                      Application
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="bg-zinc-900 border-zinc-700">
+                    <DropdownMenuItem onClick={() => setApplicationFilter("all")} className="text-white hover:bg-zinc-800">
+                      All Applications
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setApplicationFilter("app-1")} className="text-white hover:bg-zinc-800">
+                      Part 450 - Lunar Mission
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setApplicationFilter("app-2")} className="text-white hover:bg-zinc-800">
+                      Site License - KSC
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                {/* Application Status Filter */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="h-8 text-xs border-white/20 text-white/80 hover:text-white">
+                      <Filter className="h-3 w-3 mr-1" />
+                      Status
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="bg-zinc-900 border-zinc-700">
+                    <DropdownMenuItem onClick={() => setApplicationStatusFilter("all")} className="text-white hover:bg-zinc-800">
+                      All Statuses
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setApplicationStatusFilter("pending")} className="text-white hover:bg-zinc-800">
+                      Pending
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setApplicationStatusFilter("approved")} className="text-white hover:bg-zinc-800">
+                      Approved
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setApplicationStatusFilter("rejected")} className="text-white hover:bg-zinc-800">
+                      Rejected
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                {/* Application Type Filter */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="h-8 text-xs border-white/20 text-white/80 hover:text-white">
+                      <Filter className="h-3 w-3 mr-1" />
+                      Type
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="bg-zinc-900 border-zinc-700">
+                    <DropdownMenuItem onClick={() => setApplicationTypeFilter("all")} className="text-white hover:bg-zinc-800">
+                      All Types
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setApplicationTypeFilter("Part 450")} className="text-white hover:bg-zinc-800">
+                      Part 450
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setApplicationTypeFilter("License Amendment")} className="text-white hover:bg-zinc-800">
+                      License Amendment
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setApplicationTypeFilter("Safety Approval")} className="text-white hover:bg-zinc-800">
+                      Safety Approval
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setApplicationTypeFilter("Site License")} className="text-white hover:bg-zinc-800">
+                      Site License
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                {/* FAA Communications Filter */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="h-8 text-xs border-white/20 text-white/80 hover:text-white">
+                      <Filter className="h-3 w-3 mr-1" />
+                      FAA
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="bg-zinc-900 border-zinc-700">
+                    <DropdownMenuItem onClick={() => setFaaFilter("all")} className="text-white hover:bg-zinc-800">
+                      All Messages
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setFaaFilter("faa")} className="text-white hover:bg-zinc-800">
+                      FAA Only
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setFaaFilter("non-faa")} className="text-white hover:bg-zinc-800">
+                      Non-FAA
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                {/* Compliance Updates Filter */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="h-8 text-xs border-white/20 text-white/80 hover:text-white">
+                      <Filter className="h-3 w-3 mr-1" />
+                      Compliance
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="bg-zinc-900 border-zinc-700">
+                    <DropdownMenuItem onClick={() => setComplianceFilter("all")} className="text-white hover:bg-zinc-800">
+                      All Messages
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setComplianceFilter("compliance")} className="text-white hover:bg-zinc-800">
+                      Compliance Only
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setComplianceFilter("non-compliance")} className="text-white hover:bg-zinc-800">
+                      Non-Compliance
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                {/* License Status Filter */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="h-8 text-xs border-white/20 text-white/80 hover:text-white">
+                      <Filter className="h-3 w-3 mr-1" />
+                      License
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="bg-zinc-900 border-zinc-700">
+                    <DropdownMenuItem onClick={() => setLicenseStatusFilter("all")} className="text-white hover:bg-zinc-800">
+                      All Statuses
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setLicenseStatusFilter("approval")} className="text-white hover:bg-zinc-800">
+                      Approval
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setLicenseStatusFilter("rejection")} className="text-white hover:bg-zinc-800">
+                      Rejection
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setLicenseStatusFilter("pending")} className="text-white hover:bg-zinc-800">
+                      Pending
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                {/* Clear Filters Button */}
+                {getActiveFiltersCount() > 0 && (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={clearAllFilters}
+                    className="h-8 text-xs border-red-500/50 text-red-400 hover:text-red-300 hover:border-red-400"
+                  >
+                    <X className="h-3 w-3 mr-1" />
+                    Clear ({getActiveFiltersCount()})
+                  </Button>
+                )}
+              </div>
+
+              {/* Active Filters Display */}
+              {activeFilters.length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {activeFilters.map((filter, index) => (
+                    <Badge key={index} variant="secondary" className="text-xs bg-blue-500/20 text-blue-300 border-blue-500/30">
+                      {filter}
+                    </Badge>
+                  ))}
+                </div>
+              )}
             </CardHeader>
             <CardContent>
               <div className="space-y-1 max-h-[500px] overflow-y-auto pr-2 ai-chat-scrollbar">
