@@ -631,17 +631,45 @@ Always maintain professional expertise while being helpful and engaging.`;
         }
       }
 
-      // Extract launch sequence - look for launch process details
-      if (lowerResponse.includes('launch') || lowerResponse.includes('sequence') || lowerResponse.includes('stage')) {
-        const launchMatch = response.match(/(?:launch|sequence|stage)[^.]*(?:separation|ignition|burn|transfer|lunar|injection)[^.]*/i);
-        if (launchMatch && !sections.vehicleDescription?.includes(launchMatch[0])) {
-          sections.launchReEntrySequence = launchMatch[0].trim();
-        } else {
-          // Fallback: look for launch-related sentences
+      // Extract launch sequence - comprehensive extraction
+      if (lowerResponse.includes('launch') || lowerResponse.includes('sequence') || lowerResponse.includes('stage') || lowerResponse.includes('separation') || lowerResponse.includes('ignition') || lowerResponse.includes('burn') || lowerResponse.includes('transfer') || lowerResponse.includes('injection')) {
+        // Look for comprehensive launch sequence information
+        const launchPatterns = [
+          /(?:launch|sequence|stage)[^.]*(?:separation|ignition|burn|transfer|lunar|injection)[^.]*/gi,
+          /(?:first stage|second stage|third stage)[^.]*(?:separation|ignition|burn|engine)[^.]*/gi,
+          /(?:stage separation|engine ignition|burn sequence)[^.]*/gi,
+          /(?:lunar transfer|injection burn)[^.]*/gi,
+          /(?:launch sequence|stage sequence)[^.]*/gi
+        ];
+        
+        for (const pattern of launchPatterns) {
+          const matches = response.match(pattern);
+          if (matches && matches.length > 0) {
+            sections.launchReEntrySequence = matches[0].trim();
+            break;
+          }
+        }
+        
+        // If no pattern match, extract comprehensive launch sequence information
+        if (!sections.launchReEntrySequence) {
           const sentences = response.split('.');
           for (const sentence of sentences) {
-            if (sentence.toLowerCase().includes('launch') && 
-                (sentence.toLowerCase().includes('sequence') || sentence.toLowerCase().includes('stage') || sentence.toLowerCase().includes('transfer'))) {
+            const lowerSentence = sentence.toLowerCase();
+            if ((lowerSentence.includes('launch') || lowerSentence.includes('sequence') || lowerSentence.includes('stage')) && 
+                (lowerSentence.includes('separation') || lowerSentence.includes('ignition') || lowerSentence.includes('burn') || lowerSentence.includes('transfer') || lowerSentence.includes('injection'))) {
+              sections.launchReEntrySequence = sentence.trim();
+              break;
+            }
+          }
+        }
+        
+        // Additional extraction for specific stage details
+        if (!sections.launchReEntrySequence) {
+          const sentences = response.split('.');
+          for (const sentence of sentences) {
+            const lowerSentence = sentence.toLowerCase();
+            if ((lowerSentence.includes('first stage') || lowerSentence.includes('second stage') || lowerSentence.includes('third stage')) && 
+                (lowerSentence.includes('engine') || lowerSentence.includes('separation') || lowerSentence.includes('burn'))) {
               sections.launchReEntrySequence = sentence.trim();
               break;
             }
@@ -649,16 +677,46 @@ Always maintain professional expertise while being helpful and engaging.`;
         }
       }
 
-      // Extract trajectory overview
-      if (lowerResponse.includes('trajectory') || lowerResponse.includes('flight path') || lowerResponse.includes('orbital') || lowerResponse.includes('lunar surface')) {
-        const trajectoryMatch = response.match(/(?:trajectory|flight path|orbital|lunar surface)[^.]*/i);
-        if (trajectoryMatch) {
-          sections.trajectoryOverview = trajectoryMatch[0].trim();
-        } else {
-          // Fallback: look for trajectory-related sentences
+      // Extract trajectory overview - comprehensive extraction
+      if (lowerResponse.includes('trajectory') || lowerResponse.includes('flight path') || lowerResponse.includes('orbital') || lowerResponse.includes('lunar surface') || lowerResponse.includes('mare tranquillitatis') || lowerResponse.includes('lunar transfer') || lowerResponse.includes('destination') || lowerResponse.includes('region')) {
+        // Look for comprehensive trajectory information
+        const trajectoryPatterns = [
+          /(?:trajectory|flight path|lunar transfer)[^.]*(?:mare tranquillitatis|lunar surface|destination|region)[^.]*/gi,
+          /(?:destination|lunar surface|mare tranquillitatis)[^.]*(?:region|surface|lunar)[^.]*/gi,
+          /(?:lunar transfer|flight path)[^.]*(?:trajectory|path|route)[^.]*/gi,
+          /(?:mare tranquillitatis|mare|tranquillitatis)[^.]*(?:region|surface|lunar)[^.]*/gi,
+          /(?:trajectory|flight path|orbital|lunar surface|destination)[^.]*/gi
+        ];
+        
+        for (const pattern of trajectoryPatterns) {
+          const matches = response.match(pattern);
+          if (matches && matches.length > 0) {
+            sections.trajectoryOverview = matches[0].trim();
+            break;
+          }
+        }
+        
+        // If no pattern match, extract comprehensive trajectory information
+        if (!sections.trajectoryOverview) {
           const sentences = response.split('.');
           for (const sentence of sentences) {
-            if (sentence.toLowerCase().includes('lunar') && sentence.toLowerCase().includes('surface')) {
+            const lowerSentence = sentence.toLowerCase();
+            if ((lowerSentence.includes('trajectory') || lowerSentence.includes('flight path') || lowerSentence.includes('lunar transfer') || lowerSentence.includes('destination')) && 
+                (lowerSentence.includes('lunar') || lowerSentence.includes('mare') || lowerSentence.includes('tranquillitatis') || lowerSentence.includes('surface') || lowerSentence.includes('region'))) {
+              sections.trajectoryOverview = sentence.trim();
+              break;
+            }
+          }
+        }
+        
+        // Additional extraction for specific lunar regions and coordinates
+        if (!sections.trajectoryOverview) {
+          const sentences = response.split('.');
+          for (const sentence of sentences) {
+            const lowerSentence = sentence.toLowerCase();
+            if (lowerSentence.includes('mare tranquillitatis') || 
+                (lowerSentence.includes('lunar') && lowerSentence.includes('surface')) ||
+                (lowerSentence.includes('destination') && lowerSentence.includes('lunar'))) {
               sections.trajectoryOverview = sentence.trim();
               break;
             }
@@ -698,16 +756,47 @@ Always maintain professional expertise while being helpful and engaging.`;
         }
       }
 
-      // Extract dimensions/mass/stages
-      if (lowerResponse.includes('dimensions') || lowerResponse.includes('mass') || lowerResponse.includes('stage') || lowerResponse.includes('meter') || lowerResponse.includes('85 meters')) {
-        const dimensionsMatch = response.match(/(?:dimensions|mass|stage|meter|85 meters|4\.5.*diameter)[^.]*/i);
-        if (dimensionsMatch) {
-          sections.dimensionsMassStages = dimensionsMatch[0].trim();
-        } else {
-          // Fallback: look for dimension-related sentences
+      // Extract dimensions/mass/stages - comprehensive extraction
+      if (lowerResponse.includes('dimensions') || lowerResponse.includes('mass') || lowerResponse.includes('stage') || lowerResponse.includes('meter') || lowerResponse.includes('85 meters') || lowerResponse.includes('4.5-meter') || lowerResponse.includes('diameter') || lowerResponse.includes('height') || lowerResponse.includes('total vehicle')) {
+        // Look for comprehensive dimension and mass information
+        const dimensionPatterns = [
+          /(?:total vehicle height|vehicle height|height)[^.]*(?:85 meters|meter)[^.]*/gi,
+          /(?:4\.5-meter|4.5 meter|diameter|fairing)[^.]*(?:diameter|meter)[^.]*/gi,
+          /(?:85 meters|85 meter)[^.]*(?:height|total|vehicle)[^.]*/gi,
+          /(?:dimensions|mass|stage)[^.]*(?:meter|diameter|height)[^.]*/gi,
+          /(?:three-stage|two-stage|single-stage)[^.]*(?:rocket|vehicle|height|mass)[^.]*/gi
+        ];
+        
+        for (const pattern of dimensionPatterns) {
+          const matches = response.match(pattern);
+          if (matches && matches.length > 0) {
+            sections.dimensionsMassStages = matches[0].trim();
+            break;
+          }
+        }
+        
+        // If no pattern match, extract comprehensive dimension information
+        if (!sections.dimensionsMassStages) {
           const sentences = response.split('.');
           for (const sentence of sentences) {
-            if (sentence.toLowerCase().includes('85 meters') || sentence.toLowerCase().includes('4.5-meter')) {
+            const lowerSentence = sentence.toLowerCase();
+            if ((lowerSentence.includes('85 meters') || lowerSentence.includes('4.5-meter') || lowerSentence.includes('diameter') || lowerSentence.includes('height')) && 
+                (lowerSentence.includes('total') || lowerSentence.includes('vehicle') || lowerSentence.includes('fairing') || lowerSentence.includes('meter'))) {
+              sections.dimensionsMassStages = sentence.trim();
+              break;
+            }
+          }
+        }
+        
+        // Additional extraction for specific measurements
+        if (!sections.dimensionsMassStages) {
+          const sentences = response.split('.');
+          for (const sentence of sentences) {
+            const lowerSentence = sentence.toLowerCase();
+            if (lowerSentence.includes('85 meters') || 
+                lowerSentence.includes('4.5-meter') ||
+                (lowerSentence.includes('total vehicle') && lowerSentence.includes('height')) ||
+                (lowerSentence.includes('diameter') && lowerSentence.includes('fairing'))) {
               sections.dimensionsMassStages = sentence.trim();
               break;
             }
@@ -715,16 +804,46 @@ Always maintain professional expertise while being helpful and engaging.`;
         }
       }
 
-      // Extract propulsion types
-      if (lowerResponse.includes('propulsion') || lowerResponse.includes('engine') || lowerResponse.includes('methane') || lowerResponse.includes('oxygen')) {
-        const propulsionMatch = response.match(/(?:propulsion|engine|methane|oxygen|vacuum|transfer)[^.]*/i);
-        if (propulsionMatch) {
-          sections.propulsionTypes = propulsionMatch[0].trim();
-        } else {
-          // Fallback: look for propulsion-related sentences
+      // Extract propulsion types - comprehensive extraction
+      if (lowerResponse.includes('propulsion') || lowerResponse.includes('engine') || lowerResponse.includes('methane') || lowerResponse.includes('oxygen') || lowerResponse.includes('vacuum') || lowerResponse.includes('transfer') || lowerResponse.includes('first stage') || lowerResponse.includes('second stage') || lowerResponse.includes('third stage')) {
+        // Look for comprehensive propulsion information
+        const propulsionPatterns = [
+          /(?:first stage|second stage|third stage)[^.]*(?:engine|methane|oxygen|propulsion)[^.]*/gi,
+          /(?:methane|oxygen|engine)[^.]*(?:propulsion|vacuum|transfer|optimized)[^.]*/gi,
+          /(?:vacuum-optimized|vacuum optimized)[^.]*(?:engine|propulsion)[^.]*/gi,
+          /(?:lunar transfer|transfer engine)[^.]*/gi,
+          /(?:5 methane|5 oxygen|2 vacuum|1 lunar)[^.]*(?:engine|propulsion)[^.]*/gi,
+          /(?:propulsion|engine|methane|oxygen|vacuum|transfer)[^.]*/gi
+        ];
+        
+        for (const pattern of propulsionPatterns) {
+          const matches = response.match(pattern);
+          if (matches && matches.length > 0) {
+            sections.propulsionTypes = matches[0].trim();
+            break;
+          }
+        }
+        
+        // If no pattern match, extract comprehensive propulsion information
+        if (!sections.propulsionTypes) {
           const sentences = response.split('.');
           for (const sentence of sentences) {
-            if (sentence.toLowerCase().includes('methane') && sentence.toLowerCase().includes('oxygen')) {
+            const lowerSentence = sentence.toLowerCase();
+            if ((lowerSentence.includes('engine') || lowerSentence.includes('propulsion') || lowerSentence.includes('methane') || lowerSentence.includes('oxygen')) && 
+                (lowerSentence.includes('stage') || lowerSentence.includes('vacuum') || lowerSentence.includes('transfer') || lowerSentence.includes('optimized'))) {
+              sections.propulsionTypes = sentence.trim();
+              break;
+            }
+          }
+        }
+        
+        // Additional extraction for specific engine configurations
+        if (!sections.propulsionTypes) {
+          const sentences = response.split('.');
+          for (const sentence of sentences) {
+            const lowerSentence = sentence.toLowerCase();
+            if ((lowerSentence.includes('first stage') || lowerSentence.includes('second stage') || lowerSentence.includes('third stage')) && 
+                (lowerSentence.includes('engine') || lowerSentence.includes('methane') || lowerSentence.includes('oxygen') || lowerSentence.includes('vacuum'))) {
               sections.propulsionTypes = sentence.trim();
               break;
             }
@@ -732,16 +851,47 @@ Always maintain professional expertise while being helpful and engaging.`;
         }
       }
 
-      // Extract recovery systems
-      if (lowerResponse.includes('recovery') || lowerResponse.includes('one-way') || lowerResponse.includes('no recovery')) {
-        const recoveryMatch = response.match(/(?:recovery|one-way|no recovery)[^.]*/i);
-        if (recoveryMatch) {
-          sections.recoverySystems = recoveryMatch[0].trim();
-        } else {
-          // Fallback: look for recovery-related sentences
+      // Extract recovery systems - comprehensive extraction
+      if (lowerResponse.includes('recovery') || lowerResponse.includes('one-way') || lowerResponse.includes('no recovery') || lowerResponse.includes('lunar surface') || lowerResponse.includes('one way')) {
+        // Look for comprehensive recovery information
+        const recoveryPatterns = [
+          /(?:recovery|one-way|one way|no recovery)[^.]*(?:lunar surface|mission|landing)[^.]*/gi,
+          /(?:one-way mission|one way mission)[^.]*(?:lunar surface|no recovery)[^.]*/gi,
+          /(?:lunar surface|landing)[^.]*(?:one-way|one way|no recovery)[^.]*/gi,
+          /(?:recovery systems|recovery)[^.]*/gi,
+          /(?:one-way|one way|no recovery)[^.]*/gi
+        ];
+        
+        for (const pattern of recoveryPatterns) {
+          const matches = response.match(pattern);
+          if (matches && matches.length > 0) {
+            sections.recoverySystems = matches[0].trim();
+            break;
+          }
+        }
+        
+        // If no pattern match, extract comprehensive recovery information
+        if (!sections.recoverySystems) {
           const sentences = response.split('.');
           for (const sentence of sentences) {
-            if (sentence.toLowerCase().includes('one-way') || sentence.toLowerCase().includes('no recovery')) {
+            const lowerSentence = sentence.toLowerCase();
+            if ((lowerSentence.includes('one-way') || lowerSentence.includes('one way') || lowerSentence.includes('no recovery')) && 
+                (lowerSentence.includes('lunar') || lowerSentence.includes('surface') || lowerSentence.includes('mission'))) {
+              sections.recoverySystems = sentence.trim();
+              break;
+            }
+          }
+        }
+        
+        // Additional extraction for specific recovery scenarios
+        if (!sections.recoverySystems) {
+          const sentences = response.split('.');
+          for (const sentence of sentences) {
+            const lowerSentence = sentence.toLowerCase();
+            if (lowerSentence.includes('one-way') || 
+                lowerSentence.includes('one way') ||
+                lowerSentence.includes('no recovery') ||
+                (lowerSentence.includes('lunar') && lowerSentence.includes('surface'))) {
               sections.recoverySystems = sentence.trim();
               break;
             }
@@ -785,27 +935,144 @@ Always maintain professional expertise while being helpful and engaging.`;
         }
       }
 
-      // Extract early risk assessments
-      if (lowerResponse.includes('risk') || lowerResponse.includes('assessment') || lowerResponse.includes('analysis')) {
-        const riskMatch = response.match(/(?:risk|assessment|analysis|mitigation)[^.]*/i);
-        if (riskMatch) {
-          sections.earlyRiskAssessments = riskMatch[0].trim();
+      // Extract early risk assessments - comprehensive extraction
+      if (lowerResponse.includes('risk') || lowerResponse.includes('assessment') || lowerResponse.includes('analysis') || lowerResponse.includes('mitigation') || lowerResponse.includes('early risk')) {
+        // Look for comprehensive risk assessment information
+        const riskPatterns = [
+          /(?:early risk|risk assessment|risk analysis)[^.]*(?:mitigation|analysis|assessment)[^.]*/gi,
+          /(?:risk|assessment|analysis)[^.]*(?:mitigation|early|preliminary)[^.]*/gi,
+          /(?:preliminary risk|early risk|risk assessment)[^.]*/gi,
+          /(?:risk|assessment|analysis|mitigation)[^.]*/gi
+        ];
+        
+        for (const pattern of riskPatterns) {
+          const matches = response.match(pattern);
+          if (matches && matches.length > 0) {
+            sections.earlyRiskAssessments = matches[0].trim();
+            break;
+          }
+        }
+        
+        // If no pattern match, extract comprehensive risk information
+        if (!sections.earlyRiskAssessments) {
+          const sentences = response.split('.');
+          for (const sentence of sentences) {
+            const lowerSentence = sentence.toLowerCase();
+            if ((lowerSentence.includes('risk') || lowerSentence.includes('assessment') || lowerSentence.includes('analysis')) && 
+                (lowerSentence.includes('mitigation') || lowerSentence.includes('early') || lowerSentence.includes('preliminary'))) {
+              sections.earlyRiskAssessments = sentence.trim();
+              break;
+            }
+          }
+        }
+        
+        // Additional extraction for specific risk scenarios
+        if (!sections.earlyRiskAssessments) {
+          const sentences = response.split('.');
+          for (const sentence of sentences) {
+            const lowerSentence = sentence.toLowerCase();
+            if (lowerSentence.includes('early risk') || 
+                lowerSentence.includes('risk assessment') ||
+                lowerSentence.includes('preliminary risk') ||
+                (lowerSentence.includes('risk') && lowerSentence.includes('analysis'))) {
+              sections.earlyRiskAssessments = sentence.trim();
+              break;
+            }
+          }
         }
       }
 
-      // Extract public safety challenges
-      if (lowerResponse.includes('public safety') || lowerResponse.includes('challenge') || lowerResponse.includes('protocol')) {
-        const publicSafetyMatch = response.match(/(?:public safety|challenge|protocol)[^.]*/i);
-        if (publicSafetyMatch && !sections.safetyConsiderations?.includes(publicSafetyMatch[0])) {
-          sections.publicSafetyChallenges = publicSafetyMatch[0].trim();
+      // Extract public safety challenges - comprehensive extraction
+      if (lowerResponse.includes('public safety') || lowerResponse.includes('challenge') || lowerResponse.includes('protocol') || lowerResponse.includes('deep space') || lowerResponse.includes('public safety challenges')) {
+        // Look for comprehensive public safety information
+        const publicSafetyPatterns = [
+          /(?:public safety challenges|public safety|safety challenges)[^.]*(?:deep space|protocol|operations)[^.]*/gi,
+          /(?:deep space|public safety)[^.]*(?:operations|protocol|challenges)[^.]*/gi,
+          /(?:public safety protocols|safety protocols)[^.]*(?:deep space|operations)[^.]*/gi,
+          /(?:public safety|challenge|protocol)[^.]*/gi
+        ];
+        
+        for (const pattern of publicSafetyPatterns) {
+          const matches = response.match(pattern);
+          if (matches && matches.length > 0 && !sections.safetyConsiderations?.includes(matches[0])) {
+            sections.publicSafetyChallenges = matches[0].trim();
+            break;
+          }
+        }
+        
+        // If no pattern match, extract comprehensive public safety information
+        if (!sections.publicSafetyChallenges) {
+          const sentences = response.split('.');
+          for (const sentence of sentences) {
+            const lowerSentence = sentence.toLowerCase();
+            if ((lowerSentence.includes('public safety') || lowerSentence.includes('challenge') || lowerSentence.includes('protocol')) && 
+                (lowerSentence.includes('deep space') || lowerSentence.includes('operations') || lowerSentence.includes('safety')) && 
+                !sections.safetyConsiderations?.includes(sentence)) {
+              sections.publicSafetyChallenges = sentence.trim();
+              break;
+            }
+          }
+        }
+        
+        // Additional extraction for specific public safety scenarios
+        if (!sections.publicSafetyChallenges) {
+          const sentences = response.split('.');
+          for (const sentence of sentences) {
+            const lowerSentence = sentence.toLowerCase();
+            if ((lowerSentence.includes('public safety') && lowerSentence.includes('challenges')) || 
+                (lowerSentence.includes('deep space') && lowerSentence.includes('operations')) ||
+                (lowerSentence.includes('public safety') && lowerSentence.includes('protocols'))) {
+              sections.publicSafetyChallenges = sentence.trim();
+              break;
+            }
+          }
         }
       }
 
-      // Extract planned safety tools
-      if (lowerResponse.includes('safety tools') || lowerResponse.includes('debris') || lowerResponse.includes('sara')) {
-        const safetyToolsMatch = response.match(/(?:safety tools|debris|sara)[^.]*/i);
-        if (safetyToolsMatch && !sections.safetyConsiderations?.includes(safetyToolsMatch[0])) {
-          sections.plannedSafetyTools = safetyToolsMatch[0].trim();
+      // Extract planned safety tools - comprehensive extraction
+      if (lowerResponse.includes('safety tools') || lowerResponse.includes('debris') || lowerResponse.includes('sara') || lowerResponse.includes('planned safety') || lowerResponse.includes('safety analysis')) {
+        // Look for comprehensive safety tools information
+        const safetyToolsPatterns = [
+          /(?:planned safety tools|safety tools|planned safety)[^.]*(?:debris|sara|analysis)[^.]*/gi,
+          /(?:debris|sara|safety analysis)[^.]*(?:tools|planned|safety)[^.]*/gi,
+          /(?:safety tools|planned safety)[^.]*/gi,
+          /(?:debris|sara)[^.]*/gi
+        ];
+        
+        for (const pattern of safetyToolsPatterns) {
+          const matches = response.match(pattern);
+          if (matches && matches.length > 0 && !sections.safetyConsiderations?.includes(matches[0])) {
+            sections.plannedSafetyTools = matches[0].trim();
+            break;
+          }
+        }
+        
+        // If no pattern match, extract comprehensive safety tools information
+        if (!sections.plannedSafetyTools) {
+          const sentences = response.split('.');
+          for (const sentence of sentences) {
+            const lowerSentence = sentence.toLowerCase();
+            if ((lowerSentence.includes('safety tools') || lowerSentence.includes('debris') || lowerSentence.includes('sara')) && 
+                (lowerSentence.includes('planned') || lowerSentence.includes('safety') || lowerSentence.includes('analysis')) && 
+                !sections.safetyConsiderations?.includes(sentence)) {
+              sections.plannedSafetyTools = sentence.trim();
+              break;
+            }
+          }
+        }
+        
+        // Additional extraction for specific safety tools
+        if (!sections.plannedSafetyTools) {
+          const sentences = response.split('.');
+          for (const sentence of sentences) {
+            const lowerSentence = sentence.toLowerCase();
+            if ((lowerSentence.includes('planned') && lowerSentence.includes('safety')) || 
+                (lowerSentence.includes('debris') && lowerSentence.includes('safety')) ||
+                (lowerSentence.includes('sara') && lowerSentence.includes('safety'))) {
+              sections.plannedSafetyTools = sentence.trim();
+              break;
+            }
+          }
         }
       }
 
@@ -874,16 +1141,47 @@ Always maintain professional expertise while being helpful and engaging.`;
         }
       }
 
-      // Extract site names/coordinates
-      if (lowerResponse.includes('coordinates') || lowerResponse.includes('28.5729') || lowerResponse.includes('80.6490')) {
-        const coordinatesMatch = response.match(/(?:coordinates|28\.5729|80\.6490|Florida)[^.]*/i);
-        if (coordinatesMatch) {
-          sections.siteNamesCoordinates = coordinatesMatch[0].trim();
-        } else {
-          // Fallback: look for coordinate-related sentences
+      // Extract site names/coordinates - comprehensive extraction
+      if (lowerResponse.includes('coordinates') || lowerResponse.includes('28.5729') || lowerResponse.includes('80.6490') || lowerResponse.includes('florida') || lowerResponse.includes('cape canaveral') || lowerResponse.includes('kennedy space center') || lowerResponse.includes('ksc')) {
+        // Look for comprehensive site and coordinate information
+        const coordinatePatterns = [
+          /(?:kennedy space center|ksc|florida)[^.]*(?:28\.5729|80\.6490|coordinates)[^.]*/gi,
+          /(?:28\.5729|80\.6490)[^.]*(?:n|s|e|w|north|south|east|west|florida)[^.]*/gi,
+          /(?:coordinates|28\.5729|80\.6490|florida)[^.]*/gi,
+          /(?:cape canaveral|kennedy space center|ksc)[^.]*(?:florida|coordinates)[^.]*/gi,
+          /(?:florida|28\.5729|80\.6490)[^.]*(?:kennedy|space center|ksc)[^.]*/gi
+        ];
+        
+        for (const pattern of coordinatePatterns) {
+          const matches = response.match(pattern);
+          if (matches && matches.length > 0) {
+            sections.siteNamesCoordinates = matches[0].trim();
+            break;
+          }
+        }
+        
+        // If no pattern match, extract comprehensive coordinate information
+        if (!sections.siteNamesCoordinates) {
           const sentences = response.split('.');
           for (const sentence of sentences) {
-            if (sentence.toLowerCase().includes('28.5729') || sentence.toLowerCase().includes('80.6490')) {
+            const lowerSentence = sentence.toLowerCase();
+            if ((lowerSentence.includes('28.5729') || lowerSentence.includes('80.6490') || lowerSentence.includes('coordinates')) && 
+                (lowerSentence.includes('florida') || lowerSentence.includes('kennedy') || lowerSentence.includes('space center') || lowerSentence.includes('ksc'))) {
+              sections.siteNamesCoordinates = sentence.trim();
+              break;
+            }
+          }
+        }
+        
+        // Additional extraction for specific coordinate formats
+        if (!sections.siteNamesCoordinates) {
+          const sentences = response.split('.');
+          for (const sentence of sentences) {
+            const lowerSentence = sentence.toLowerCase();
+            if (lowerSentence.includes('28.5729') || 
+                lowerSentence.includes('80.6490') ||
+                (lowerSentence.includes('kennedy space center') && lowerSentence.includes('florida')) ||
+                (lowerSentence.includes('coordinates') && lowerSentence.includes('florida'))) {
               sections.siteNamesCoordinates = sentence.trim();
               break;
             }
@@ -891,77 +1189,322 @@ Always maintain professional expertise while being helpful and engaging.`;
         }
       }
 
-      // Extract site operator
-      if (lowerResponse.includes('operator') || lowerResponse.includes('operated by') || lowerResponse.includes('company')) {
-        const operatorMatch = response.match(/(?:operator|operated by|company)[^.]*/i);
-        if (operatorMatch) {
-          sections.siteOperator = operatorMatch[0].trim();
+      // Extract site operator - comprehensive extraction
+      if (lowerResponse.includes('operator') || lowerResponse.includes('operated by') || lowerResponse.includes('company') || lowerResponse.includes('our company') || lowerResponse.includes('site operator')) {
+        // Look for comprehensive site operator information
+        const operatorPatterns = [
+          /(?:site operator|operated by|operator)[^.]*(?:our company|company|facility)[^.]*/gi,
+          /(?:our company|company)[^.]*(?:operates|operator|facility)[^.]*/gi,
+          /(?:launch complex|39a)[^.]*(?:operated by|operator|company)[^.]*/gi,
+          /(?:operator|operated by|company)[^.]*/gi
+        ];
+        
+        for (const pattern of operatorPatterns) {
+          const matches = response.match(pattern);
+          if (matches && matches.length > 0) {
+            sections.siteOperator = matches[0].trim();
+            break;
+          }
         }
-      }
-
-      // Extract launch window
-      if (lowerResponse.includes('launch window') || lowerResponse.includes('q4 2024') || lowerResponse.includes('october') || lowerResponse.includes('december')) {
-        const windowMatch = response.match(/(?:launch window|q4 2024|october|december)[^.]*/i);
-        if (windowMatch) {
-          sections.launchWindow = windowMatch[0].trim();
-        }
-      }
-
-      // Extract flight path
-      if (lowerResponse.includes('flight path') || lowerResponse.includes('lunar transfer') || lowerResponse.includes('mare tranquillitatis')) {
-        const flightPathMatch = response.match(/(?:flight path|lunar transfer|mare tranquillitatis)[^.]*/i);
-        if (flightPathMatch) {
-          sections.flightPath = flightPathMatch[0].trim();
-        }
-      }
-
-      // Extract landing site
-      if (lowerResponse.includes('landing') || lowerResponse.includes('lunar surface') || lowerResponse.includes('mare tranquillitatis')) {
-        const landingMatch = response.match(/(?:landing|lunar surface|mare tranquillitatis)[^.]*/i);
-        if (landingMatch) {
-          sections.landingSite = landingMatch[0].trim();
-        }
-      }
-
-      // Extract timeline information
-      if (lowerResponse.includes('timeline') || lowerResponse.includes('q1') || lowerResponse.includes('q2') || lowerResponse.includes('q3') || lowerResponse.includes('q4') || lowerResponse.includes('2024') || lowerResponse.includes('window') || lowerResponse.includes('duration')) {
-        const timelineMatch = response.match(/(?:timeline|application|launch window|q[1-4]|2024|duration|october|december)[^.]*/i);
-        if (timelineMatch && !sections.launchWindow?.includes(timelineMatch[0])) {
-          sections.intendedWindow = timelineMatch[0].trim();
-        } else {
-          // Fallback: look for timeline-related sentences
+        
+        // If no pattern match, extract comprehensive operator information
+        if (!sections.siteOperator) {
           const sentences = response.split('.');
           for (const sentence of sentences) {
-            if ((sentence.toLowerCase().includes('timeline') || sentence.toLowerCase().includes('window') || sentence.toLowerCase().includes('duration')) && 
-                (sentence.toLowerCase().includes('q1') || sentence.toLowerCase().includes('q2') || sentence.toLowerCase().includes('q3') || sentence.toLowerCase().includes('q4') || sentence.toLowerCase().includes('2024'))) {
-              if (!sections.launchWindow?.includes(sentence)) {
-                sections.intendedWindow = sentence.trim();
-              }
+            const lowerSentence = sentence.toLowerCase();
+            if ((lowerSentence.includes('operator') || lowerSentence.includes('operated by') || lowerSentence.includes('company')) && 
+                (lowerSentence.includes('our company') || lowerSentence.includes('facility') || lowerSentence.includes('launch complex'))) {
+              sections.siteOperator = sentence.trim();
+              break;
+            }
+          }
+        }
+        
+        // Additional extraction for specific operator scenarios
+        if (!sections.siteOperator) {
+          const sentences = response.split('.');
+          for (const sentence of sentences) {
+            const lowerSentence = sentence.toLowerCase();
+            if ((lowerSentence.includes('our company') && lowerSentence.includes('operates')) || 
+                (lowerSentence.includes('launch complex') && lowerSentence.includes('operated by')) ||
+                (lowerSentence.includes('site operator') && lowerSentence.includes('company'))) {
+              sections.siteOperator = sentence.trim();
               break;
             }
           }
         }
       }
 
-      // Extract full application timeline
-      if (lowerResponse.includes('application submission') || lowerResponse.includes('q1 2024')) {
-        const appTimelineMatch = response.match(/(?:application submission|q1 2024)[^.]*/i);
-        if (appTimelineMatch) {
-          sections.fullApplicationTimeline = appTimelineMatch[0].trim();
+      // Extract launch window - comprehensive extraction
+      if (lowerResponse.includes('launch window') || lowerResponse.includes('q4 2024') || lowerResponse.includes('october') || lowerResponse.includes('december') || lowerResponse.includes('q4') || lowerResponse.includes('2024') || lowerResponse.includes('window')) {
+        // Look for comprehensive launch window information
+        const windowPatterns = [
+          /(?:launch window|q4 2024|q4)[^.]*(?:october|december|2024)[^.]*/gi,
+          /(?:october|december)[^.]*(?:2024|launch window|q4)[^.]*/gi,
+          /(?:q4 2024|q4)[^.]*(?:october|december|launch window)[^.]*/gi,
+          /(?:launch window|q4 2024|october|december)[^.]*/gi
+        ];
+        
+        for (const pattern of windowPatterns) {
+          const matches = response.match(pattern);
+          if (matches && matches.length > 0) {
+            sections.launchWindow = matches[0].trim();
+            break;
+          }
+        }
+        
+        // If no pattern match, extract comprehensive launch window information
+        if (!sections.launchWindow) {
+          const sentences = response.split('.');
+          for (const sentence of sentences) {
+            const lowerSentence = sentence.toLowerCase();
+            if ((lowerSentence.includes('launch window') || lowerSentence.includes('q4') || lowerSentence.includes('2024')) && 
+                (lowerSentence.includes('october') || lowerSentence.includes('december') || lowerSentence.includes('q4'))) {
+              sections.launchWindow = sentence.trim();
+              break;
+            }
+          }
+        }
+        
+        // Additional extraction for specific launch window scenarios
+        if (!sections.launchWindow) {
+          const sentences = response.split('.');
+          for (const sentence of sentences) {
+            const lowerSentence = sentence.toLowerCase();
+            if (lowerSentence.includes('q4 2024') || 
+                (lowerSentence.includes('october') && lowerSentence.includes('december')) ||
+                (lowerSentence.includes('launch window') && lowerSentence.includes('2024'))) {
+              sections.launchWindow = sentence.trim();
+              break;
+            }
+          }
         }
       }
 
-      // Extract license type information
-      if (lowerResponse.includes('license') || lowerResponse.includes('part 450') || lowerResponse.includes('commercial') || lowerResponse.includes('seeking')) {
-        const licenseMatch = response.match(/(?:license|part 450|commercial|seeking|transportation)[^.]*/i);
-        if (licenseMatch) {
-          sections.licenseTypeIntent = licenseMatch[0].trim();
-        } else {
-          // Fallback: look for license-related sentences
+      // Extract flight path - comprehensive extraction
+      if (lowerResponse.includes('flight path') || lowerResponse.includes('lunar transfer') || lowerResponse.includes('mare tranquillitatis') || lowerResponse.includes('path') || lowerResponse.includes('trajectory') || lowerResponse.includes('route')) {
+        // Look for comprehensive flight path information
+        const flightPathPatterns = [
+          /(?:flight path|lunar transfer|path)[^.]*(?:mare tranquillitatis|lunar|surface)[^.]*/gi,
+          /(?:mare tranquillitatis|lunar transfer)[^.]*(?:flight path|path|route)[^.]*/gi,
+          /(?:trajectory|flight path)[^.]*(?:lunar|transfer|path)[^.]*/gi,
+          /(?:flight path|lunar transfer|mare tranquillitatis)[^.]*/gi
+        ];
+        
+        for (const pattern of flightPathPatterns) {
+          const matches = response.match(pattern);
+          if (matches && matches.length > 0) {
+            sections.flightPath = matches[0].trim();
+            break;
+          }
+        }
+        
+        // If no pattern match, extract comprehensive flight path information
+        if (!sections.flightPath) {
           const sentences = response.split('.');
           for (const sentence of sentences) {
-            if (sentence.toLowerCase().includes('license') || 
-                (sentence.toLowerCase().includes('seeking') && sentence.toLowerCase().includes('commercial'))) {
+            const lowerSentence = sentence.toLowerCase();
+            if ((lowerSentence.includes('flight path') || lowerSentence.includes('lunar transfer') || lowerSentence.includes('path')) && 
+                (lowerSentence.includes('mare') || lowerSentence.includes('tranquillitatis') || lowerSentence.includes('lunar') || lowerSentence.includes('surface'))) {
+              sections.flightPath = sentence.trim();
+              break;
+            }
+          }
+        }
+        
+        // Additional extraction for specific flight path scenarios
+        if (!sections.flightPath) {
+          const sentences = response.split('.');
+          for (const sentence of sentences) {
+            const lowerSentence = sentence.toLowerCase();
+            if (lowerSentence.includes('mare tranquillitatis') || 
+                (lowerSentence.includes('lunar transfer') && lowerSentence.includes('path')) ||
+                (lowerSentence.includes('flight path') && lowerSentence.includes('lunar'))) {
+              sections.flightPath = sentence.trim();
+              break;
+            }
+          }
+        }
+      }
+
+      // Extract landing site - comprehensive extraction
+      if (lowerResponse.includes('landing') || lowerResponse.includes('lunar surface') || lowerResponse.includes('mare tranquillitatis') || lowerResponse.includes('landing site') || lowerResponse.includes('destination') || lowerResponse.includes('surface')) {
+        // Look for comprehensive landing site information
+        const landingPatterns = [
+          /(?:landing site|landing|lunar surface)[^.]*(?:mare tranquillitatis|destination|region)[^.]*/gi,
+          /(?:mare tranquillitatis|destination)[^.]*(?:landing|surface|site)[^.]*/gi,
+          /(?:lunar surface|landing)[^.]*(?:mare tranquillitatis|region|destination)[^.]*/gi,
+          /(?:landing|lunar surface|mare tranquillitatis)[^.]*/gi
+        ];
+        
+        for (const pattern of landingPatterns) {
+          const matches = response.match(pattern);
+          if (matches && matches.length > 0) {
+            sections.landingSite = matches[0].trim();
+            break;
+          }
+        }
+        
+        // If no pattern match, extract comprehensive landing site information
+        if (!sections.landingSite) {
+          const sentences = response.split('.');
+          for (const sentence of sentences) {
+            const lowerSentence = sentence.toLowerCase();
+            if ((lowerSentence.includes('landing') || lowerSentence.includes('lunar surface') || lowerSentence.includes('destination')) && 
+                (lowerSentence.includes('mare') || lowerSentence.includes('tranquillitatis') || lowerSentence.includes('surface') || lowerSentence.includes('region'))) {
+              sections.landingSite = sentence.trim();
+              break;
+            }
+          }
+        }
+        
+        // Additional extraction for specific landing site scenarios
+        if (!sections.landingSite) {
+          const sentences = response.split('.');
+          for (const sentence of sentences) {
+            const lowerSentence = sentence.toLowerCase();
+            if (lowerSentence.includes('mare tranquillitatis') || 
+                (lowerSentence.includes('lunar surface') && lowerSentence.includes('landing')) ||
+                (lowerSentence.includes('landing site') && lowerSentence.includes('lunar'))) {
+              sections.landingSite = sentence.trim();
+              break;
+            }
+          }
+        }
+      }
+
+      // Extract timeline information - comprehensive extraction
+      if (lowerResponse.includes('timeline') || lowerResponse.includes('q1') || lowerResponse.includes('q2') || lowerResponse.includes('q3') || lowerResponse.includes('q4') || lowerResponse.includes('2024') || lowerResponse.includes('window') || lowerResponse.includes('duration') || lowerResponse.includes('mission duration') || lowerResponse.includes('2 years')) {
+        // Look for comprehensive timeline information
+        const timelinePatterns = [
+          /(?:mission timeline|timeline|mission duration)[^.]*(?:q[1-4]|2024|duration|years)[^.]*/gi,
+          /(?:mission duration|duration)[^.]*(?:2 years|lunar surface|years)[^.]*/gi,
+          /(?:q[1-4]|2024)[^.]*(?:timeline|application|submission)[^.]*/gi,
+          /(?:timeline|application|launch window|q[1-4]|2024|duration|october|december)[^.]*/gi
+        ];
+        
+        for (const pattern of timelinePatterns) {
+          const matches = response.match(pattern);
+          if (matches && matches.length > 0 && !sections.launchWindow?.includes(matches[0])) {
+            sections.intendedWindow = matches[0].trim();
+            break;
+          }
+        }
+        
+        // If no pattern match, extract comprehensive timeline information
+        if (!sections.intendedWindow) {
+          const sentences = response.split('.');
+          for (const sentence of sentences) {
+            const lowerSentence = sentence.toLowerCase();
+            if ((lowerSentence.includes('timeline') || lowerSentence.includes('window') || lowerSentence.includes('duration') || lowerSentence.includes('mission duration')) && 
+                (lowerSentence.includes('q1') || lowerSentence.includes('q2') || lowerSentence.includes('q3') || lowerSentence.includes('q4') || lowerSentence.includes('2024') || lowerSentence.includes('2 years')) && 
+                !sections.launchWindow?.includes(sentence)) {
+              sections.intendedWindow = sentence.trim();
+              break;
+            }
+          }
+        }
+        
+        // Additional extraction for specific timeline scenarios
+        if (!sections.intendedWindow) {
+          const sentences = response.split('.');
+          for (const sentence of sentences) {
+            const lowerSentence = sentence.toLowerCase();
+            if ((lowerSentence.includes('mission duration') && lowerSentence.includes('2 years')) || 
+                (lowerSentence.includes('timeline') && lowerSentence.includes('2024')) ||
+                (lowerSentence.includes('application submission') && lowerSentence.includes('q1'))) {
+              sections.intendedWindow = sentence.trim();
+              break;
+            }
+          }
+        }
+      }
+
+      // Extract full application timeline - comprehensive extraction
+      if (lowerResponse.includes('application submission') || lowerResponse.includes('q1 2024') || lowerResponse.includes('application timeline') || lowerResponse.includes('submission') || lowerResponse.includes('q1')) {
+        // Look for comprehensive application timeline information
+        const appTimelinePatterns = [
+          /(?:application submission|application timeline|full application)[^.]*(?:q1 2024|q1|submission)[^.]*/gi,
+          /(?:q1 2024|q1)[^.]*(?:application|submission|timeline)[^.]*/gi,
+          /(?:full application|application submission)[^.]*/gi,
+          /(?:application submission|q1 2024)[^.]*/gi
+        ];
+        
+        for (const pattern of appTimelinePatterns) {
+          const matches = response.match(pattern);
+          if (matches && matches.length > 0) {
+            sections.fullApplicationTimeline = matches[0].trim();
+            break;
+          }
+        }
+        
+        // If no pattern match, extract comprehensive application timeline information
+        if (!sections.fullApplicationTimeline) {
+          const sentences = response.split('.');
+          for (const sentence of sentences) {
+            const lowerSentence = sentence.toLowerCase();
+            if ((lowerSentence.includes('application') || lowerSentence.includes('submission') || lowerSentence.includes('timeline')) && 
+                (lowerSentence.includes('q1') || lowerSentence.includes('2024') || lowerSentence.includes('full'))) {
+              sections.fullApplicationTimeline = sentence.trim();
+              break;
+            }
+          }
+        }
+        
+        // Additional extraction for specific application timeline scenarios
+        if (!sections.fullApplicationTimeline) {
+          const sentences = response.split('.');
+          for (const sentence of sentences) {
+            const lowerSentence = sentence.toLowerCase();
+            if ((lowerSentence.includes('application submission') && lowerSentence.includes('q1')) || 
+                (lowerSentence.includes('full application') && lowerSentence.includes('timeline')) ||
+                (lowerSentence.includes('q1 2024') && lowerSentence.includes('application'))) {
+              sections.fullApplicationTimeline = sentence.trim();
+              break;
+            }
+          }
+        }
+      }
+
+      // Extract license type information - comprehensive extraction
+      if (lowerResponse.includes('license') || lowerResponse.includes('part 450') || lowerResponse.includes('commercial') || lowerResponse.includes('seeking') || lowerResponse.includes('space transportation') || lowerResponse.includes('license type')) {
+        // Look for comprehensive license type information
+        const licensePatterns = [
+          /(?:license type intent|license type|license)[^.]*(?:commercial|part 450|space transportation)[^.]*/gi,
+          /(?:seeking|commercial)[^.]*(?:space transportation|license|part 450)[^.]*/gi,
+          /(?:space transportation|commercial space)[^.]*(?:license|part 450)[^.]*/gi,
+          /(?:license|part 450|commercial|seeking|transportation)[^.]*/gi
+        ];
+        
+        for (const pattern of licensePatterns) {
+          const matches = response.match(pattern);
+          if (matches && matches.length > 0) {
+            sections.licenseTypeIntent = matches[0].trim();
+            break;
+          }
+        }
+        
+        // If no pattern match, extract comprehensive license information
+        if (!sections.licenseTypeIntent) {
+          const sentences = response.split('.');
+          for (const sentence of sentences) {
+            const lowerSentence = sentence.toLowerCase();
+            if ((lowerSentence.includes('license') || lowerSentence.includes('part 450') || lowerSentence.includes('commercial')) && 
+                (lowerSentence.includes('seeking') || lowerSentence.includes('space transportation') || lowerSentence.includes('type'))) {
+              sections.licenseTypeIntent = sentence.trim();
+              break;
+            }
+          }
+        }
+        
+        // Additional extraction for specific license scenarios
+        if (!sections.licenseTypeIntent) {
+          const sentences = response.split('.');
+          for (const sentence of sentences) {
+            const lowerSentence = sentence.toLowerCase();
+            if ((lowerSentence.includes('seeking') && lowerSentence.includes('commercial')) || 
+                (lowerSentence.includes('space transportation') && lowerSentence.includes('license')) ||
+                (lowerSentence.includes('license type') && lowerSentence.includes('commercial'))) {
               sections.licenseTypeIntent = sentence.trim();
               break;
             }
@@ -969,19 +1512,95 @@ Always maintain professional expertise while being helpful and engaging.`;
         }
       }
 
-      // Extract clarify Part 450
-      if (lowerResponse.includes('part 450') || lowerResponse.includes('clarify') || lowerResponse.includes('requirements')) {
-        const clarifyMatch = response.match(/(?:part 450|clarify|requirements)[^.]*/i);
-        if (clarifyMatch) {
-          sections.clarifyPart450 = clarifyMatch[0].trim();
+      // Extract clarify Part 450 - comprehensive extraction
+      if (lowerResponse.includes('part 450') || lowerResponse.includes('clarify') || lowerResponse.includes('requirements') || lowerResponse.includes('part450') || lowerResponse.includes('faa requirements')) {
+        // Look for comprehensive Part 450 clarification information
+        const clarifyPatterns = [
+          /(?:clarify part 450|part 450|part450)[^.]*(?:requirements|clarify|faa)[^.]*/gi,
+          /(?:faa requirements|requirements)[^.]*(?:part 450|part450|clarify)[^.]*/gi,
+          /(?:part 450|part450)[^.]*(?:clarify|requirements|faa)[^.]*/gi,
+          /(?:part 450|clarify|requirements)[^.]*/gi
+        ];
+        
+        for (const pattern of clarifyPatterns) {
+          const matches = response.match(pattern);
+          if (matches && matches.length > 0) {
+            sections.clarifyPart450 = matches[0].trim();
+            break;
+          }
+        }
+        
+        // If no pattern match, extract comprehensive clarification information
+        if (!sections.clarifyPart450) {
+          const sentences = response.split('.');
+          for (const sentence of sentences) {
+            const lowerSentence = sentence.toLowerCase();
+            if ((lowerSentence.includes('part 450') || lowerSentence.includes('part450') || lowerSentence.includes('clarify')) && 
+                (lowerSentence.includes('requirements') || lowerSentence.includes('faa') || lowerSentence.includes('clarify'))) {
+              sections.clarifyPart450 = sentence.trim();
+              break;
+            }
+          }
+        }
+        
+        // Additional extraction for specific clarification scenarios
+        if (!sections.clarifyPart450) {
+          const sentences = response.split('.');
+          for (const sentence of sentences) {
+            const lowerSentence = sentence.toLowerCase();
+            if ((lowerSentence.includes('clarify') && lowerSentence.includes('part 450')) || 
+                (lowerSentence.includes('faa requirements') && lowerSentence.includes('part 450')) ||
+                (lowerSentence.includes('part450') && lowerSentence.includes('requirements'))) {
+              sections.clarifyPart450 = sentence.trim();
+              break;
+            }
+          }
         }
       }
 
-      // Extract unique tech/international
-      if (lowerResponse.includes('unique') || lowerResponse.includes('international') || lowerResponse.includes('lunar surface') || lowerResponse.includes('deep space')) {
-        const uniqueMatch = response.match(/(?:unique|international|lunar surface|deep space)[^.]*/i);
-        if (uniqueMatch) {
-          sections.uniqueTechInternational = uniqueMatch[0].trim();
+      // Extract unique tech/international - comprehensive extraction
+      if (lowerResponse.includes('unique') || lowerResponse.includes('international') || lowerResponse.includes('lunar surface') || lowerResponse.includes('deep space') || lowerResponse.includes('unique technology') || lowerResponse.includes('international aspects')) {
+        // Look for comprehensive unique tech/international information
+        const uniquePatterns = [
+          /(?:unique tech|unique technology|unique)[^.]*(?:international|lunar surface|deep space)[^.]*/gi,
+          /(?:international aspects|international)[^.]*(?:unique|lunar surface|deep space)[^.]*/gi,
+          /(?:lunar surface|deep space)[^.]*(?:unique|international|technology)[^.]*/gi,
+          /(?:unique|international|lunar surface|deep space)[^.]*/gi
+        ];
+        
+        for (const pattern of uniquePatterns) {
+          const matches = response.match(pattern);
+          if (matches && matches.length > 0) {
+            sections.uniqueTechInternational = matches[0].trim();
+            break;
+          }
+        }
+        
+        // If no pattern match, extract comprehensive unique tech information
+        if (!sections.uniqueTechInternational) {
+          const sentences = response.split('.');
+          for (const sentence of sentences) {
+            const lowerSentence = sentence.toLowerCase();
+            if ((lowerSentence.includes('unique') || lowerSentence.includes('international') || lowerSentence.includes('technology')) && 
+                (lowerSentence.includes('lunar surface') || lowerSentence.includes('deep space') || lowerSentence.includes('international'))) {
+              sections.uniqueTechInternational = sentence.trim();
+              break;
+            }
+          }
+        }
+        
+        // Additional extraction for specific unique tech scenarios
+        if (!sections.uniqueTechInternational) {
+          const sentences = response.split('.');
+          for (const sentence of sentences) {
+            const lowerSentence = sentence.toLowerCase();
+            if ((lowerSentence.includes('unique technology') && lowerSentence.includes('international')) || 
+                (lowerSentence.includes('lunar surface') && lowerSentence.includes('unique')) ||
+                (lowerSentence.includes('deep space') && lowerSentence.includes('international'))) {
+              sections.uniqueTechInternational = sentence.trim();
+              break;
+            }
+          }
         }
       }
     }
