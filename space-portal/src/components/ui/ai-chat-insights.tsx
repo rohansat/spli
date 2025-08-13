@@ -330,7 +330,7 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false, onQu
           </div>
 
           {/* Input Area */}
-          <div className="p-4 border-t pb-16">
+          <div className="absolute bottom-0 left-0 right-0 p-4 border-t bg-zinc-900">
             <div className="flex gap-2">
               <Input
                 ref={inputRef}
