@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Mail, Search, Star, Trash2, Send, Plus, MessageSquare, AlertTriangle } from "lucide-react";
+import { Mail, Search, Star, Trash2, Send, Plus, MessageSquare, AlertTriangle, RefreshCw } from "lucide-react";
 import { messages as mockMessages } from "@/lib/mock-data";
 import { Message } from "@/types";
 import { cn } from "@/lib/utils";
@@ -33,53 +33,57 @@ export default function MessagesPage() {
     body: "",
   });
   const [mailbox, setMailbox] = useState<'inbox' | 'sent'>('inbox');
+  const [isRefreshing, setIsRefreshing] = useState(false);
   
-
+  // Function to fetch emails
+  const fetchEmails = async () => {
+    if (!accessToken) return;
+    try {
+      setIsRefreshing(true);
+      const res = await fetch('https://graph.microsoft.com/v1.0/me/messages?$top=20', {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error('Graph API error:', errorText);
+        throw new Error('Failed to fetch emails');
+      }
+      const data = await res.json();
+      const emails: Message[] = data.value.map((msg: unknown) => {
+        const m = msg as {
+          id: string;
+          from?: { emailAddress?: { address?: string } };
+          toRecipients?: { emailAddress: { address: string } }[];
+          subject?: string;
+          body?: { content?: string; contentType?: string };
+          receivedDateTime?: string;
+          isRead?: boolean;
+        };
+        return {
+          id: m.id,
+          sender: m.from?.emailAddress?.address || '',
+          recipient: m.toRecipients?.map((r) => r.emailAddress.address).join(', ') || '',
+          subject: m.subject || '',
+          body: m.body?.content || '',
+          bodyContentType: m.body?.contentType || 'text',
+          createdAt: m.receivedDateTime,
+          isRead: m.isRead,
+          isAutomated: false,
+          applicationId: undefined,
+        };
+      });
+      setMessages(emails);
+    } catch (error) {
+      console.error('Error fetching Outlook emails:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   // Fetch Outlook emails from Microsoft Graph API
   useEffect(() => {
-    if (!accessToken) return;
-    const fetchEmails = async () => {
-      try {
-        const res = await fetch('https://graph.microsoft.com/v1.0/me/messages?$top=20', {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
-        if (!res.ok) {
-          const errorText = await res.text();
-          console.error('Graph API error:', errorText);
-          throw new Error('Failed to fetch emails');
-        }
-        const data = await res.json();
-        const emails: Message[] = data.value.map((msg: unknown) => {
-          const m = msg as {
-            id: string;
-            from?: { emailAddress?: { address?: string } };
-            toRecipients?: { emailAddress: { address: string } }[];
-            subject?: string;
-            body?: { content?: string; contentType?: string };
-            receivedDateTime?: string;
-            isRead?: boolean;
-          };
-          return {
-            id: m.id,
-            sender: m.from?.emailAddress?.address || '',
-            recipient: m.toRecipients?.map((r) => r.emailAddress.address).join(', ') || '',
-            subject: m.subject || '',
-            body: m.body?.content || '',
-            bodyContentType: m.body?.contentType || 'text',
-            createdAt: m.receivedDateTime,
-            isRead: m.isRead,
-            isAutomated: false,
-            applicationId: undefined,
-          };
-        });
-        setMessages(emails);
-      } catch (error) {
-        console.error('Error fetching Outlook emails:', error);
-      }
-    };
     fetchEmails();
   }, [accessToken]);
 
@@ -288,14 +292,26 @@ export default function MessagesPage() {
                   {messages.filter((m) => !m.isRead).length} Unread
                 </span>
               </div>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/40 h-4 w-4" />
-                <Input
-                  placeholder="Search messages..."
-                  className="pl-10 bg-white/10 border-white/20 text-white"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/40 h-4 w-4" />
+                  <Input
+                    placeholder="Search messages..."
+                    className="pl-10 bg-white/10 border-white/20 text-white"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+                <Button
+                  onClick={fetchEmails}
+                  disabled={isRefreshing}
+                  variant="outline"
+                  size="sm"
+                  className="h-10 px-3 border-white/20 text-white hover:bg-white/10"
+                  title="Refresh emails"
+                >
+                  <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                </Button>
               </div>
               
               {/* Filter Info */}
