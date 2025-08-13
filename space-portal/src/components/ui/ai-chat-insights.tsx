@@ -234,7 +234,7 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false, onQu
                   className={`max-w-[80%] rounded-lg p-3 ${
                     message.role === 'user'
                       ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-900'
+                      : 'bg-gray-800 text-white'
                   }`}
                 >
                   <div className="flex items-start gap-2">
@@ -247,7 +247,7 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false, onQu
                       {/* Suggestions */}
                       {message.suggestions && message.suggestions.length > 0 && (
                         <div className="mt-3 space-y-2">
-                          <div className="flex items-center gap-2 text-xs text-gray-600">
+                          <div className="flex items-center gap-2 text-xs text-gray-300">
                             <FileText className="h-3 w-3" />
                             <span className="font-medium">Form Suggestions</span>
                             {message.confidence && (
@@ -278,15 +278,15 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false, onQu
                       {/* Next Steps */}
                       {message.nextSteps && message.nextSteps.length > 0 && (
                         <div className="mt-3">
-                          <div className="flex items-center gap-2 text-xs text-gray-600 mb-2">
+                          <div className="flex items-center gap-2 text-xs text-gray-300 mb-2">
                             <CheckCircle className="h-3 w-3" />
                             <span className="font-medium">Next Steps</span>
                           </div>
                           <ul className="text-xs space-y-1">
                             {message.nextSteps.map((step, index) => (
                               <li key={index} className="flex items-start gap-2">
-                                <span className="text-blue-500 mt-0.5">•</span>
-                                <span>{step}</span>
+                                <span className="text-blue-400 mt-0.5">•</span>
+                                <span className="text-white">{step}</span>
                               </li>
                             ))}
                           </ul>
@@ -296,15 +296,15 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false, onQu
                       {/* Warnings */}
                       {message.warnings && message.warnings.length > 0 && (
                         <div className="mt-3">
-                          <div className="flex items-center gap-2 text-xs text-orange-600 mb-2">
+                          <div className="flex items-center gap-2 text-xs text-orange-400 mb-2">
                             <AlertCircle className="h-3 w-3" />
                             <span className="font-medium">Warnings</span>
                           </div>
                           <ul className="text-xs space-y-1">
                             {message.warnings.map((warning, index) => (
                               <li key={index} className="flex items-start gap-2">
-                                <span className="text-orange-500 mt-0.5">⚠</span>
-                                <span className="text-orange-700">{warning}</span>
+                                <span className="text-orange-400 mt-0.5">⚠</span>
+                                <span className="text-orange-300">{warning}</span>
                               </li>
                             ))}
                           </ul>
@@ -327,10 +327,10 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false, onQu
                 <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
                   <Bot className="h-4 w-4 text-white" />
                 </div>
-                <div className="bg-gray-100 rounded-lg p-3">
+                <div className="bg-gray-800 rounded-lg p-3">
                   <div className="flex items-center gap-2">
-                    <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
-                    <span className="text-sm text-gray-600">Processing your request...</span>
+                    <Loader2 className="h-4 w-4 animate-spin text-blue-400" />
+                    <span className="text-sm text-white">Processing your request...</span>
                   </div>
                 </div>
               </div>
