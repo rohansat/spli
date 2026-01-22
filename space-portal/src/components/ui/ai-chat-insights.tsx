@@ -142,8 +142,21 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false, onQu
 
       const data = await response.json();
 
-      if (data.error) {
-        throw new Error(data.error);
+      if (!response.ok || data.error) {
+        // Display the actual error message with helpful details
+        const errorMsg = data.error || 'An error occurred';
+        const suggestion = data.suggestion || '';
+        const details = data.details?.message || '';
+        
+        let fullErrorMsg = errorMsg;
+        if (details && details !== errorMsg) {
+          fullErrorMsg += `\n\nDetails: ${details}`;
+        }
+        if (suggestion) {
+          fullErrorMsg += `\n\n${suggestion}`;
+        }
+        
+        throw new Error(fullErrorMsg);
       }
 
       const assistantMessage: Message = {
@@ -170,13 +183,22 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false, onQu
 
     } catch (error) {
       console.error('Error sending message:', error);
-      const errorMessage: Message = {
+      
+      // Extract meaningful error message
+      let errorMessage = 'I apologize, but I encountered an error processing your request. Please try again.';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+      
+      const errorMsg: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: 'I apologize, but I encountered an error processing your request. Please try again.',
+        content: errorMessage,
         timestamp: new Date(),
       };
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages(prev => [...prev, errorMsg]);
     } finally {
       setIsLoading(false);
     }

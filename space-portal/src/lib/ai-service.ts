@@ -352,9 +352,19 @@ Always maintain professional expertise while being helpful and engaging.`;
 
   // Get AI response with proper error handling
   private async getAIResponse(messages: Array<{ role: 'user' | 'assistant'; content: string }>, mode: string): Promise<string> {
+    // Try multiple model names, starting with the most specific ones
+    const models = [
+      'claude-sonnet-4-20250514', // Model shown in user's API interface
+      'claude-3-5-sonnet', // Latest Claude 3.5 Sonnet (without date)
+      'claude-3-5-sonnet-20240620', // Stable Claude 3.5 Sonnet
+      'claude-3-sonnet-20240229' // Fallback to Claude 3 Sonnet
+    ];
+    let lastError: any = null;
+
+    for (const model of models) {
     try {
       const response = await this.anthropic.messages.create({
-        model: 'claude-3-5-sonnet-20241022',
+          model: model,
         max_tokens: 4096,
         messages: messages,
         temperature: mode === 'compliance' ? 0.1 : 0.3, // Lower temperature for compliance
@@ -362,10 +372,47 @@ Always maintain professional expertise while being helpful and engaging.`;
       });
 
       return response.content[0].type === 'text' ? response.content[0].text : '';
-    } catch (error) {
-      console.error('Claude API error:', error);
+      } catch (error: any) {
+        lastError = error;
+        
+        // If it's a 404 (model not found), try the next model
+        if (error?.status === 404 || error?.statusCode === 404) {
+          console.warn(`Model ${model} not available, trying fallback...`);
+          continue;
+        }
+        
+        // For other errors, log and throw
+        console.error('Claude API error details:', {
+          message: error?.message,
+          status: error?.status,
+          statusCode: error?.statusCode,
+          type: error?.type,
+          error: error?.error,
+          code: error?.code,
+          stack: error?.stack
+        });
+        
+        // Provide specific error messages based on error type
+        if (error?.status === 401 || error?.statusCode === 401) {
+          throw new Error('Invalid API key. Please check your ANTHROPIC_API_KEY environment variable.');
+        } else if (error?.status === 429 || error?.statusCode === 429) {
+          throw new Error('Rate limit exceeded. Please try again in a moment.');
+        } else if (error?.status === 400 || error?.statusCode === 400) {
+          throw new Error(`Invalid request: ${error?.message || 'Check your input parameters'}`);
+        } else if (error?.message) {
+          throw new Error(`AI service error: ${error.message}`);
+        } else {
       throw new Error('AI service temporarily unavailable. Please try again.');
     }
+      }
+    }
+
+    // If all models failed with 404, throw the last error
+    if (lastError) {
+      throw new Error(`No available models found. Your API key may not have access to Claude models. Error: ${lastError?.message || 'Model not found'}`);
+    }
+
+    throw new Error('AI service temporarily unavailable. Please try again.');
   }
 
   // Process AI response intelligently
@@ -1753,11 +1800,26 @@ Always maintain professional expertise while being helpful and engaging.`;
 
   // Handle errors gracefully
   private handleError(error: any): AIAnalysisResponse {
+    // Log the full error for debugging
+    console.error('handleError called with:', error);
+    
+    // Extract meaningful error message
+    let errorMessage = 'I apologize, but I encountered an issue processing your request. Please try again.';
+    let warningMessage = 'Service temporarily unavailable';
+    
+    if (error instanceof Error) {
+      errorMessage = error.message || errorMessage;
+      warningMessage = error.message || warningMessage;
+    } else if (error?.message) {
+      errorMessage = error.message;
+      warningMessage = error.message;
+    }
+    
     return {
       suggestions: [],
-      summary: 'I apologize, but I encountered an issue processing your request. Please try again.',
+      summary: errorMessage,
       confidence: 0,
-      warnings: ['Service temporarily unavailable']
+      warnings: [warningMessage]
     };
   }
 
@@ -1803,8 +1865,16 @@ export function getSPLIAIService(apiKey?: string, context?: Partial<Conversation
   if (!aiServiceInstance) {
     const key = apiKey || process.env.ANTHROPIC_API_KEY;
     if (!key) {
-      throw new Error('ANTHROPIC_API_KEY is required');
+      console.error('ANTHROPIC_API_KEY is not set in environment variables');
+      throw new Error('ANTHROPIC_API_KEY is required. Please set it in your environment variables or .env file.');
     }
+    
+    // Validate API key format (should start with 'sk-')
+    if (!key.startsWith('sk-')) {
+      console.error('ANTHROPIC_API_KEY appears to be invalid. It should start with "sk-"');
+      throw new Error('Invalid API key format. Anthropic API keys should start with "sk-"');
+    }
+    
     aiServiceInstance = new SPLIAIService(key, context);
   }
   return aiServiceInstance;

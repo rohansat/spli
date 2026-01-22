@@ -13,6 +13,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check if API key is configured before initializing service
+    if (!process.env.ANTHROPIC_API_KEY) {
+      return NextResponse.json(
+        { 
+          error: 'AI service is not configured. ANTHROPIC_API_KEY environment variable is missing.',
+          suggestion: 'Please set ANTHROPIC_API_KEY in your environment variables or .env file.'
+        },
+        { status: 500 }
+      );
+    }
+
     // Initialize AI service with context
     const aiService = getSPLIAIService();
     
@@ -84,15 +95,40 @@ export async function POST(request: NextRequest) {
       timestamp: new Date().toISOString()
     });
 
-      } catch (error) {
+      } catch (error: any) {
       console.error('AI API Error:', error);
+      
+      // Extract detailed error information
+      const errorMessage = error?.message || 'Unknown error occurred';
+      const errorDetails = {
+        message: errorMessage,
+        type: error?.name,
+        status: error?.status || error?.statusCode,
+        stack: process.env.NODE_ENV === 'development' ? error?.stack : undefined
+      };
+      
+      // Log full error details for debugging
+      console.error('Full error details:', errorDetails);
+      
+      // Determine appropriate status code
+      let statusCode = 500;
+      if (error?.message?.includes('API key') || error?.message?.includes('ANTHROPIC_API_KEY')) {
+        statusCode = 401;
+      } else if (error?.message?.includes('Rate limit')) {
+        statusCode = 429;
+      } else if (error?.status || error?.statusCode) {
+        statusCode = error.status || error.statusCode;
+      }
       
       return NextResponse.json(
         { 
-          error: 'AI service temporarily unavailable. Please try again.',
-          details: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : 'Unknown error') : undefined
+          error: errorMessage,
+          details: process.env.NODE_ENV === 'development' ? errorDetails : undefined,
+          suggestion: errorMessage.includes('API key') 
+            ? 'Please check that ANTHROPIC_API_KEY is set correctly in your environment variables.'
+            : undefined
         },
-        { status: 500 }
+        { status: statusCode }
       );
     }
 } 
