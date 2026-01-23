@@ -16,7 +16,6 @@ import {
   Sparkles,
   MessageSquare,
   Zap,
-  Plus,
   Mic,
   ChevronDown,
   Upload,
@@ -60,7 +59,6 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false, onQu
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [conversationHistory, setConversationHistory] = useState<any[]>([]);
-  const [showDropdown, setShowDropdown] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -363,7 +361,7 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false, onQu
         </div>
 
         {/* Input Area */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t bg-zinc-900 z-10">
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-zinc-800 bg-zinc-900 z-10">
           {/* Hidden file input */}
           <input
             ref={fileInputRef}
@@ -374,99 +372,53 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false, onQu
             className="hidden"
           />
           
-          <div className="flex gap-2 items-center">
-            <div className="flex gap-1">
-              <Button
-                onClick={() => setShowDropdown(!showDropdown)}
-                className="h-8 w-8 p-0 bg-transparent hover:bg-gray-200 border border-gray-300 rounded-md flex items-center justify-center"
-                disabled={isLoading}
-              >
-                <Plus className="h-3 w-3 text-gray-500" />
-              </Button>
-              <Button
-                onClick={handleFileUploadClick}
-                className="h-8 w-8 p-0 bg-transparent hover:bg-gray-200 border border-gray-300 rounded-md flex items-center justify-center"
-                disabled={isLoading}
-                title="Upload document"
-              >
-                <Paperclip className="h-3 w-3 text-gray-500" />
-              </Button>
-            </div>
-            <div className="relative flex-1">
+          <div className="flex gap-2 items-end">
+            <Button
+              onClick={handleFileUploadClick}
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0 bg-zinc-800 hover:bg-zinc-700 rounded-md flex items-center justify-center mb-1"
+              disabled={isLoading}
+              title="Upload document"
+            >
+              <Paperclip className="h-4 w-4 text-zinc-400" />
+            </Button>
+            <div className="flex-1 relative">
               <textarea
                 ref={inputRef}
                 value={input}
-                onChange={(e) => setInput(e.target.value)}
+                onChange={(e) => {
+                  setInput(e.target.value);
+                  // Auto-expand textarea
+                  const target = e.target;
+                  target.style.height = 'auto';
+                  target.style.height = `${Math.min(target.scrollHeight, 200)}px`;
+                }}
                 onKeyPress={handleKeyPress}
                 placeholder="How can I help?"
-                className="w-full min-h-[40px] max-h-[120px] p-3 border border-gray-300 rounded-md resize-none overflow-y-auto focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full min-h-[44px] max-h-[200px] px-4 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder:text-zinc-500 resize-none overflow-y-auto focus:outline-none focus:ring-1 focus:ring-zinc-600 focus:border-zinc-600 transition-all"
                 disabled={isLoading}
                 rows={1}
                 style={{
-                  height: 'auto',
-                  minHeight: '40px',
-                  maxHeight: '120px'
-                }}
-                onInput={(e) => {
-                  const target = e.target as HTMLTextAreaElement;
-                  target.style.height = 'auto';
-                  target.style.height = Math.min(target.scrollHeight, 120) + 'px';
+                  height: '44px',
+                  lineHeight: '1.5'
                 }}
               />
             </div>
             <Button 
               onClick={sendMessage} 
               disabled={!input.trim() || isLoading}
-              className="h-10 w-10 p-0 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 rounded-md flex items-center justify-center"
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-md flex items-center justify-center mb-1"
             >
               {isLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin text-zinc-400" />
               ) : (
-                <Send className="h-4 w-4" />
+                <Send className="h-4 w-4 text-zinc-400" />
               )}
             </Button>
           </div>
-          
-          {/* Dropdown Menu */}
-          {showDropdown && (
-            <div className="absolute bottom-full left-0 right-0 mb-2 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
-              <div className="p-2 space-y-1">
-                <button
-                  onClick={() => {
-                    setInput('Help me fill out a Part 450 application');
-                    setShowDropdown(false);
-                  }}
-                  className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 rounded flex items-center gap-2"
-                  disabled={isLoading}
-                >
-                  <FileText className="h-3 w-3" />
-                  Fill Form
-                </button>
-                <button
-                  onClick={() => {
-                    setInput('Check my application for compliance');
-                    setShowDropdown(false);
-                  }}
-                  className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 rounded flex items-center gap-2"
-                  disabled={isLoading}
-                >
-                  <CheckCircle className="h-3 w-3" />
-                  Check Compliance
-                </button>
-                <button
-                  onClick={() => {
-                    setInput('Analyze my mission description');
-                    setShowDropdown(false);
-                  }}
-                  className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 rounded flex items-center gap-2"
-                  disabled={isLoading}
-                >
-                  <MessageSquare className="h-3 w-3" />
-                  Analyze Mission
-                </button>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     );
@@ -607,68 +559,51 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false, onQu
 
         {/* Input Area */}
         <div className="p-4 border-t border-zinc-800 bg-zinc-900">
-          <div className="flex gap-2 items-center">
-            <div className="flex gap-1">
-              <Button 
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowDropdown(!showDropdown)}
-                className="w-8 h-8 p-0 bg-zinc-700 hover:bg-zinc-600 rounded-md flex items-center justify-center"
-              >
-                <Plus className="h-3 w-3 text-white" />
-              </Button>
-              <Button 
-                variant="ghost"
-                size="sm"
-                onClick={handleFileUploadClick}
-                className="w-8 h-8 p-0 bg-zinc-700 hover:bg-zinc-600 rounded-md flex items-center justify-center"
-                title="Upload document"
-              >
-                <Paperclip className="h-3 w-3 text-white" />
-              </Button>
-            </div>
-            <div className="flex items-center gap-2 flex-1 bg-zinc-800 rounded-lg px-3 py-2">
+          <div className="flex gap-2 items-end">
+            <Button 
+              variant="ghost"
+              size="sm"
+              onClick={handleFileUploadClick}
+              className="h-8 w-8 p-0 bg-zinc-800 hover:bg-zinc-700 rounded-md flex items-center justify-center mb-1"
+              title="Upload document"
+            >
+              <Paperclip className="h-4 w-4 text-zinc-400" />
+            </Button>
+            <div className="flex-1 relative">
               <textarea
                 ref={inputRef}
                 value={input}
-                onChange={(e) => setInput(e.target.value)}
+                onChange={(e) => {
+                  setInput(e.target.value);
+                  // Auto-expand textarea
+                  const target = e.target;
+                  target.style.height = 'auto';
+                  target.style.height = `${Math.min(target.scrollHeight, 200)}px`;
+                }}
                 onKeyPress={handleKeyPress}
                 placeholder="How can I help?"
-                className="flex-1 bg-transparent border-0 text-white placeholder:text-zinc-400 focus:ring-0 focus:outline-none resize-none overflow-y-auto"
+                className="w-full min-h-[44px] max-h-[200px] px-4 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder:text-zinc-500 resize-none overflow-y-auto focus:outline-none focus:ring-1 focus:ring-zinc-600 focus:border-zinc-600 transition-all"
                 disabled={isLoading}
                 rows={1}
                 style={{
-                  height: 'auto',
-                  minHeight: '20px',
-                  maxHeight: '80px'
-                }}
-                onInput={(e) => {
-                  const target = e.target as HTMLTextAreaElement;
-                  target.style.height = 'auto';
-                  target.style.height = Math.min(target.scrollHeight, 80) + 'px';
+                  height: '44px',
+                  lineHeight: '1.5'
                 }}
               />
             </div>
-            <div className="flex gap-2">
-              <Button 
-                variant="ghost"
-                size="sm"
-                className="w-10 h-10 p-0 bg-zinc-700 hover:bg-zinc-600 rounded-full"
-              >
-                <Mic className="h-4 w-4 text-white" />
-              </Button>
-              <Button 
-                onClick={sendMessage} 
-                disabled={!input.trim() || isLoading}
-                className="w-10 h-10 p-0 bg-zinc-700 hover:bg-zinc-600 rounded-full"
-              >
-                {isLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin text-white" />
-                ) : (
-                  <Send className="h-4 w-4 text-white" />
-                )}
-              </Button>
-            </div>
+            <Button 
+              onClick={sendMessage} 
+              disabled={!input.trim() || isLoading}
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-md flex items-center justify-center mb-1"
+            >
+              {isLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin text-zinc-400" />
+              ) : (
+                <Send className="h-4 w-4 text-zinc-400" />
+              )}
+            </Button>
           </div>
         </div>
       </div>
