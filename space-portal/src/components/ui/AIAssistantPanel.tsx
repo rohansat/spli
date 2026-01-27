@@ -2,17 +2,9 @@
 
 import React, { useState, useRef, forwardRef, useImperativeHandle, useEffect } from 'react';
 import { AIChatInsights } from './ai-chat-insights';
-import { AIContextMenu } from './ai-context-menu';
 import { Button } from './button';
 import { Card, CardContent } from './card';
 import { Badge } from './badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from './tabs';
-import { 
-  MessageSquare, 
-  Sparkles, 
-  Zap, 
-  Settings
-} from 'lucide-react';
 
 interface AIAssistantPanelProps {
   onFormUpdate?: (suggestions: any[]) => void;
@@ -42,7 +34,6 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
   onToggleCollapse,
   isFloating = false
 }, ref) => {
-  const [activeTab, setActiveTab] = useState('chat');
   const [isMinimized, setIsMinimized] = useState(false);
   const [messages, setMessages] = useState<any[]>([]);
   const [quickActionPrompt, setQuickActionPrompt] = useState<string>('');
@@ -99,9 +90,6 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
   const handleContextAction = async (action: string, prompt?: string) => {
     console.log('Context action:', action, prompt);
     
-    // Switch to chat tab
-    setActiveTab('chat');
-    
     // Set the prompt to be sent to the chat
     if (prompt) {
       setQuickActionPrompt(prompt);
@@ -144,50 +132,14 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
     <div className={containerClasses}>
       <Card className="bg-zinc-900 border-zinc-800 shadow-2xl h-full">
         {(!isFloating || !isMinimized) && (
-          <div className="p-3 border-b border-zinc-800 bg-zinc-900">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-2 bg-zinc-800">
-                <TabsTrigger 
-                  value="chat" 
-                  className="data-[state=active]:bg-zinc-700 data-[state=active]:text-white"
-                >
-                  <MessageSquare className="h-4 w-4 mr-2" />
-                  Chat
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="actions" 
-                  className="data-[state=active]:bg-zinc-700 data-[state=active]:text-white"
-                >
-                  <Sparkles className="h-4 w-4 mr-2" />
-                  Actions
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
-          </div>
-        )}
-
-        {(!isFloating || !isMinimized) && (
           <div className="flex-1 flex flex-col min-h-0">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex-1 flex flex-col">
-              <TabsContent value="chat" className="mt-0 flex-1 flex flex-col min-h-0">
-                <AIChatInsights 
-                  onFormUpdate={handleFormUpdate}
-                  onFileDrop={onFileDrop}
-                  className="border-0 shadow-none flex-1 min-h-0"
-                  isInline={true}
-                  initialPrompt={quickActionPrompt}
-                />
-              </TabsContent>
-
-              <TabsContent value="actions" className="mt-0 flex-1 min-h-0">
-                <div className="h-full overflow-y-auto ai-chat-scrollbar">
-                  <AIContextMenu 
-                    onAction={handleContextAction}
-                    className="p-4"
-                  />
-                </div>
-              </TabsContent>
-            </Tabs>
+            <AIChatInsights 
+              onFormUpdate={handleFormUpdate}
+              onFileDrop={onFileDrop}
+              className="border-0 shadow-none flex-1 min-h-0"
+              isInline={true}
+              initialPrompt={quickActionPrompt}
+            />
           </div>
         )}
       </Card>

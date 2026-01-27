@@ -49,6 +49,30 @@ export default function SignInPage() {
               </p>
             </div>
 
+            {/* Dev Mode Sign In (only in development) */}
+            {process.env.NODE_ENV === 'development' && (
+              <Button
+                onClick={() => {
+                  const mockSession = {
+                    user: {
+                      name: 'Dev User',
+                      email: 'dev@example.com',
+                      image: null
+                    },
+                    accessToken: 'dev-token'
+                  };
+                  localStorage.setItem('dev_session', JSON.stringify(mockSession));
+                  window.location.href = '/dashboard';
+                }}
+                className="w-full h-14 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold text-lg rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl border-0 mb-4 group"
+              >
+                <div className="flex items-center justify-center">
+                  <span className="mr-2">🚀</span>
+                  Sign In as Dev User (Local Testing)
+                </div>
+              </Button>
+            )}
+
             {/* Microsoft Sign In Button */}
             <Button
               onClick={handleMicrosoftSignIn}

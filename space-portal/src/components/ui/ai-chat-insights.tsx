@@ -52,7 +52,7 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false, onQu
     {
       id: '1',
       role: 'assistant',
-      content: 'Hello! I\'m SPLI Chat, your AI assistant for FAA Part 450 license applications. I can help you fill out forms, answer questions about space licensing, and ensure regulatory compliance. How can I assist you today?',
+      content: 'Hey! How can I help you today?',
       timestamp: new Date(),
     }
   ]);
@@ -372,12 +372,12 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false, onQu
             className="hidden"
           />
           
-          <div className="flex gap-2 items-end">
+          <div className="flex gap-2 items-start">
             <Button
               onClick={handleFileUploadClick}
               variant="ghost"
               size="sm"
-              className="h-8 w-8 p-0 bg-zinc-800 hover:bg-zinc-700 rounded-md flex items-center justify-center mb-1"
+              className="h-[38px] w-[38px] p-0 bg-zinc-800 hover:bg-zinc-700 rounded-md flex items-center justify-center flex-shrink-0 -mt-[1px]"
               disabled={isLoading}
               title="Upload document"
             >
@@ -396,11 +396,11 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false, onQu
                 }}
                 onKeyPress={handleKeyPress}
                 placeholder="How can I help?"
-                className="w-full min-h-[44px] max-h-[200px] px-4 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder:text-zinc-500 resize-none overflow-y-auto focus:outline-none focus:ring-1 focus:ring-zinc-600 focus:border-zinc-600 transition-all"
+                className="w-full min-h-[38px] max-h-[200px] px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder:text-zinc-500 resize-none overflow-y-auto focus:outline-none focus:ring-1 focus:ring-zinc-600 focus:border-zinc-600 transition-all"
                 disabled={isLoading}
                 rows={1}
                 style={{
-                  height: '44px',
+                  height: '38px',
                   lineHeight: '1.5'
                 }}
               />
@@ -410,7 +410,7 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false, onQu
               disabled={!input.trim() || isLoading}
               variant="ghost"
               size="sm"
-              className="h-8 w-8 p-0 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-md flex items-center justify-center mb-1"
+              className="h-[38px] w-[38px] p-0 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-md flex items-center justify-center flex-shrink-0 -mt-[1px]"
             >
               {isLoading ? (
                 <Loader2 className="h-4 w-4 animate-spin text-zinc-400" />
@@ -559,12 +559,12 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false, onQu
 
         {/* Input Area */}
         <div className="p-4 border-t border-zinc-800 bg-zinc-900">
-          <div className="flex gap-2 items-end">
+          <div className="flex gap-2 items-start">
             <Button 
               variant="ghost"
               size="sm"
               onClick={handleFileUploadClick}
-              className="h-8 w-8 p-0 bg-zinc-800 hover:bg-zinc-700 rounded-md flex items-center justify-center mb-1"
+              className="h-[38px] w-[38px] p-0 bg-zinc-800 hover:bg-zinc-700 rounded-md flex items-center justify-center flex-shrink-0 -mt-[1px]"
               title="Upload document"
             >
               <Paperclip className="h-4 w-4 text-zinc-400" />
@@ -582,11 +582,11 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false, onQu
                 }}
                 onKeyPress={handleKeyPress}
                 placeholder="How can I help?"
-                className="w-full min-h-[44px] max-h-[200px] px-4 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder:text-zinc-500 resize-none overflow-y-auto focus:outline-none focus:ring-1 focus:ring-zinc-600 focus:border-zinc-600 transition-all"
+                className="w-full min-h-[38px] max-h-[200px] px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder:text-zinc-500 resize-none overflow-y-auto focus:outline-none focus:ring-1 focus:ring-zinc-600 focus:border-zinc-600 transition-all"
                 disabled={isLoading}
                 rows={1}
                 style={{
-                  height: '44px',
+                  height: '38px',
                   lineHeight: '1.5'
                 }}
               />
@@ -596,7 +596,7 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false, onQu
               disabled={!input.trim() || isLoading}
               variant="ghost"
               size="sm"
-              className="h-8 w-8 p-0 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-md flex items-center justify-center mb-1"
+              className="h-[38px] w-[38px] p-0 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-md flex items-center justify-center flex-shrink-0 -mt-[1px]"
             >
               {isLoading ? (
                 <Loader2 className="h-4 w-4 animate-spin text-zinc-400" />

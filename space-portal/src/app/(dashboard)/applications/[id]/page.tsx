@@ -45,6 +45,7 @@ export default function ApplicationPage() {
   const { data: session } = useSession();
   const user = session?.user;
   const aiPanelRef = useRef<AIAssistantPanelHandle>(null);
+  const chatPanelRef = useRef<HTMLDivElement>(null);
   const [showFloatingChat, setShowFloatingChat] = useState(false);
   const [chatWidth, setChatWidth] = useState(400);
   const [chatHeight, setChatHeight] = useState(600);
@@ -66,6 +67,36 @@ export default function ApplicationPage() {
   useEffect(() => {
     console.log('Form data changed:', formData);
   }, [formData]);
+
+  // Close chat when clicking outside
+  useEffect(() => {
+    if (!showFloatingChat) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      
+      // Don't close if clicking the AI Mode button or its parent elements
+      const aiModeButton = target.closest('button');
+      if (aiModeButton) {
+        const buttonText = aiModeButton.textContent || '';
+        if (buttonText.includes('AI Mode') || buttonText.includes('Hide AI')) {
+          return;
+        }
+      }
+      
+      // Check if click is outside the chat panel
+      if (chatPanelRef.current && !chatPanelRef.current.contains(target)) {
+        setShowFloatingChat(false);
+      }
+    };
+
+    // Add event listener with capture phase to catch clicks early
+    document.addEventListener('mousedown', handleClickOutside);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showFloatingChat]);
 
   // Removed scroll prevention to allow normal page scrolling
 
@@ -1207,7 +1238,8 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
 
       {showFloatingChat && (
         <div 
-          className="w-96 min-w-96 h-[calc(100vh-8rem)] flex flex-col bg-zinc-900 border-l border-zinc-800 sticky top-32 rounded-l-xl overflow-hidden"
+          ref={chatPanelRef}
+          className="w-96 min-w-96 h-[calc(100vh-8rem)] flex flex-col bg-zinc-900 border-l border-zinc-800 sticky top-32 rounded-l-xl overflow-hidden z-50"
           onFocus={(e) => e.preventDefault()}
           onBlur={(e) => e.preventDefault()}
         >
