@@ -22,7 +22,9 @@ interface AIAssistantPanelProps {
   className?: string;
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
-  isFloating?: boolean; // New prop to control positioning
+  isFloating?: boolean;
+  applicationId?: string;
+  formSummary?: string;
 }
 
 export interface AIAssistantPanelHandle {
@@ -40,7 +42,9 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
   className,
   isCollapsed = false,
   onToggleCollapse,
-  isFloating = false
+  isFloating = false,
+  applicationId,
+  formSummary,
 }, ref) => {
   const [activeTab, setActiveTab] = useState('chat');
   const [isMinimized, setIsMinimized] = useState(false);
@@ -176,6 +180,8 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
                   className="border-0 shadow-none flex-1 min-h-0"
                   isInline={true}
                   initialPrompt={quickActionPrompt}
+                  applicationId={applicationId}
+                  formSummary={formSummary}
                 />
               </TabsContent>
 

@@ -1,58 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSPLIAIService, AIAnalysisRequest } from '@/lib/ai-service';
+import { getSPLIAIService } from '@/lib/ai-service';
 
-export async function POST(request: NextRequest) {
-  try {
-    const { userInput, context, mode, conversationHistory = [], documents = [] } = await request.json();
-    
-    // Validate input
-    if (!userInput || typeof userInput !== 'string') {
-      return NextResponse.json(
-        { error: 'Invalid input. Please provide a valid userInput string.' },
-        { status: 400 }
-      );
-    }
+function resolveMode(
+  mode: string | undefined,
+  userInput: string,
+  hasDocuments = false
+): 'chat' | 'form-fill' | 'analysis' | 'compliance' {
+  const lowerInput = userInput.toLowerCase();
 
-    // Check if API key is configured before initializing service
-    if (!process.env.ANTHROPIC_API_KEY) {
-      return NextResponse.json(
-        { 
-          error: 'AI service is not configured. ANTHROPIC_API_KEY environment variable is missing.',
-          suggestion: 'Please set ANTHROPIC_API_KEY in your environment variables or .env file.'
-        },
-        { status: 500 }
-      );
-    }
+  if (hasDocuments) {
+    return 'analysis';
+  }
 
-    // Initialize AI service with context
-    const aiService = getSPLIAIService();
-    
-    // Update context with conversation history and documents
-    if (conversationHistory.length > 0 || documents.length > 0) {
-      const contextUpdates: any = {};
-      
-      // Add documents to context
-      if (documents.length > 0) {
-        contextUpdates.documents = documents.map((doc: any, index: number) => ({
-          id: `doc-${index}`,
-          name: doc.name || `Document ${index + 1}`,
-          content: doc.content || '',
-          relevance: 0.8 // Default relevance
-        }));
-      }
-      
-      aiService.updateContext(contextUpdates);
-    }
-
-    // Determine processing mode
-    let processingMode: 'chat' | 'form-fill' | 'analysis' | 'compliance' = 'chat';
-    
-    // Check if this looks like a mission description that should auto-fill the form
-    const lowerInput = userInput.toLowerCase();
-    const isMissionDescription = userInput.length > 50 && (
-      lowerInput.includes('mission') || 
-      lowerInput.includes('satellite') || 
-      lowerInput.includes('rocket') || 
+  const isMissionDescription =
+    userInput.length > 50 &&
+    (lowerInput.includes('mission') ||
+      lowerInput.includes('satellite') ||
+      lowerInput.includes('rocket') ||
       lowerInput.includes('launch') ||
       lowerInput.includes('lunar') ||
       lowerInput.includes('space') ||
@@ -70,65 +34,129 @@ export async function POST(request: NextRequest) {
       lowerInput.includes('timeline') ||
       lowerInput.includes('specifications') ||
       lowerInput.includes('safety') ||
-      lowerInput.includes('operations')
-    );
-    
-    if (mode === 'form-fill' || userInput.toLowerCase().includes('fill form') || userInput.toLowerCase().includes('application') || isMissionDescription) {
-      processingMode = 'form-fill';
-    } else if (mode === 'compliance' || userInput.toLowerCase().includes('compliance') || userInput.toLowerCase().includes('check')) {
-      processingMode = 'compliance';
-    } else if (mode === 'analysis' || userInput.toLowerCase().includes('analyze') || userInput.toLowerCase().includes('review')) {
-      processingMode = 'analysis';
+      lowerInput.includes('operations'));
+
+  if (
+    mode === 'form-fill' ||
+    userInput.toLowerCase().includes('fill form') ||
+    userInput.toLowerCase().includes('application') ||
+    isMissionDescription
+  ) {
+    return 'form-fill';
+  }
+  if (
+    mode === 'compliance' ||
+    userInput.toLowerCase().includes('compliance') ||
+    userInput.toLowerCase().includes('check')
+  ) {
+    return 'compliance';
+  }
+  if (
+    mode === 'analysis' ||
+    userInput.toLowerCase().includes('analyze') ||
+    userInput.toLowerCase().includes('review')
+  ) {
+    return 'analysis';
+  }
+
+  return 'chat';
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const {
+      userInput,
+      mode,
+      conversationHistory = [],
+      documents = [],
+      applicationId,
+      formSummary,
+    } = await request.json();
+
+    if (!userInput || typeof userInput !== 'string') {
+      return NextResponse.json(
+        { error: 'Invalid input. Please provide a valid userInput string.' },
+        { status: 400 }
+      );
     }
 
-    // Process user input with AI service
+    if (!process.env.ANTHROPIC_API_KEY) {
+      return NextResponse.json(
+        {
+          error: 'AI service is not configured. ANTHROPIC_API_KEY environment variable is missing.',
+          suggestion: 'Please set ANTHROPIC_API_KEY in your environment variables or .env file.',
+        },
+        { status: 500 }
+      );
+    }
+
+    const aiService = getSPLIAIService();
+
+    if (conversationHistory.length > 0) {
+      aiService.syncConversationHistory(conversationHistory);
+    }
+
+    if (documents.length > 0) {
+      aiService.setDocuments(
+        documents.map((doc: { name?: string; content?: string }) => ({
+          name: doc.name || 'Document',
+          content: doc.content || '',
+        }))
+      );
+    }
+
+    if (applicationId || formSummary) {
+      aiService.setApplicationContext(applicationId, formSummary);
+    }
+
+    const processingMode = resolveMode(mode, userInput, documents.length > 0);
     const response = await aiService.processUserInput(userInput, processingMode);
 
-    // Return structured response
     return NextResponse.json({
       message: response.summary,
       suggestions: response.suggestions,
       confidence: response.confidence,
       nextSteps: response.nextSteps,
       warnings: response.warnings,
+      followUpPrompts: response.followUpPrompts,
+      documentInsights: response.documentInsights,
       mode: processingMode,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
+  } catch (error: unknown) {
+    console.error('AI API Error:', error);
 
-      } catch (error: any) {
-      console.error('AI API Error:', error);
-      
-      // Extract detailed error information
-      const errorMessage = error?.message || 'Unknown error occurred';
-      const errorDetails = {
-        message: errorMessage,
-        type: error?.name,
-        status: error?.status || error?.statusCode,
-        stack: process.env.NODE_ENV === 'development' ? error?.stack : undefined
-      };
-      
-      // Log full error details for debugging
-      console.error('Full error details:', errorDetails);
-      
-      // Determine appropriate status code
-      let statusCode = 500;
-      if (error?.message?.includes('API key') || error?.message?.includes('ANTHROPIC_API_KEY')) {
-        statusCode = 401;
-      } else if (error?.message?.includes('Rate limit')) {
-        statusCode = 429;
-      } else if (error?.status || error?.statusCode) {
-        statusCode = error.status || error.statusCode;
-      }
-      
-      return NextResponse.json(
-        { 
-          error: errorMessage,
-          details: process.env.NODE_ENV === 'development' ? errorDetails : undefined,
-          suggestion: errorMessage.includes('API key') 
-            ? 'Please check that ANTHROPIC_API_KEY is set correctly in your environment variables.'
-            : undefined
-        },
-        { status: statusCode }
-      );
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error occurred';
+    const err = error as { name?: string; status?: number; statusCode?: number; stack?: string };
+
+    const errorDetails = {
+      message: errorMessage,
+      type: err?.name,
+      status: err?.status || err?.statusCode,
+      stack: process.env.NODE_ENV === 'development' ? err?.stack : undefined,
+    };
+
+    console.error('Full error details:', errorDetails);
+
+    let statusCode = 500;
+    if (errorMessage.includes('API key') || errorMessage.includes('ANTHROPIC_API_KEY')) {
+      statusCode = 401;
+    } else if (errorMessage.includes('Rate limit')) {
+      statusCode = 429;
+    } else if (err?.status || err?.statusCode) {
+      statusCode = err.status || err.statusCode || 500;
     }
-} 
+
+    return NextResponse.json(
+      {
+        error: errorMessage,
+        details: process.env.NODE_ENV === 'development' ? errorDetails : undefined,
+        suggestion: errorMessage.includes('API key')
+          ? 'Please check that ANTHROPIC_API_KEY is set correctly in your environment variables.'
+          : undefined,
+      },
+      { status: statusCode }
+    );
+  }
+}

@@ -1,88 +1,186 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { 
-  Send, 
-  Bot, 
-  User, 
-  FileText, 
-  CheckCircle, 
-  AlertCircle, 
+import { AiChatMessage, ChatMessage, FormSuggestion } from '@/components/ui/ai-chat-message';
+import { AiMentionMenu } from '@/components/ui/ai-mention-menu';
+import {
+  expandMentionsInText,
+  filterMentions,
+  getMentionQueryAtCursor,
+  MentionItem,
+} from '@/lib/ai-mentions';
+import { readDocumentContents, ParsedDocument } from '@/lib/document-reader';
+import { useSpeechRecognition } from '@/hooks/use-speech-recognition';
+import { useToast } from '@/components/ui/use-toast';
+import {
+  Send,
   Loader2,
-  Sparkles,
+  Plus,
+  Paperclip,
+  FileText,
+  CheckCircle,
   MessageSquare,
-  Zap,
+  Sparkles,
   Mic,
-  ChevronDown,
-  Upload,
-  Paperclip
+  MicOff,
+  X,
 } from 'lucide-react';
 
-interface Message {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  timestamp: Date;
-  suggestions?: Array<{
-    field: string;
-    value: string;
-    confidence: number;
-    reasoning: string;
-  }>;
-  confidence?: number;
-  nextSteps?: string[];
-  warnings?: string[];
-}
-
 interface AIChatInsightsProps {
-  onFormUpdate?: (suggestions: any[]) => void;
+  onFormUpdate?: (suggestions: FormSuggestion[]) => void;
   className?: string;
-  isInline?: boolean; // New prop to control inline vs card layout
-  onQuickAction?: (action: string, prompt: string) => void; // New prop for quick actions
-  initialPrompt?: string; // New prop for initial prompt from quick actions
-  onFileDrop?: (files: FileList | File[]) => void; // New prop for file upload handling
+  isInline?: boolean;
+  onQuickAction?: (action: string, prompt: string) => void;
+  initialPrompt?: string;
+  onFileDrop?: (files: FileList | File[]) => void;
+  applicationId?: string;
+  formSummary?: string;
 }
 
-export function AIChatInsights({ onFormUpdate, className, isInline = false, onQuickAction, initialPrompt, onFileDrop }: AIChatInsightsProps) {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      role: 'assistant',
-      content: 'Hello! I\'m SPLI Chat, your AI assistant for FAA Part 450 license applications. I can help you fill out forms, answer questions about space licensing, and ensure regulatory compliance. How can I assist you today?',
-      timestamp: new Date(),
-    }
-  ]);
+const WELCOME_MESSAGE: ChatMessage = {
+  id: 'welcome',
+  role: 'assistant',
+  content:
+    "Hello! I'm **SPLI Chat**, your AI assistant for FAA Part 450 license applications.\n\nI can help you:\n- Fill out application forms from mission descriptions\n- Check regulatory compliance\n- Analyze documents and mission plans\n- Answer space licensing questions\n\n**Tips:** Type `@` to reference form fields, use the mic for voice input, or attach documents for analysis.",
+  timestamp: new Date(),
+  followUpPrompts: [
+    'Help me fill out a Part 450 application',
+    'What are the key Part 450 requirements?',
+    'Review my mission for compliance gaps',
+  ],
+};
+
+const QUICK_PROMPTS = [
+  { label: 'Fill Form', icon: FileText, prompt: 'Help me fill out a Part 450 application with my mission details' },
+  { label: 'Compliance', icon: CheckCircle, prompt: 'Check my application for FAA Part 450 compliance' },
+  { label: 'Analyze', icon: MessageSquare, prompt: 'Analyze my mission description and provide insights' },
+  { label: 'Best Practices', icon: Sparkles, prompt: 'What are best practices for a successful Part 450 application?' },
+];
+
+export function AIChatInsights({
+  onFormUpdate,
+  className = '',
+  isInline = false,
+  initialPrompt,
+  onFileDrop,
+  applicationId,
+  formSummary,
+}: AIChatInsightsProps) {
+  const { toast } = useToast();
+  const [messages, setMessages] = useState<ChatMessage[]>([WELCOME_MESSAGE]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [conversationHistory, setConversationHistory] = useState<any[]>([]);
+  const [conversationHistory, setConversationHistory] = useState<Array<{ sender: string; content: string }>>([]);
+  const [showDropdown, setShowDropdown] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null);
+  const [attachedDocuments, setAttachedDocuments] = useState<ParsedDocument[]>([]);
+
+  const [mentionOpen, setMentionOpen] = useState(false);
+  const [mentionQuery, setMentionQuery] = useState('');
+  const [mentionStartIndex, setMentionStartIndex] = useState(0);
+  const [mentionSelectedIndex, setMentionSelectedIndex] = useState(0);
+  const [mentionItems, setMentionItems] = useState<MentionItem[]>([]);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
-  // Handle initial prompt from quick actions
+  const {
+    isListening,
+    isSupported: isSpeechSupported,
+    transcript,
+    toggleListening,
+    clearTranscript,
+  } = useSpeechRecognition();
+
+  const scrollToBottom = useCallback(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, []);
+
   useEffect(() => {
-    if (initialPrompt && initialPrompt.trim()) {
-      setInput(initialPrompt);
-      // Send the message automatically after a short delay
-      setTimeout(() => {
-        sendMessageWithContent(initialPrompt);
-      }, 100);
+    scrollToBottom();
+  }, [messages, isLoading, scrollToBottom]);
+
+  useEffect(() => {
+    if (initialPrompt?.trim()) {
+      sendMessageWithContent(initialPrompt);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialPrompt]);
 
-  // Removed automatic scrolling to prevent page from scrolling down when sending messages
+  useEffect(() => {
+    if (transcript) {
+      setInput((prev) => (prev ? `${prev} ${transcript}` : transcript));
+      clearTranscript();
+    }
+  }, [transcript, clearTranscript]);
 
-  // File upload handlers
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (files && files.length > 0 && onFileDrop) {
+  const updateMentionState = (text: string, cursorPos: number) => {
+    const mention = getMentionQueryAtCursor(text, cursorPos);
+    if (mention) {
+      const items = filterMentions(mention.query);
+      setMentionOpen(true);
+      setMentionQuery(mention.query);
+      setMentionStartIndex(mention.startIndex);
+      setMentionItems(items);
+      setMentionSelectedIndex(0);
+    } else {
+      setMentionOpen(false);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    setInput(value);
+    updateMentionState(value, e.target.selectionStart ?? value.length);
+  };
+
+  const insertMention = (item: MentionItem) => {
+    const before = input.slice(0, mentionStartIndex);
+    const after = input.slice(
+      mentionStartIndex + mentionQuery.length + 1
+    );
+    const mentionText = `@${item.label} `;
+    const newValue = before + mentionText + after;
+    setInput(newValue);
+    setMentionOpen(false);
+
+    if (item.type === 'action' && item.prompt) {
+      setInput(item.prompt);
+    }
+
+    setTimeout(() => {
+      inputRef.current?.focus();
+      const pos = (item.type === 'action' && item.prompt ? item.prompt : before + mentionText).length;
+      inputRef.current?.setSelectionRange(pos, pos);
+    }, 0);
+  };
+
+  const processFiles = async (files: FileList | File[]) => {
+    const parsed = await readDocumentContents(files);
+    setAttachedDocuments((prev) => [...prev, ...parsed]);
+
+    if (onFileDrop) {
       onFileDrop(files);
-      // Clear the input
+    }
+
+    const extracted = parsed.filter((d) => d.extracted).length;
+    toast({
+      title: `${parsed.length} document${parsed.length > 1 ? 's' : ''} attached`,
+      description:
+        extracted < parsed.length
+          ? `${extracted} readable, ${parsed.length - extracted} need manual description`
+          : 'Ready for analysis with your next message',
+    });
+  };
+
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files && files.length > 0) {
+      await processFiles(files);
       event.target.value = '';
     }
   };
@@ -97,515 +195,450 @@ export function AIChatInsights({ onFormUpdate, className, isInline = false, onQu
     setIsDragOver(false);
   };
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(false);
-    
-    const files = e.dataTransfer.files;
-    if (files && files.length > 0 && onFileDrop) {
-      onFileDrop(files);
+    if (e.dataTransfer.files.length > 0) {
+      await processFiles(e.dataTransfer.files);
     }
   };
 
-  const handleFileUploadClick = () => {
-    fileInputRef.current?.click();
+  const removeAttachedDocument = (index: number) => {
+    setAttachedDocuments((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const sendMessageWithContent = async (content: string) => {
-    if (!content.trim() || isLoading) return;
+  const finalizeAssistantMessage = (
+    assistantId: string,
+    content: string,
+    extras: Partial<ChatMessage>
+  ) => {
+    setMessages((prev) =>
+      prev.map((m) =>
+        m.id === assistantId ? { ...m, content, isStreaming: false, ...extras } : m
+      )
+    );
+  };
 
-    const userMessage: Message = {
-      id: Date.now().toString(),
+  const sendMessageWithContent = async (content: string, isRetry = false) => {
+    const trimmed = content.trim();
+    const hasDocs = attachedDocuments.length > 0;
+    if ((!trimmed && !hasDocs) || isLoading) return;
+
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    const expandedContent = expandMentionsInText(trimmed);
+    const docNames = attachedDocuments.map((d) => d.name);
+    const userDisplayContent =
+      trimmed ||
+      `Analyze the attached document${docNames.length > 1 ? 's' : ''}: ${docNames.join(', ')}`;
+
+    const apiInput = hasDocs
+      ? `${expandedContent || 'Analyze the attached documents for Part 450 application relevance. Extract technical specifications, mission objectives, safety considerations, timeline information, missing information, compliance requirements, and integration suggestions.'}`
+      : expandedContent;
+
+    const userMessage: ChatMessage = {
+      id: `user-${Date.now()}`,
       role: 'user',
-      content: content,
+      content: userDisplayContent,
       timestamp: new Date(),
+      attachedFiles: docNames.length > 0 ? docNames : undefined,
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    if (!isRetry) {
+      setMessages((prev) => [...prev, userMessage]);
+    }
     setInput('');
+    setMentionOpen(false);
     setIsLoading(true);
 
+    const docsForRequest = attachedDocuments.map((d) => ({
+      name: d.name,
+      content: d.content,
+    }));
+    setAttachedDocuments([]);
+
+    const assistantId = `assistant-${Date.now()}`;
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: assistantId,
+        role: 'assistant',
+        content: '',
+        timestamp: new Date(),
+        isStreaming: true,
+      },
+    ]);
+    setStreamingMessageId(assistantId);
+
     try {
-      const response = await fetch('/api/ai', {
+      const response = await fetch('/api/ai/stream', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
         body: JSON.stringify({
-          userInput: content,
-          conversationHistory: conversationHistory,
-          mode: 'chat'
+          userInput: apiInput,
+          conversationHistory,
+          documents: docsForRequest,
+          applicationId,
+          formSummary,
+          mode: hasDocs ? 'analysis' : 'chat',
         }),
       });
 
-      const data = await response.json();
-
-      if (!response.ok || data.error) {
-        // Display the actual error message with helpful details
-        const errorMsg = data.error || 'An error occurred';
-        const suggestion = data.suggestion || '';
-        const details = data.details?.message || '';
-        
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        const errorMsg = errData.error || 'Request failed';
+        const suggestion = errData.suggestion || '';
+        const details = errData.details?.message || '';
         let fullErrorMsg = errorMsg;
-        if (details && details !== errorMsg) {
-          fullErrorMsg += `\n\nDetails: ${details}`;
-        }
-        if (suggestion) {
-          fullErrorMsg += `\n\n${suggestion}`;
-        }
-        
+        if (details && details !== errorMsg) fullErrorMsg += `\n\nDetails: ${details}`;
+        if (suggestion) fullErrorMsg += `\n\n${suggestion}`;
         throw new Error(fullErrorMsg);
       }
 
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: data.message,
-        timestamp: new Date(),
-        suggestions: data.suggestions,
-        confidence: data.confidence,
-        nextSteps: data.nextSteps,
-        warnings: data.warnings,
-      };
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error('No response stream');
 
-      setMessages(prev => [...prev, assistantMessage]);
-      setConversationHistory(prev => [...prev, 
-        { sender: 'user', content: content },
-        { sender: 'assistant', content: data.message }
-      ]);
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let streamedText = '';
 
-      // Update form if suggestions are provided
-      if (data.suggestions && data.suggestions.length > 0 && onFormUpdate) {
-        onFormUpdate(data.suggestions);
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          const raw = line.slice(6).trim();
+          if (!raw) continue;
+
+          try {
+            const event = JSON.parse(raw);
+
+            if (event.type === 'chunk' && event.text) {
+              streamedText += event.text;
+              setMessages((prev) =>
+                prev.map((m) =>
+                  m.id === assistantId ? { ...m, content: streamedText } : m
+                )
+              );
+            }
+
+            if (event.type === 'done') {
+              const finalContent =
+                event.mode === 'chat'
+                  ? (event.message || streamedText)
+                  : (streamedText || event.message);
+
+              finalizeAssistantMessage(assistantId, finalContent, {
+                suggestions: event.suggestions,
+                confidence: event.confidence,
+                nextSteps: event.nextSteps,
+                warnings: event.warnings,
+                followUpPrompts: event.followUpPrompts,
+                documentInsights: event.documentInsights,
+                mode: event.mode,
+              });
+
+              setConversationHistory((prev) => [
+                ...prev,
+                { sender: 'user', content: userDisplayContent },
+                { sender: 'assistant', content: finalContent },
+              ]);
+            }
+
+            if (event.type === 'error') {
+              throw new Error(event.error || 'Stream error');
+            }
+          } catch (parseErr) {
+            if (parseErr instanceof SyntaxError) continue;
+            throw parseErr;
+          }
+        }
       }
-
     } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') return;
+
       console.error('Error sending message:', error);
-      
-      // Extract meaningful error message
-      let errorMessage = 'I apologize, but I encountered an error processing your request. Please try again.';
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      } else if (typeof error === 'string') {
-        errorMessage = error;
-      }
-      
-      const errorMsg: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: errorMessage,
-        timestamp: new Date(),
-      };
-      setMessages(prev => [...prev, errorMsg]);
+      const errorContent =
+        error instanceof Error
+          ? `I encountered an error: ${error.message}\n\nPlease try again or rephrase your question.`
+          : 'I apologize, but I encountered an error processing your request. Please try again.';
+
+      finalizeAssistantMessage(assistantId, errorContent, {
+        warnings: ['Request failed — please retry'],
+      });
     } finally {
       setIsLoading(false);
+      setStreamingMessageId(null);
+      abortRef.current = null;
     }
   };
 
-  const sendMessage = async () => {
-    await sendMessageWithContent(input);
+  const handleRetry = (previousContent: string) => {
+    setMessages((prev) => {
+      const lastAssistantIdx = [...prev].reverse().findIndex((m) => m.role === 'assistant');
+      if (lastAssistantIdx === -1) return prev;
+      const cutIndex = prev.length - lastAssistantIdx;
+      return prev.slice(0, cutIndex - 1);
+    });
+    setConversationHistory((prev) => prev.slice(0, -2));
+    sendMessageWithContent(previousContent, true);
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (mentionOpen && mentionItems.length > 0) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setMentionSelectedIndex((i) => (i + 1) % mentionItems.length);
+        return;
+      }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setMentionSelectedIndex((i) => (i - 1 + mentionItems.length) % mentionItems.length);
+        return;
+      }
+      if (e.key === 'Enter' || e.key === 'Tab') {
+        e.preventDefault();
+        insertMention(mentionItems[mentionSelectedIndex]);
+        return;
+      }
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setMentionOpen(false);
+        return;
+      }
+    }
+
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      sendMessage();
+      sendMessageWithContent(input);
     }
   };
 
-  const getConfidenceColor = (confidence: number) => {
-    if (confidence >= 0.8) return 'bg-green-500';
-    if (confidence >= 0.6) return 'bg-yellow-500';
-    return 'bg-red-500';
+  const getPreviousUserMessage = (index: number): string | undefined => {
+    for (let i = index - 1; i >= 0; i--) {
+      if (messages[i].role === 'user') return messages[i].content;
+    }
+    return undefined;
   };
 
-  const getConfidenceText = (confidence: number) => {
-    if (confidence >= 0.8) return 'High';
-    if (confidence >= 0.6) return 'Medium';
-    return 'Low';
-  };
-
-  // If inline mode, render without card wrapper
-  if (isInline) {
-    return (
-      <div 
-        className={`flex flex-col h-full ${className} ${isDragOver ? 'bg-blue-50 border-2 border-blue-300 border-dashed' : ''}`}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-      >
-        {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto p-4 pb-32">
-          <div className="space-y-4">
-            {messages.map((message) => (
-              <div
-                key={message.id}
-                className={`flex gap-3 ${
-                  message.role === 'user' ? 'justify-end' : 'justify-start'
-                }`}
-              >
-                {message.role === 'assistant' && (
-                  <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
-                    <Bot className="h-4 w-4 text-white" />
-                  </div>
-                )}
-                
-                <div
-                  className={`max-w-[80%] rounded-lg p-3 ${
-                    message.role === 'user'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-800 text-white'
-                  }`}
-                >
-                  <div className="flex items-start gap-2">
-                    {message.role === 'user' && (
-                      <User className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                    )}
-                    <div className="flex-1">
-                      <p className="text-sm leading-relaxed">{message.content}</p>
-                      
-                      {/* Suggestions */}
-                      {message.suggestions && message.suggestions.length > 0 && (
-                        <div className="mt-3 space-y-2">
-                          <div className="flex items-center gap-2 text-xs text-gray-300">
-                            <FileText className="h-3 w-3" />
-                            <span className="font-medium">Form Suggestions</span>
-                            {message.confidence && (
-                              <Badge 
-                                variant="outline" 
-                                className={`text-xs ${getConfidenceColor(message.confidence)} text-white`}
-                              >
-                                {getConfidenceText(message.confidence)} Confidence
-                              </Badge>
-                            )}
-                          </div>
-                          <div className="space-y-1">
-                            {message.suggestions.map((suggestion, index) => (
-                              <div key={index} className="text-xs bg-white p-2 rounded border">
-                                <div className="font-medium text-gray-800">
-                                  {suggestion.field.replace(/([A-Z])/g, ' $1').trim()}
-                                </div>
-                                <div className="text-gray-600 mt-1">{suggestion.value}</div>
-                                <div className="text-gray-500 mt-1 italic">
-                                  {suggestion.reasoning}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Next Steps */}
-                      {message.nextSteps && message.nextSteps.length > 0 && (
-                        <div className="mt-3">
-                          <div className="flex items-center gap-2 text-xs text-gray-300 mb-2">
-                            <CheckCircle className="h-3 w-3" />
-                            <span className="font-medium">Next Steps</span>
-                          </div>
-                          <ul className="text-xs space-y-1">
-                            {message.nextSteps.map((step, index) => (
-                              <li key={index} className="flex items-start gap-2">
-                                <span className="text-blue-400 mt-0.5">•</span>
-                                <span className="text-white">{step}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-
-                      {/* Warnings */}
-                      {message.warnings && message.warnings.length > 0 && (
-                        <div className="mt-3">
-                          <div className="flex items-center gap-2 text-xs text-orange-400 mb-2">
-                            <AlertCircle className="h-3 w-3" />
-                            <span className="font-medium">Warnings</span>
-                          </div>
-                          <ul className="text-xs space-y-1">
-                            {message.warnings.map((warning, index) => (
-                              <li key={index} className="flex items-start gap-2">
-                                <span className="text-orange-400 mt-0.5">⚠</span>
-                                <span className="text-orange-300">{warning}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                
-                {message.role === 'user' && (
-                  <div className="flex-shrink-0 w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                    <User className="h-4 w-4 text-gray-600" />
-                  </div>
-                )}
-              </div>
-            ))}
-            
-            {isLoading && (
-              <div className="flex gap-3 justify-start">
-                <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
-                  <Bot className="h-4 w-4 text-white" />
-                </div>
-                <div className="bg-gray-800 rounded-lg p-3">
-                  <div className="flex items-center gap-2">
-                    <Loader2 className="h-4 w-4 animate-spin text-blue-400" />
-                    <span className="text-sm text-white">Processing your request...</span>
-                  </div>
-                </div>
-              </div>
-            )}
-            
-            <div ref={messagesEndRef} />
-          </div>
-        </div>
-
-        {/* Input Area */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-zinc-800 bg-zinc-900 z-10">
-          {/* Hidden file input */}
-          <input
-            ref={fileInputRef}
-            type="file"
-            multiple
-            accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
-            onChange={handleFileSelect}
-            className="hidden"
-          />
-          
-          <div className="flex gap-2 items-end">
-            <Button
-              onClick={handleFileUploadClick}
-              variant="ghost"
-              size="sm"
-              className="h-8 w-8 p-0 bg-zinc-800 hover:bg-zinc-700 rounded-md flex items-center justify-center mb-1"
-              disabled={isLoading}
-              title="Upload document"
-            >
-              <Paperclip className="h-4 w-4 text-zinc-400" />
-            </Button>
-            <div className="flex-1 relative">
-              <textarea
-                ref={inputRef}
-                value={input}
-                onChange={(e) => {
-                  setInput(e.target.value);
-                  // Auto-expand textarea
-                  const target = e.target;
-                  target.style.height = 'auto';
-                  target.style.height = `${Math.min(target.scrollHeight, 200)}px`;
-                }}
-                onKeyPress={handleKeyPress}
-                placeholder="How can I help?"
-                className="w-full min-h-[44px] max-h-[200px] px-4 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder:text-zinc-500 resize-none overflow-y-auto focus:outline-none focus:ring-1 focus:ring-zinc-600 focus:border-zinc-600 transition-all"
-                disabled={isLoading}
-                rows={1}
-                style={{
-                  height: '44px',
-                  lineHeight: '1.5'
-                }}
-              />
-            </div>
-            <Button 
-              onClick={sendMessage} 
-              disabled={!input.trim() || isLoading}
-              variant="ghost"
-              size="sm"
-              className="h-8 w-8 p-0 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-md flex items-center justify-center mb-1"
-            >
-              {isLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin text-zinc-400" />
-              ) : (
-                <Send className="h-4 w-4 text-zinc-400" />
-              )}
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Default card layout
   return (
-    <div 
-      className={`w-full h-full flex flex-col bg-zinc-900 ${className} ${isDragOver ? 'bg-blue-50 border-2 border-blue-300 border-dashed' : ''}`}
+    <div
+      className={`flex flex-col h-full min-h-0 ${className} ${
+        isDragOver ? 'ring-2 ring-blue-500/50 ring-inset' : ''
+      }`}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
-      <div className="flex-1 min-h-0 overflow-y-auto ai-chat-scrollbar p-4">
+      <div className={`flex-1 overflow-y-auto p-4 ${isInline ? 'pb-2' : ''} ai-chat-scrollbar`}>
         <div className="space-y-4">
-          {messages.map((message) => (
-            <div
+          {messages.map((message, index) => (
+            <AiChatMessage
               key={message.id}
-              className={`flex gap-3 ${
-                message.role === 'user' ? 'justify-end' : 'justify-start'
-              }`}
-            >
-              {message.role === 'assistant' && (
-                <div className="flex-shrink-0 w-8 h-8 bg-zinc-700 rounded-full flex items-center justify-center">
-                  <Bot className="h-4 w-4 text-white" />
-                </div>
-              )}
-              
-              <div
-                className={`max-w-[80%] rounded-lg p-3 ${
-                  message.role === 'user'
-                    ? 'bg-zinc-700 text-white'
-                    : 'bg-zinc-800 text-white'
-                }`}
-              >
-                <div className="flex items-start gap-2">
-                  {message.role === 'user' && (
-                    <User className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                  )}
-                  <div className="flex-1">
-                    <p className="text-sm leading-relaxed">{message.content}</p>
-                      
-                      {/* Suggestions */}
-                      {message.suggestions && message.suggestions.length > 0 && (
-                        <div className="mt-3 space-y-2">
-                          <div className="flex items-center gap-2 text-xs text-gray-600">
-                            <FileText className="h-3 w-3" />
-                            <span className="font-medium">Form Suggestions</span>
-                            {message.confidence && (
-                              <Badge 
-                                variant="outline" 
-                                className={`text-xs ${getConfidenceColor(message.confidence)} text-white`}
-                              >
-                                {getConfidenceText(message.confidence)} Confidence
-                              </Badge>
-                            )}
-                          </div>
-                          <div className="space-y-1">
-                            {message.suggestions.map((suggestion, index) => (
-                              <div key={index} className="text-xs bg-white p-2 rounded border">
-                                <div className="font-medium text-gray-800">
-                                  {suggestion.field.replace(/([A-Z])/g, ' $1').trim()}
-                                </div>
-                                <div className="text-gray-600 mt-1">{suggestion.value}</div>
-                                <div className="text-gray-500 mt-1 italic">
-                                  {suggestion.reasoning}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
+              message={message}
+              previousUserMessage={getPreviousUserMessage(index)}
+              onRetry={handleRetry}
+              onApplySuggestions={onFormUpdate ? (s) => onFormUpdate(s) : undefined}
+              onFollowUp={(prompt) => sendMessageWithContent(prompt)}
+            />
+          ))}
 
-                      {/* Next Steps */}
-                      {message.nextSteps && message.nextSteps.length > 0 && (
-                        <div className="mt-3">
-                          <div className="flex items-center gap-2 text-xs text-gray-600 mb-2">
-                            <CheckCircle className="h-3 w-3" />
-                            <span className="font-medium">Next Steps</span>
-                          </div>
-                          <ul className="text-xs space-y-1">
-                            {message.nextSteps.map((step, index) => (
-                              <li key={index} className="flex items-start gap-2">
-                                <span className="text-blue-500 mt-0.5">•</span>
-                                <span>{step}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-
-                      {/* Warnings */}
-                      {message.warnings && message.warnings.length > 0 && (
-                        <div className="mt-3">
-                          <div className="flex items-center gap-2 text-xs text-orange-600 mb-2">
-                            <AlertCircle className="h-3 w-3" />
-                            <span className="font-medium">Warnings</span>
-                          </div>
-                          <ul className="text-xs space-y-1">
-                            {message.warnings.map((warning, index) => (
-                              <li key={index} className="flex items-start gap-2">
-                                <span className="text-orange-500 mt-0.5">⚠</span>
-                                <span className="text-orange-700">{warning}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                
-                {message.role === 'user' && (
-                  <div className="flex-shrink-0 w-8 h-8 bg-zinc-600 rounded-full flex items-center justify-center">
-                    <User className="h-4 w-4 text-white" />
-                  </div>
-                )}
+          {isLoading && !streamingMessageId && (
+            <div className="flex gap-3 justify-start">
+              <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                <Loader2 className="h-4 w-4 text-white animate-spin" />
               </div>
-            ))}
-            
-            {isLoading && (
-              <div className="flex gap-3 justify-start">
-                <div className="flex-shrink-0 w-8 h-8 bg-zinc-700 rounded-full flex items-center justify-center">
-                  <Bot className="h-4 w-4 text-white" />
-                </div>
-                <div className="bg-zinc-800 rounded-lg p-3">
-                  <div className="flex items-center gap-2">
-                    <Loader2 className="h-4 w-4 animate-spin text-white" />
-                    <span className="text-sm text-white">Processing your request...</span>
-                  </div>
-                </div>
+              <div className="bg-zinc-800 rounded-lg p-3">
+                <span className="text-sm text-zinc-300">Thinking...</span>
               </div>
-            )}
-            
-            <div ref={messagesEndRef} />
-          </div>
-        </div>
-
-        {/* Input Area */}
-        <div className="p-4 border-t border-zinc-800 bg-zinc-900">
-          <div className="flex gap-2 items-end">
-            <Button 
-              variant="ghost"
-              size="sm"
-              onClick={handleFileUploadClick}
-              className="h-8 w-8 p-0 bg-zinc-800 hover:bg-zinc-700 rounded-md flex items-center justify-center mb-1"
-              title="Upload document"
-            >
-              <Paperclip className="h-4 w-4 text-zinc-400" />
-            </Button>
-            <div className="flex-1 relative">
-              <textarea
-                ref={inputRef}
-                value={input}
-                onChange={(e) => {
-                  setInput(e.target.value);
-                  // Auto-expand textarea
-                  const target = e.target;
-                  target.style.height = 'auto';
-                  target.style.height = `${Math.min(target.scrollHeight, 200)}px`;
-                }}
-                onKeyPress={handleKeyPress}
-                placeholder="How can I help?"
-                className="w-full min-h-[44px] max-h-[200px] px-4 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder:text-zinc-500 resize-none overflow-y-auto focus:outline-none focus:ring-1 focus:ring-zinc-600 focus:border-zinc-600 transition-all"
-                disabled={isLoading}
-                rows={1}
-                style={{
-                  height: '44px',
-                  lineHeight: '1.5'
-                }}
-              />
             </div>
-            <Button 
-              onClick={sendMessage} 
-              disabled={!input.trim() || isLoading}
-              variant="ghost"
-              size="sm"
-              className="h-8 w-8 p-0 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-md flex items-center justify-center mb-1"
-            >
-              {isLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin text-zinc-400" />
-              ) : (
-                <Send className="h-4 w-4 text-zinc-400" />
-              )}
-            </Button>
-          </div>
+          )}
+
+          <div ref={messagesEndRef} />
         </div>
       </div>
+
+      {messages.length <= 1 && !isLoading && (
+        <div className="px-4 pb-2 flex flex-wrap gap-1.5">
+          {QUICK_PROMPTS.map((item) => (
+            <button
+              key={item.label}
+              onClick={() => sendMessageWithContent(item.prompt)}
+              className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border border-zinc-700 text-zinc-300 hover:border-blue-500 hover:text-blue-300 hover:bg-blue-950/30 transition-colors"
+            >
+              <item.icon className="h-3 w-3" />
+              {item.label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      <div className={`p-4 border-t border-zinc-800 bg-zinc-900 ${isInline ? 'relative' : ''}`}>
+        <input
+          ref={fileInputRef}
+          type="file"
+          multiple
+          accept=".pdf,.doc,.docx,.txt,.md,.csv,.json,.jpg,.jpeg,.png"
+          onChange={handleFileSelect}
+          className="hidden"
+        />
+
+        {showDropdown && (
+          <div className="absolute bottom-full left-4 right-4 mb-2 bg-zinc-800 border border-zinc-700 rounded-lg shadow-xl z-20 overflow-hidden">
+            {QUICK_PROMPTS.map((item) => (
+              <button
+                key={item.label}
+                onClick={() => {
+                  setInput(item.prompt);
+                  setShowDropdown(false);
+                }}
+                className="w-full text-left px-3 py-2.5 text-sm text-zinc-300 hover:bg-zinc-700 flex items-center gap-2"
+              >
+                <item.icon className="h-3.5 w-3.5 text-blue-400" />
+                {item.label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {mentionOpen && (
+          <AiMentionMenu
+            items={mentionItems}
+            selectedIndex={mentionSelectedIndex}
+            onSelect={insertMention}
+            className="absolute bottom-full left-4 right-4 mb-2 z-30"
+          />
+        )}
+
+        {attachedDocuments.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mb-2">
+            {attachedDocuments.map((doc, index) => (
+              <span
+                key={`${doc.name}-${index}`}
+                className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-blue-950/40 border border-blue-800/50 text-blue-200"
+              >
+                <Paperclip className="h-3 w-3" />
+                {doc.name}
+                {!doc.extracted && (
+                  <span className="text-orange-400" title="Text not extracted">⚠</span>
+                )}
+                <button
+                  type="button"
+                  onClick={() => removeAttachedDocument(index)}
+                  className="hover:text-white"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </span>
+            ))}
+            <button
+              type="button"
+              onClick={() =>
+                sendMessageWithContent(
+                  'Analyze the attached documents for Part 450 application relevance'
+                )
+              }
+              className="text-xs px-2.5 py-1 rounded-full border border-zinc-600 text-zinc-300 hover:border-blue-500 hover:text-blue-300"
+            >
+              Analyze now
+            </button>
+          </div>
+        )}
+
+        <div className="flex gap-2 items-end">
+          <div className="flex gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowDropdown(!showDropdown)}
+              className="w-8 h-8 p-0 bg-zinc-800 hover:bg-zinc-700 rounded-md"
+              disabled={isLoading}
+            >
+              <Plus className="h-3.5 w-3.5 text-zinc-400" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => fileInputRef.current?.click()}
+              className="w-8 h-8 p-0 bg-zinc-800 hover:bg-zinc-700 rounded-md"
+              disabled={isLoading}
+              title="Attach document for analysis"
+            >
+              <Paperclip className="h-3.5 w-3.5 text-zinc-400" />
+            </Button>
+            {isSpeechSupported && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={toggleListening}
+                className={`w-8 h-8 p-0 rounded-md ${
+                  isListening
+                    ? 'bg-red-600/30 hover:bg-red-600/40 animate-pulse'
+                    : 'bg-zinc-800 hover:bg-zinc-700'
+                }`}
+                disabled={isLoading}
+                title={isListening ? 'Stop listening' : 'Voice input'}
+              >
+                {isListening ? (
+                  <MicOff className="h-3.5 w-3.5 text-red-400" />
+                ) : (
+                  <Mic className="h-3.5 w-3.5 text-zinc-400" />
+                )}
+              </Button>
+            )}
+          </div>
+
+          <div className="flex-1 relative">
+            {isListening && (
+              <div className="absolute -top-6 left-0 text-xs text-red-400 flex items-center gap-1 z-10">
+                <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                Listening...
+              </div>
+            )}
+            <textarea
+              ref={inputRef}
+              value={input}
+              onChange={(e) => {
+                handleInputChange(e);
+                const target = e.target;
+                target.style.height = 'auto';
+                target.style.height = `${Math.min(target.scrollHeight, 200)}px`;
+              }}
+              onKeyDown={handleKeyDown}
+              onClick={(e) =>
+                updateMentionState(input, (e.target as HTMLTextAreaElement).selectionStart ?? 0)
+              }
+              placeholder="Ask anything, type @ for fields, or attach documents..."
+              className="w-full min-h-[44px] max-h-[200px] px-4 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder:text-zinc-500 resize-none overflow-y-auto focus:outline-none focus:ring-1 focus:ring-zinc-600 focus:border-zinc-600 transition-all text-sm"
+              disabled={isLoading}
+              rows={1}
+              style={{ height: '44px', lineHeight: '1.5' }}
+            />
+          </div>
+
+          <Button
+            onClick={() => sendMessageWithContent(input)}
+            disabled={(!input.trim() && attachedDocuments.length === 0) || isLoading}
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-md flex items-center justify-center mb-1 flex-shrink-0"
+          >
+            {isLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin text-zinc-400" />
+            ) : (
+              <Send className="h-4 w-4 text-zinc-400" />
+            )}
+          </Button>
+        </div>
+      </div>
+    </div>
   );
-} 
+}
