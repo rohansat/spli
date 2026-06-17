@@ -19,12 +19,25 @@ export interface AIAnalysisRequest {
   mode?: 'chat' | 'form-fill' | 'analysis' | 'compliance';
 }
 
+export interface DocumentInsights {
+  technicalSpecs?: string[];
+  missionObjectives?: string[];
+  safetyConsiderations?: string[];
+  timelineInfo?: string[];
+  missingInformation?: string[];
+  complianceRequirements?: string[];
+  integrationSuggestions?: string[];
+}
+
 export interface AIAnalysisResponse {
   suggestions: AIFormSuggestion[];
   summary: string;
   confidence: number;
   nextSteps?: string[];
   warnings?: string[];
+  followUpPrompts?: string[];
+  mode?: string;
+  documentInsights?: DocumentInsights;
 }
 
 export interface ConversationMessage {
@@ -105,9 +118,10 @@ export class SPLIAIService {
     mode: 'chat' | 'form-fill' | 'analysis' | 'compliance' = 'chat'
   ): Promise<AIAnalysisResponse> {
     try {
-      // Check cache first
+      // Skip cache when conversation has history (context-dependent)
+      const hasHistory = this.context.history.length > 0;
       const cacheKey = this.generateCacheKey(userInput, mode);
-      if (this.cache.has(cacheKey)) {
+      if (!hasHistory && this.cache.has(cacheKey)) {
         return this.cache.get(cacheKey);
       }
 
@@ -120,8 +134,10 @@ export class SPLIAIService {
       // Process and validate response
       const processedResponse = await this.processAIResponse(response, mode);
       
-      // Cache result
-      this.cache.set(cacheKey, processedResponse);
+      // Cache result only for stateless requests
+      if (!hasHistory) {
+        this.cache.set(cacheKey, processedResponse);
+      }
       
       // Update conversation history
       this.updateConversationHistory(userInput, processedResponse);
@@ -162,6 +178,22 @@ export class SPLIAIService {
       messages.push({
         role: 'user',
         content: `Document Context: ${documentContext}`
+      });
+    }
+
+    // Add application context if available
+    if (this.context.applicationId || this.context.currentSection) {
+      const appContext = [
+        this.context.applicationId ? `Application ID: ${this.context.applicationId}` : '',
+        this.context.currentSection ? `Form state: ${this.context.currentSection}` : '',
+      ].filter(Boolean).join('\n');
+      messages.push({
+        role: 'user',
+        content: `Current Application Context:\n${appContext}`
+      });
+      messages.push({
+        role: 'assistant',
+        content: 'I have the application context. I will tailor my responses accordingly.'
       });
     }
 
@@ -333,7 +365,18 @@ Provide detailed analysis and insights:
 - Industry best practices
 - Competitive positioning
 - Regulatory landscape analysis
-- Strategic recommendations`;
+- Strategic recommendations
+
+When documents are provided, structure your analysis with these sections:
+## Technical Specifications
+## Mission Objectives
+## Safety Considerations
+## Timeline Information
+## Missing Information
+## Compliance Requirements
+## Integration Suggestions
+
+Use bullet points under each section.`;
 
       default:
         return `${basePrompt}
@@ -345,6 +388,12 @@ Engage in professional conversation about:
 - Industry trends and developments
 - Best practices and recommendations
 - General questions and guidance
+
+RESPONSE FORMAT:
+- Use markdown: headers (##), bullet lists, **bold** for key terms, \`code\` for technical values
+- Be structured and scannable — break long answers into sections
+- End every response with a "Suggested follow-ups" section listing 2-3 short follow-up questions the user might ask next, formatted as:
+  FOLLOW_UP: ["question 1", "question 2", "question 3"]
 
 Always maintain professional expertise while being helpful and engaging.`;
     }
@@ -1741,32 +1790,145 @@ Always maintain professional expertise while being helpful and engaging.`;
 
   // Process analysis responses
   private processAnalysisResponse(response: string): AIAnalysisResponse {
+    const { cleanContent, followUpPrompts } = this.extractFollowUpPrompts(response);
+    const documentInsights = this.parseDocumentInsights(cleanContent);
     return {
       suggestions: [],
-      summary: response,
+      summary: cleanContent,
       confidence: 0.8,
-      nextSteps: ['Review analysis', 'Consider recommendations', 'Update application if needed']
+      nextSteps: ['Review analysis', 'Consider recommendations', 'Update application if needed'],
+      followUpPrompts,
+      documentInsights,
     };
   }
 
   // Process chat responses
   private processChatResponse(response: string): AIAnalysisResponse {
+    const { cleanContent, followUpPrompts } = this.extractFollowUpPrompts(response);
     return {
       suggestions: [],
-      summary: response,
+      summary: cleanContent,
       confidence: 0.9,
-      nextSteps: []
+      nextSteps: [],
+      followUpPrompts,
     };
+  }
+
+  private extractFollowUpPrompts(response: string): { cleanContent: string; followUpPrompts: string[] } {
+    const followUpMatch = response.match(/FOLLOW_UP:\s*(\[[\s\S]*?\])\s*$/m);
+    if (!followUpMatch) {
+      return { cleanContent: response.trim(), followUpPrompts: [] };
+    }
+
+    const cleanContent = response.replace(/FOLLOW_UP:\s*\[[\s\S]*?\]\s*$/m, '').trim();
+    try {
+      const parsed = JSON.parse(followUpMatch[1]);
+      const followUpPrompts = Array.isArray(parsed)
+        ? parsed.filter((p): p is string => typeof p === 'string').slice(0, 3)
+        : [];
+      return { cleanContent, followUpPrompts };
+    } catch {
+      return { cleanContent, followUpPrompts: [] };
+    }
+  }
+
+  // Stream AI response for real-time chat
+  async streamUserInput(
+    userInput: string,
+    mode: 'chat' | 'form-fill' | 'analysis' | 'compliance' = 'chat',
+    onChunk: (text: string) => void
+  ): Promise<AIAnalysisResponse> {
+    const messages = this.buildConversationMessages(userInput, mode);
+    const systemPrompt = this.getSystemPrompt(mode);
+
+    const stream = this.anthropic.messages.stream({
+      model: 'claude-3-5-sonnet-20241022',
+      max_tokens: 4096,
+      messages,
+      temperature: mode === 'compliance' ? 0.1 : 0.3,
+      system: systemPrompt,
+    });
+
+    let fullText = '';
+    for await (const event of stream) {
+      if (
+        event.type === 'content_block_delta' &&
+        event.delta.type === 'text_delta'
+      ) {
+        fullText += event.delta.text;
+        onChunk(event.delta.text);
+      }
+    }
+
+    const processedResponse = await this.processAIResponse(fullText, mode);
+    this.updateConversationHistory(userInput, processedResponse);
+    return processedResponse;
   }
 
   // Build document context
   private buildDocumentContext(): string {
     if (this.context.documents.length === 0) return '';
-    
+
     return this.context.documents
-      .filter(doc => doc.relevance > 0.5)
-      .map(doc => `${doc.name}: ${doc.content.substring(0, 200)}...`)
-      .join('\n');
+      .map(
+        (doc) =>
+          `--- Document: ${doc.name} ---\n${doc.content.substring(0, 12000)}${
+            doc.content.length > 12000 ? '\n[...truncated]' : ''
+          }`
+      )
+      .join('\n\n');
+  }
+
+  private parseDocumentInsights(response: string): DocumentInsights | undefined {
+    const sections: DocumentInsights = {};
+    const mappings: Array<{ key: keyof DocumentInsights; patterns: RegExp[] }> = [
+      {
+        key: 'technicalSpecs',
+        patterns: [/technical specifications?[:\s]*([\s\S]*?)(?=\n(?:mission|safety|timeline|missing|compliance|integration|$))/i],
+      },
+      {
+        key: 'missionObjectives',
+        patterns: [/mission objectives?[:\s]*([\s\S]*?)(?=\n(?:technical|safety|timeline|missing|compliance|integration|$))/i],
+      },
+      {
+        key: 'safetyConsiderations',
+        patterns: [/safety considerations?[:\s]*([\s\S]*?)(?=\n(?:technical|mission|timeline|missing|compliance|integration|$))/i],
+      },
+      {
+        key: 'timelineInfo',
+        patterns: [/timeline(?:\s+information)?[:\s]*([\s\S]*?)(?=\n(?:technical|mission|safety|missing|compliance|integration|$))/i],
+      },
+      {
+        key: 'missingInformation',
+        patterns: [/missing information[:\s]*([\s\S]*?)(?=\n(?:technical|mission|safety|timeline|compliance|integration|$))/i],
+      },
+      {
+        key: 'complianceRequirements',
+        patterns: [/compliance requirements?[:\s]*([\s\S]*?)(?=\n(?:technical|mission|safety|timeline|missing|integration|$))/i],
+      },
+      {
+        key: 'integrationSuggestions',
+        patterns: [/integration suggestions?[:\s]*([\s\S]*?)(?=\n(?:technical|mission|safety|timeline|missing|compliance|$))/i],
+      },
+    ];
+
+    for (const { key, patterns } of mappings) {
+      for (const pattern of patterns) {
+        const match = response.match(pattern);
+        if (match?.[1]) {
+          const items = match[1]
+            .split(/\n/)
+            .map((line) => line.replace(/^[-*•\d.]+\s*/, '').trim())
+            .filter((line) => line.length > 10);
+          if (items.length > 0) {
+            sections[key] = items.slice(0, 6);
+            break;
+          }
+        }
+      }
+    }
+
+    return Object.keys(sections).length > 0 ? sections : undefined;
   }
 
   // Update conversation history
@@ -1843,6 +2005,36 @@ Always maintain professional expertise while being helpful and engaging.`;
   // Context management
   public updateContext(updates: Partial<ConversationContext>): void {
     this.context = { ...this.context, ...updates };
+  }
+
+  public syncConversationHistory(
+    history: Array<{ sender: string; content: string }>
+  ): void {
+    this.context.history = history.map((msg) => ({
+      role: msg.sender === 'user' ? 'user' : 'assistant',
+      content: msg.content,
+      timestamp: new Date(),
+    }));
+  }
+
+  public setApplicationContext(applicationId?: string, formSummary?: string): void {
+    if (applicationId) {
+      this.context.applicationId = applicationId;
+    }
+    if (formSummary) {
+      this.context.currentSection = formSummary;
+    }
+  }
+
+  public setDocuments(
+    documents: Array<{ name: string; content: string }>
+  ): void {
+    this.context.documents = documents.map((doc, index) => ({
+      id: `doc-${index}`,
+      name: doc.name,
+      content: doc.content,
+      relevance: 0.9,
+    }));
   }
 
   public addDocument(document: { id: string; name: string; content: string; relevance: number }): void {

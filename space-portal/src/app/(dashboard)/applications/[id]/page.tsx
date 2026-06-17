@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useApplication } from "@/components/providers/ApplicationProvider";
 import { Button } from "@/components/ui/button";
@@ -10,10 +10,20 @@ import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { part450FormTemplate } from "@/lib/mock-data";
-import { ChevronLeft, Save, Send, AlertTriangle, Upload, X, Brain, Mail, Paperclip, ArrowRight } from "lucide-react";
+import { PART450_SCHEMA, getCrossReferencesForField, TEAM_LABELS } from "@/lib/part450-schema";
+import {
+  loadApplicationRecord,
+  saveApplicationRecord,
+  getFieldAuthorship,
+} from "@/lib/application-record-service";
+import { workflowEngine } from "@/lib/workflow-engine";
+import { WorkflowReadinessPanel } from "@/components/ui/workflow-readiness";
+import { SectionHistoryPanel } from "@/components/ui/section-history-panel";
+import type { ApplicationRecord } from "@/types/application-record";
+import { ChevronLeft, Save, Send, AlertTriangle, Upload, X, Brain, Mail, Paperclip, ArrowRight, Lock, Link2 } from "lucide-react";
 import Link from "next/link";
 import { db } from "@/lib/firebase";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
 import { useSession } from 'next-auth/react';
 import { AICursor } from "@/components/ui/ai-cursor";
 import { AIAssistantPanel, AIAssistantPanelHandle } from "@/components/ui/AIAssistantPanel";
@@ -34,6 +44,7 @@ export default function ApplicationPage() {
   const { getApplicationById, uploadDocument, updateApplicationStatus, refreshDocuments } = useApplication();
   const { toast } = useToast();
   const [formData, setFormData] = useState<Record<string, string>>({});
+  const [applicationRecord, setApplicationRecord] = useState<ApplicationRecord | null>(null);
   const [activeTab, setActiveTab] = useState("section-0");
   const [isSaving, setIsSaving] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -567,20 +578,64 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
     if (!application || !user?.email) return;
     const fetchFormData = async () => {
       try {
-        const ref = doc(db, "applicationForms", `${user.email}_${applicationId}`);
-        const snap = await getDoc(ref);
-        if (snap.exists()) {
-          const data = snap.data();
-          if (data && data.formData) {
-            setFormData(data.formData);
-          }
-        }
+        const { record, formData: loaded } = await loadApplicationRecord(applicationId, user.email!);
+        setApplicationRecord(record);
+        setFormData(loaded);
       } catch (err) {
-        console.error("Error loading saved form data:", err);
+        console.error("Error loading application record:", err);
+        // Fallback to legacy load
+        try {
+          const ref = doc(db, "applicationForms", `${user.email}_${applicationId}`);
+          const snap = await getDoc(ref);
+          if (snap.exists()) {
+            const data = snap.data();
+            if (data?.formData) setFormData(data.formData);
+          }
+        } catch {
+          /* ignore */
+        }
       }
     };
     fetchFormData();
-  }, [applicationId, user?.email]);
+  }, [applicationId, user?.email, application]);
+
+  const formSummary = useMemo(() => {
+    const fields: Array<{ name: string; label: string }> = [];
+    part450FormTemplate.sections.forEach((section) => {
+      section.fields.forEach((field) => {
+        fields.push({ name: field.name, label: field.label });
+      });
+    });
+    const filled = fields.filter((f) => formData[f.name]?.trim());
+    const pct = fields.length > 0 ? Math.round((filled.length / fields.length) * 100) : 0;
+    const filledLabels = filled.slice(0, 8).map((f) => f.label).join(', ');
+    const missing = fields
+      .filter((f) => !formData[f.name]?.trim())
+      .slice(0, 5)
+      .map((f) => f.label)
+      .join(', ');
+    return `Application "${application?.name || applicationId}" — ${pct}% complete (${filled.length}/${fields.length} fields). Filled: ${filledLabels || 'none'}. Missing: ${missing || 'none'}.`;
+  }, [formData, application?.name, applicationId]);
+
+  const workflowReadiness = useMemo(
+    () => workflowEngine.evaluateReadiness(formData, applicationRecord ?? undefined),
+    [formData, applicationRecord]
+  );
+
+  const navigateToSection = (sectionId: string) => {
+    const idx = PART450_SCHEMA.sectionIds.indexOf(sectionId);
+    if (idx >= 0) setActiveTab(`section-${idx}`);
+  };
+
+  const navigateToField = (fieldName: string) => {
+    const idx = part450FormTemplate.sections.findIndex((s) =>
+      s.fields.some((f) => f.name === fieldName)
+    );
+    if (idx >= 0) {
+      setActiveTab(`section-${idx}`);
+      setTimeout(() => document.getElementById(fieldName)?.focus(), 100);
+    }
+  };
 
   if (!application) {
     return null;
@@ -597,13 +652,17 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
     setIsSaving(true);
     try {
       if (user?.email && applicationId) {
-        await setDoc(
-          doc(db, "applicationForms", `${user.email}_${applicationId}`),
-          { formData, userEmail: user.email, applicationId },
-          { merge: true }
+        const baseRecord =
+          applicationRecord ?? (await loadApplicationRecord(applicationId, user.email)).record;
+        const { record } = await saveApplicationRecord(
+          baseRecord,
+          formData,
+          user.email,
+          user.name ?? undefined
         );
+        setApplicationRecord(record);
       }
-      setSaveMessage("Application saved successfully");
+      setSaveMessage("Application saved — version snapshot created");
       setSaveMessageType("success");
       setTimeout(() => {
         setSaveMessage("");
@@ -623,6 +682,14 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
   };
 
   const handleSubmit = () => {
+    if (!workflowReadiness.canSubmit) {
+      toast({
+        title: "Cannot submit yet",
+        description: workflowReadiness.submissionGateMessage ?? "Resolve blocking items before submitting.",
+        variant: "destructive",
+      });
+      return;
+    }
     setIsComposeOpen(true);
   };
 
@@ -653,61 +720,109 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
     return fields;
   };
 
-  const renderField = (field: FormField) => {
+  const renderField = (field: FormField, sectionIndex: number) => {
     const isRecentlyUpdated = aiLastUpdated === field.name;
+    const sectionId = PART450_SCHEMA.sectionIds[sectionIndex];
+    const sectionState = workflowReadiness.sectionStates.find((s) => s.sectionId === sectionId);
+    const isLocked = sectionState?.isLocked ?? false;
+    const crossRefs = getCrossReferencesForField(field.name);
+    const authorship = applicationRecord ? getFieldAuthorship(applicationRecord, field.name) : null;
+    
+    const fieldMeta = (
+      <div className="mt-2 space-y-1">
+        {authorship && (
+          <p className="text-[10px] text-zinc-500">
+            Last edited by {authorship.lastModifiedBy.split('@')[0]} ·{' '}
+            {new Date(authorship.lastModifiedAt).toLocaleDateString()}
+          </p>
+        )}
+        {crossRefs.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {crossRefs.map((ref) => (
+              <button
+                key={`${ref.sourceField}-${ref.targetField}`}
+                type="button"
+                onClick={() => navigateToField(ref.sourceField === field.name ? ref.targetField : ref.sourceField)}
+                className="text-[10px] px-1.5 py-0.5 rounded bg-blue-950/40 text-blue-300/80 border border-blue-800/40 hover:bg-blue-950/60 flex items-center gap-0.5"
+                title={ref.description}
+              >
+                <Link2 className="h-2.5 w-2.5" />
+                {ref.relationship === 'must_align' ? 'Must align' : 'Related'}:{' '}
+                {ref.sourceField === field.name ? ref.targetField : ref.sourceField}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+
+    const lockBanner = isLocked ? (
+      <p className="text-xs text-zinc-500 flex items-center gap-1 mb-2">
+        <Lock className="h-3 w-3" />
+        {sectionState?.lockReason}
+      </p>
+    ) : null;
     
     switch (field.type) {
       case "text":
       case "email":
         return (
-          <div className="relative">
+          <div className="relative space-y-2">
+            {lockBanner}
             <Input
               id={field.name}
               type={field.type}
               value={formData[field.name] || ""}
               onChange={(e) => handleInputChange(field.name, e.target.value)}
               placeholder={field.label}
+              disabled={isLocked}
               className={`bg-white/10 border-white/20 text-white transition-all duration-300 ${
                 isRecentlyUpdated ? 'border-green-400 bg-green-900/20' : ''
-              }`}
+              } ${isLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
             />
             {isRecentlyUpdated && (
-              <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full animate-pulse">
+              <div className="absolute top-0 right-0 bg-green-500 text-white text-xs px-2 py-1 rounded-full animate-pulse">
                 AI Updated
               </div>
             )}
+            {fieldMeta}
           </div>
         );
       case "textarea":
         return (
-          <div className="relative">
+          <div className="relative space-y-2">
+            {lockBanner}
             <Textarea
               id={field.name}
               value={formData[field.name] || ""}
               onChange={(e) => handleInputChange(field.name, e.target.value)}
               placeholder={field.label}
               rows={4}
+              disabled={isLocked}
               className={`bg-white/10 border-white/20 text-white max-h-[300px] overflow-y-auto transition-all duration-300 ${
                 isRecentlyUpdated ? 'border-green-400 bg-green-900/20' : ''
-              }`}
+              } ${isLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
             />
             {isRecentlyUpdated && (
-              <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full animate-pulse">
+              <div className="absolute top-0 right-0 bg-green-500 text-white text-xs px-2 py-1 rounded-full animate-pulse">
                 AI Updated
               </div>
             )}
+            {fieldMeta}
           </div>
         );
       case "select":
         return (
-          <div className="relative">
+          <div className="relative space-y-2">
+            {lockBanner}
             <select
               id={field.name}
               value={formData[field.name] || ""}
               onChange={(e) => handleInputChange(field.name, e.target.value)}
+              disabled={isLocked}
               className={`w-full p-2 rounded-md bg-white/10 border border-white/20 text-white transition-all duration-300 ${
                 isRecentlyUpdated ? 'border-green-400 bg-green-900/20' : ''
-              }`}
+              } ${isLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               <option value="">Select {field.label}</option>
               {field.options?.map((option: string) => (
@@ -717,10 +832,11 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
               ))}
             </select>
             {isRecentlyUpdated && (
-              <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full animate-pulse">
+              <div className="absolute top-0 right-0 bg-green-500 text-white text-xs px-2 py-1 rounded-full animate-pulse">
                 AI Updated
               </div>
             )}
+            {fieldMeta}
           </div>
         );
       default:
@@ -870,16 +986,17 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
               {isSaving ? "Saving..." : "Save Draft"}
             </Button>
 
+            <Button
+              onClick={handleSubmit}
+              disabled={application.status === "approved" || !workflowReadiness.canSubmit}
+              title={workflowReadiness.submissionGateMessage}
+              className={`bg-gradient-to-r from-blue-500 to-purple-500 text-white flex items-center justify-center ${buttonSizeClass} disabled:opacity-40`}
+            >
+              <Mail className="mr-2 h-4 w-4" />
+              {workflowReadiness.canSubmit ? 'Submit Application' : 'Submit Locked'}
+            </Button>
+
             <Dialog open={isComposeOpen} onOpenChange={setIsComposeOpen}>
-              <DialogTrigger asChild>
-                <Button
-                  disabled={application.status === "approved"}
-                  className={`bg-gradient-to-r from-blue-500 to-purple-500 text-white flex items-center justify-center ${buttonSizeClass}`}
-                >
-                  <Mail className="mr-2 h-4 w-4" />
-                  Submit Application
-                </Button>
-              </DialogTrigger>
               <DialogContent className="bg-black text-white border border-white/20">
                 <DialogHeader>
                   <DialogTitle className="text-2xl font-bold">COMPOSE MESSAGE</DialogTitle>
@@ -971,6 +1088,16 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
           </Alert>
         )}
 
+        <div className="mb-6">
+          <WorkflowReadinessPanel
+            formData={formData}
+            record={applicationRecord}
+            compact
+            onSectionClick={navigateToSection}
+            onFieldClick={navigateToField}
+          />
+        </div>
+
         {application.status === "draft" && (
           <Alert className="mb-6 bg-blue-500/20 border-blue-500/30 text-white">
             <AlertTriangle className="h-4 w-4 mr-2" stroke="white" />
@@ -1002,6 +1129,30 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
           </div>
         )}
 
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+          <div className="lg:col-span-2">
+            <WorkflowReadinessPanel
+              formData={formData}
+              record={applicationRecord}
+              onSectionClick={navigateToSection}
+              onFieldClick={navigateToField}
+            />
+          </div>
+          <div>
+            {user?.email && (
+              <SectionHistoryPanel
+                applicationId={applicationId}
+                userEmail={user.email}
+                currentVersion={applicationRecord?.currentVersion ?? 0}
+                onRollback={(data) => {
+                  setFormData(data);
+                  toast({ title: 'Restored previous version', description: 'Save to persist the rollback.' });
+                }}
+              />
+            )}
+          </div>
+        </div>
+
         <div>
           <div className="mb-6">
             <h1 className="text-3xl font-bold text-white">Part 450 License Application Form</h1>
@@ -1011,29 +1162,40 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex gap-6 mt-8 items-start">
             <div className="w-[280px] mt-20">
               <TabsList className="flex flex-col w-full min-h-[500px] gap-4 bg-black">
-                {part450FormTemplate.sections.map((section, index) => (
+                {part450FormTemplate.sections.map((section, index) => {
+                  const sectionId = PART450_SCHEMA.sectionIds[index];
+                  const state = workflowReadiness.sectionStates.find((s) => s.sectionId === sectionId);
+                  return (
                   <TabsTrigger
                     key={`section-${index}`}
                     value={`section-${index}`}
+                    disabled={state?.isLocked}
                     className="relative flex items-start gap-4 w-full bg-transparent hover:bg-zinc-900/50
                       data-[state=active]:bg-zinc-900 data-[state=active]:text-white
                       px-4 py-4 text-white/70 justify-start text-left rounded-lg
                       hover:text-white transition-all duration-200 border border-transparent
-                      data-[state=active]:border-white/10"
+                      data-[state=active]:border-white/10 disabled:opacity-40"
                   >
                     <div className="flex items-start gap-4 w-full">
                       <div className="flex-shrink-0 w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center
                         data-[state=active]:bg-gradient-to-r from-blue-500 to-purple-500 mt-1"
                         data-state={activeTab === `section-${index}` ? 'active' : ''}>
-                        <span className="text-sm font-medium">{index + 1}</span>
+                        {state?.isLocked ? (
+                          <Lock className="h-3.5 w-3.5 text-zinc-500" />
+                        ) : (
+                          <span className="text-sm font-medium">{index + 1}</span>
+                        )}
                       </div>
                       <div className="flex flex-col min-w-0 flex-1">
                         <span className="font-medium text-sm leading-tight break-words whitespace-pre-line">{section.title}</span>
-                        <span className="text-xs text-white/50 mt-1">Section {index + 1} of {part450FormTemplate.sections.length}</span>
+                        <span className="text-xs text-white/50 mt-1">
+                          {state?.isLocked ? state.lockReason : `${state?.completionPercent ?? 0}% · ${TEAM_LABELS[state?.ownerTeam ?? 'ops']}`}
+                        </span>
                       </div>
                     </div>
                   </TabsTrigger>
-                ))}
+                  );
+                })}
               </TabsList>
             </div>
 
@@ -1065,7 +1227,7 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
                         >
                           {field.label}
                         </label>
-                        {renderField(field as FormField)}
+                        {renderField(field as FormField, sectionIndex)}
                       </div>
                     ))}
                   </div>
@@ -1229,6 +1391,8 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
           <div className="flex-1 min-h-0 flex flex-col overflow-hidden ai-chat-scrollbar">
             <AIAssistantPanel
               ref={aiPanelRef}
+              applicationId={applicationId}
+              formSummary={formSummary}
               onFormUpdate={(suggestions) => {
                 console.log('Form update suggestions received:', suggestions);
                 if (suggestions && suggestions.length > 0) {
