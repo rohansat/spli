@@ -392,13 +392,13 @@ export function AiChatMessage({
         {message.followUpPrompts && message.followUpPrompts.length > 0 && !message.isStreaming && (
           <div className="space-y-2 pl-4">
             <p className="spli-chat-label">Follow-up</p>
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-wrap gap-1.5">
               {message.followUpPrompts.map((prompt, index) => (
                 <button
                   key={index}
                   type="button"
                   onClick={() => onFollowUp?.(prompt)}
-                  className="text-left text-[11px] px-3 py-2.5 border border-zinc-800/80 bg-black/30 text-zinc-500 hover:text-zinc-200 hover:border-zinc-600 hover:bg-zinc-950/80 transition-colors font-light leading-snug"
+                  className="text-left text-[11px] px-2.5 py-1.5 border border-zinc-800/80 bg-zinc-950/50 text-zinc-500 hover:text-zinc-200 hover:border-zinc-600 transition-colors font-light leading-snug max-w-full"
                 >
                   {prompt}
                 </button>

@@ -24,6 +24,7 @@ interface AIAssistantPanelProps {
   onToggleCollapse?: () => void;
   isFloating?: boolean;
   embedded?: boolean;
+  workspace?: boolean;
   onClose?: () => void;
   applicationId?: string;
   formSummary?: string;
@@ -31,6 +32,13 @@ interface AIAssistantPanelProps {
   userEmail?: string;
   onFieldClick?: (fieldName: string) => void;
   onCopilotStateChange?: (state: CopilotState) => void;
+  initialMessages?: import('./ai-chat-message').ChatMessage[];
+  initialConversationHistory?: Array<{ sender: string; content: string }>;
+  onSessionUpdate?: (
+    messages: import('./ai-chat-message').ChatMessage[],
+    conversationHistory: Array<{ sender: string; content: string }>
+  ) => void;
+  welcomeMessage?: import('./ai-chat-message').ChatMessage;
 }
 
 export interface AIAssistantPanelHandle {
@@ -49,6 +57,7 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
   onToggleCollapse,
   isFloating = false,
   embedded = false,
+  workspace = false,
   onClose,
   applicationId,
   formSummary,
@@ -57,6 +66,10 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
   onFieldClick,
   onCopilotStateChange,
   hideTabs = false,
+  initialMessages,
+  initialConversationHistory,
+  onSessionUpdate,
+  welcomeMessage,
 }, ref) => {
   const [activeTab, setActiveTab] = useState('chat');
   const [quickActionPrompt, setQuickActionPrompt] = useState('');
@@ -137,17 +150,25 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
       copilotState={copilotState}
       onCopilotStateChange={updateCopilotState}
       inconsistencies={inconsistencies}
+      initialMessages={initialMessages}
+      initialConversationHistory={initialConversationHistory}
+      onSessionUpdate={onSessionUpdate}
+      welcomeMessage={welcomeMessage}
     />
   );
 
-  const shellClass = embedded
-    ? 'flex flex-col h-full min-h-0 spli-chat-panel overflow-hidden'
-    : 'flex flex-col h-full min-h-0 rounded-none border border-zinc-800/80 bg-black overflow-hidden shadow-2xl shadow-black/40 spli-chat-panel';
+  const shellClass = workspace
+    ? 'flex flex-col h-full min-h-0 overflow-hidden bg-black'
+    : embedded
+      ? 'flex flex-col h-full min-h-0 spli-chat-panel overflow-hidden'
+      : 'flex flex-col h-full min-h-0 rounded-none border border-zinc-800/80 bg-black overflow-hidden shadow-2xl shadow-black/40 spli-chat-panel';
+
+  const showPanelHeader = !workspace;
 
   return (
     <div className={containerClasses}>
       <div className={shellClass}>
-        {/* Header */}
+        {showPanelHeader && (
         <div className="flex-shrink-0 border-b border-zinc-800/80 bg-black/90 px-4 py-3">
           <div className="flex items-center gap-3">
             <div className="relative flex h-9 w-9 flex-shrink-0 items-center justify-center border border-zinc-800 bg-zinc-950">
@@ -179,11 +200,13 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
             )}
           </div>
         </div>
+        )}
 
         {hideTabs ? (
           chatContent
         ) : (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col flex-1 min-h-0">
+            {!workspace && (
             <div className="flex-shrink-0 px-4 py-2.5 border-b border-zinc-800/60 bg-zinc-950/50">
               <TabsList className="grid w-full grid-cols-3 h-9 bg-zinc-900/60 border border-zinc-800/80 p-1 rounded-none gap-1">
                 <TabsTrigger value="chat" className="spli-chat-tab rounded-none h-full data-[state=active]:border data-[state=active]:border-zinc-700/60">
@@ -200,6 +223,33 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
                 </TabsTrigger>
               </TabsList>
             </div>
+            )}
+
+            {workspace && (
+            <div className="flex-shrink-0 px-3 py-1.5 border-b border-zinc-800/60 bg-zinc-950/50 flex gap-1">
+              <button
+                type="button"
+                onClick={() => setActiveTab('chat')}
+                className={`flex-1 spli-chat-tab px-2 py-1.5 ${activeTab === 'chat' ? 'bg-zinc-800/80 text-zinc-100 border border-zinc-700/60' : 'text-zinc-500 hover:text-zinc-300'}`}
+              >
+                Chat
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('copilot')}
+                className={`flex-1 spli-chat-tab px-2 py-1.5 ${activeTab === 'copilot' ? 'bg-zinc-800/80 text-zinc-100 border border-zinc-700/60' : 'text-zinc-500 hover:text-zinc-300'}`}
+              >
+                Memory
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('actions')}
+                className={`flex-1 spli-chat-tab px-2 py-1.5 ${activeTab === 'actions' ? 'bg-zinc-800/80 text-zinc-100 border border-zinc-700/60' : 'text-zinc-500 hover:text-zinc-300'}`}
+              >
+                Actions
+              </button>
+            </div>
+            )}
 
             <TabsContent value="chat" className="flex-1 flex flex-col min-h-0 mt-0 data-[state=inactive]:hidden">
               {chatContent}

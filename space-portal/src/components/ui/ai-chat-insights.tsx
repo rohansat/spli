@@ -41,6 +41,13 @@ interface AIChatInsightsProps {
   copilotState?: CopilotState;
   onCopilotStateChange?: (state: CopilotState) => void;
   inconsistencies?: SectionInconsistency[];
+  initialMessages?: ChatMessage[];
+  initialConversationHistory?: Array<{ sender: string; content: string }>;
+  onSessionUpdate?: (
+    messages: ChatMessage[],
+    conversationHistory: Array<{ sender: string; content: string }>
+  ) => void;
+  welcomeMessage?: ChatMessage;
 }
 
 const WELCOME_MESSAGE: ChatMessage = {
@@ -75,12 +82,21 @@ export function AIChatInsights({
   copilotState,
   onCopilotStateChange,
   inconsistencies = [],
+  initialMessages,
+  initialConversationHistory,
+  onSessionUpdate,
+  welcomeMessage,
 }: AIChatInsightsProps) {
+  const defaultWelcome = welcomeMessage ?? WELCOME_MESSAGE;
   const { toast } = useToast();
-  const [messages, setMessages] = useState<ChatMessage[]>([WELCOME_MESSAGE]);
+  const [messages, setMessages] = useState<ChatMessage[]>(
+    initialMessages?.length ? initialMessages : [defaultWelcome]
+  );
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [conversationHistory, setConversationHistory] = useState<Array<{ sender: string; content: string }>>([]);
+  const [conversationHistory, setConversationHistory] = useState<
+    Array<{ sender: string; content: string }>
+  >(initialConversationHistory ?? []);
   const [isDragOver, setIsDragOver] = useState(false);
   const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null);
   const [attachedDocuments, setAttachedDocuments] = useState<ParsedDocument[]>([]);
@@ -104,7 +120,17 @@ export function AIChatInsights({
     clearTranscript,
   } = useSpeechRecognition();
 
-  const isEmptyState = messages.length <= 1 && !isLoading;
+  const isEmptyState = messages.length <= 1 && !isLoading && messages[0]?.role === 'assistant';
+
+  const persistSession = useCallback(
+    (
+      nextMessages: ChatMessage[],
+      nextHistory: Array<{ sender: string; content: string }>
+    ) => {
+      onSessionUpdate?.(nextMessages, nextHistory);
+    },
+    [onSessionUpdate]
+  );
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -238,16 +264,20 @@ export function AIChatInsights({
       : expandedContent;
 
     if (!isRetry) {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `user-${Date.now()}`,
-          role: 'user',
-          content: userDisplayContent,
-          timestamp: new Date(),
-          attachedFiles: docNames.length > 0 ? docNames : undefined,
-        },
-      ]);
+      setMessages((prev) => {
+        const next = [
+          ...prev,
+          {
+            id: `user-${Date.now()}`,
+            role: 'user' as const,
+            content: userDisplayContent,
+            timestamp: new Date(),
+            attachedFiles: docNames.length > 0 ? docNames : undefined,
+          },
+        ];
+        persistSession(next, conversationHistory);
+        return next;
+      });
     }
 
     setInput('');
@@ -322,15 +352,34 @@ export function AIChatInsights({
                   ? event.message || streamedText
                   : streamedText || event.message;
 
-              finalizeAssistantMessage(assistantId, finalContent, {
-                suggestions: event.suggestions,
-                confidence: event.confidence,
-                nextSteps: event.nextSteps,
-                warnings: event.warnings,
-                followUpPrompts: event.followUpPrompts,
-                documentInsights: event.documentInsights,
-                mode: event.mode,
-                inconsistencies: event.inconsistencies,
+              setConversationHistory((prev) => {
+                const next = [
+                  ...prev,
+                  { sender: 'user', content: userDisplayContent },
+                  { sender: 'assistant', content: finalContent },
+                ];
+                setMessages((current) => {
+                  const updated = current.map((m) =>
+                    m.id === assistantId
+                      ? {
+                          ...m,
+                          content: finalContent,
+                          isStreaming: false,
+                          suggestions: event.suggestions,
+                          confidence: event.confidence,
+                          nextSteps: event.nextSteps,
+                          warnings: event.warnings,
+                          followUpPrompts: event.followUpPrompts,
+                          documentInsights: event.documentInsights,
+                          mode: event.mode,
+                          inconsistencies: event.inconsistencies,
+                        }
+                      : m
+                  );
+                  persistSession(updated, next);
+                  return updated;
+                });
+                return next;
               });
 
               if (event.suggestions?.length && copilotState && onCopilotStateChange) {
@@ -345,12 +394,6 @@ export function AIChatInsights({
                 }
                 onCopilotStateChange(nextState);
               }
-
-              setConversationHistory((prev) => [
-                ...prev,
-                { sender: 'user', content: userDisplayContent },
-                { sender: 'assistant', content: finalContent },
-              ]);
             }
 
             if (event.type === 'error') throw new Error(event.error || 'Stream error');
@@ -450,7 +493,7 @@ export function AIChatInsights({
             </div>
           )}
 
-          {isEmptyState && (
+          {isEmptyState && !onSessionUpdate && (
             <div className="border border-zinc-800/60 bg-zinc-950/40 p-4">
               <p className="spli-chat-label mb-3">Quick start</p>
               <div className="grid grid-cols-2 gap-2">

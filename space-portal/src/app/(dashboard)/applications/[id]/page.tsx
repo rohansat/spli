@@ -26,7 +26,8 @@ import { db } from "@/lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
 import { useSession } from 'next-auth/react';
 import { AICursor } from "@/components/ui/ai-cursor";
-import { AIAssistantPanel, AIAssistantPanelHandle } from "@/components/ui/AIAssistantPanel";
+import { AIAssistantPanelHandle } from "@/components/ui/AIAssistantPanel";
+import { SpliChatWorkspace } from "@/components/ui/spli-chat-workspace";
 import { useToast } from "@/components/ui/use-toast";
 import {
   loadCopilotState,
@@ -914,8 +915,9 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
   };
 
   return (
-    <div className="relative max-w-[1400px] mx-auto bg-black py-8 min-h-[80vh] flex flex-row gap-6 overflow-hidden">
-      <div className={`flex-1 min-w-0 ${showFloatingChat ? 'pr-6' : ''}`}>
+    <div className="flex h-[calc(100vh-4rem)] bg-black overflow-hidden">
+      <div className="flex-1 min-w-0 overflow-y-auto">
+        <div className="relative max-w-[1400px] mx-auto py-8 px-6 min-h-full">
         <div className="mb-8">
           <Link href="/dashboard" className="flex items-center text-white/70 hover:text-white transition-colors">
             <ChevronLeft className="mr-1 h-4 w-4" />
@@ -1353,63 +1355,57 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
           onFillForm={handleAIFillForm}
           formFields={getAllFormFields()}
         />
+        </div>
       </div>
 
-      {showFloatingChat && (
-        <div
-          className="w-[400px] min-w-[400px] h-[calc(100vh-8rem)] flex flex-col sticky top-32 overflow-hidden border-l border-zinc-800/80 bg-black"
-          onFocus={(e) => e.preventDefault()}
-          onBlur={(e) => e.preventDefault()}
-        >
-          <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
-            <AIAssistantPanel
-              ref={aiPanelRef}
-              embedded
-              onClose={() => setShowFloatingChat(false)}
-              applicationId={applicationId}
-              formSummary={formSummary}
-              formData={formData}
-              userEmail={user?.email ?? undefined}
-              onFieldClick={navigateToField}
-              onFormUpdate={(suggestions) => {
-                if (suggestions && suggestions.length > 0 && user?.email) {
-                  const copilotState = loadCopilotState(user.email, applicationId);
-                  let nextState = copilotState;
-                  const newFormData = { ...formData };
+      {showFloatingChat && user?.email && (
+        <SpliChatWorkspace
+          panelRef={aiPanelRef}
+          applicationId={applicationId}
+          userEmail={user.email}
+          formSummary={formSummary}
+          formData={formData}
+          onClose={() => setShowFloatingChat(false)}
+          onFieldClick={navigateToField}
+          onFormUpdate={(suggestions) => {
+            if (suggestions && suggestions.length > 0 && user?.email) {
+              const copilotState = loadCopilotState(user.email, applicationId);
+              let nextState = copilotState;
+              const newFormData = { ...formData };
 
-                  suggestions.forEach((suggestion: { field: string; value: string }) => {
-                    const prev = formData[suggestion.field] ?? '';
-                    newFormData[suggestion.field] = suggestion.value;
-                    nextState = recordChange(nextState, {
-                      fieldName: suggestion.field,
-                      previousValue: prev,
-                      newValue: suggestion.value,
-                      source: 'ai_suggestion',
-                      attribution: 'User approved AI draft',
-                    });
-                    const pending = nextState.aiSuggestions.find(
-                      (s) => s.field === suggestion.field && s.status === 'pending'
-                    );
-                    if (pending) {
-                      nextState = markSuggestionApplied(
-                        nextState,
-                        pending.id,
-                        suggestion.value,
-                        suggestion.value !== pending.suggestedValue
-                      );
-                    }
-                  });
-
-                  saveCopilotState(user.email, applicationId, nextState);
-                  setFormData(newFormData);
-                  handleSave();
-                  toast({
-                    title: `${suggestions.length} draft${suggestions.length > 1 ? 's' : ''} applied`,
-                    description: 'Review the updated fields before submitting.',
-                  });
+              suggestions.forEach((suggestion: { field: string; value: string }) => {
+                const prev = formData[suggestion.field] ?? '';
+                newFormData[suggestion.field] = suggestion.value;
+                nextState = recordChange(nextState, {
+                  fieldName: suggestion.field,
+                  previousValue: prev,
+                  newValue: suggestion.value,
+                  source: 'ai_suggestion',
+                  attribution: 'User approved AI draft',
+                });
+                const pending = nextState.aiSuggestions.find(
+                  (s) => s.field === suggestion.field && s.status === 'pending'
+                );
+                if (pending) {
+                  nextState = markSuggestionApplied(
+                    nextState,
+                    pending.id,
+                    suggestion.value,
+                    suggestion.value !== pending.suggestedValue
+                  );
                 }
-              }}
-              onCommand={async (cmd) => {
+              });
+
+              saveCopilotState(user.email, applicationId, nextState);
+              setFormData(newFormData);
+              handleSave();
+              toast({
+                title: `${suggestions.length} draft${suggestions.length > 1 ? 's' : ''} applied`,
+                description: 'Review the updated fields before submitting.',
+              });
+            }
+          }}
+          onCommand={async (cmd) => {
                 const lower = cmd.trim().toLowerCase();
                 console.log('Processing command:', cmd);
                 console.log('Lowercase command:', lower);
@@ -1678,26 +1674,23 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
                 
                 aiPanelRef.current?.addAIMsg("I can help with Part 450 applications, FAA compliance, and aerospace regulations. You can:\n\n• Paste a mission description paragraph and I'll automatically fill out the form\n• Use commands like 'save draft', 'submit application', 'replace [field] with [content]'\n• Ask questions about Part 450 requirements, your application, or aerospace compliance\n\nJust describe your mission and I'll extract the information to fill the form!");
               }}
-              onFileDrop={async (files) => {
-                if (!user) return;
-                for (const file of files) {
-                  const newDocument: Omit<Document, "id" | "uploadedAt"> = {
-                    name: file.name,
-                    type: "attachment",
-                    applicationId: applicationId || undefined,
-                    applicationName: application?.name || undefined,
-                    fileSize: `${(file.size / (1024 * 1024)).toFixed(2)} MB`,
-                    url: URL.createObjectURL(file),
-                    userId: user.email || "",
-                  };
-                  await uploadDocument(newDocument);
-                  aiPanelRef.current?.addAIMsg(`Document "${file.name}" uploaded successfully and added to Document Management.`);
-                }
-              }}
-              hideTabs={true}
-            />
-          </div>
-        </div>
+          onFileDrop={async (files) => {
+            if (!user) return;
+            for (const file of files) {
+              const newDocument: Omit<Document, "id" | "uploadedAt"> = {
+                name: file.name,
+                type: "attachment",
+                applicationId: applicationId || undefined,
+                applicationName: application?.name || undefined,
+                fileSize: `${(file.size / (1024 * 1024)).toFixed(2)} MB`,
+                url: URL.createObjectURL(file),
+                userId: user.email || "",
+              };
+              await uploadDocument(newDocument);
+              aiPanelRef.current?.addAIMsg(`Document "${file.name}" uploaded successfully and added to Document Management.`);
+            }
+          }}
+        />
       )}
     </div>
   );
