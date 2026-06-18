@@ -49,42 +49,30 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
             <>
               <AICursorButton onClick={() => setShowFloatingChat(true)} />
               {showFloatingChat && (
-                <div className="fixed bottom-24 right-8 z-50 w-full max-w-sm">
-                  <div className="bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl overflow-hidden">
-                    <AIAssistantPanel
-                      ref={floatingChatRef}
-                      onCommand={async (cmd) => {
-                        // Example: handle general commands or show a message
-                        floatingChatRef.current?.addAIMsg("This is a general assistant. For form-specific actions, open the application form.");
-                      }}
-                      onFileDrop={async (files) => {
-                        if (!user) return;
-                        for (const file of files) {
-                          const newDocument = {
-                            name: file.name,
-                            type: "attachment" as const,
-                            applicationId: undefined,
-                            applicationName: undefined,
-                            fileSize: `${(file.size / (1024 * 1024)).toFixed(2)} MB`,
-                            url: URL.createObjectURL(file),
-                            userId: user.email || "",
-                          };
-                          await uploadDocument(newDocument);
-                          floatingChatRef.current?.addAIMsg(`Document "${file.name}" uploaded successfully and added to Document Management. You can find it in the Documents tab.`);
-                        }
-                      }}
-                    />
-                    <div className="flex justify-end p-2 bg-zinc-900 border-t border-zinc-800">
-                      <button
-                        className="text-zinc-400 hover:text-white text-xs px-3 py-1 rounded"
-                        onClick={() => setShowFloatingChat(false)}
-                        title="Close chat"
-                      >
-                        Close
-                      </button>
-                    </div>
-                  </div>
-                </div>
+                <AIAssistantPanel
+                  ref={floatingChatRef}
+                  isFloating
+                  onClose={() => setShowFloatingChat(false)}
+                  onCommand={async (cmd) => {
+                    floatingChatRef.current?.addAIMsg("This is a general assistant. For form-specific actions, open the application form.");
+                  }}
+                  onFileDrop={async (files) => {
+                    if (!user) return;
+                    for (const file of files) {
+                      const newDocument = {
+                        name: file.name,
+                        type: "attachment" as const,
+                        applicationId: undefined,
+                        applicationName: undefined,
+                        fileSize: `${(file.size / (1024 * 1024)).toFixed(2)} MB`,
+                        url: URL.createObjectURL(file),
+                        userId: user.email || "",
+                      };
+                      await uploadDocument(newDocument);
+                      floatingChatRef.current?.addAIMsg(`Document "${file.name}" uploaded successfully and added to Document Management. You can find it in the Documents tab.`);
+                    }
+                  }}
+                />
               )}
             </>
           )}

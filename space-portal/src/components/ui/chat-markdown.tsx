@@ -91,7 +91,7 @@ export function ChatMarkdown({ content, className = '' }: ChatMarkdownProps) {
     if (trimmed.startsWith('## ')) {
       flushList();
       elements.push(
-        <h3 key={index} className="text-sm font-semibold text-zinc-100 mt-3 mb-1.5">
+        <h3 key={index} className="text-xs font-bold uppercase tracking-[0.1em] text-zinc-200 mt-4 mb-2">
           {renderInline(trimmed.slice(3))}
         </h3>
       );
@@ -132,7 +132,7 @@ export function ChatMarkdown({ content, className = '' }: ChatMarkdownProps) {
 
     flushList();
     elements.push(
-      <p key={index} className="text-sm leading-relaxed text-zinc-300 my-1">
+      <p key={index} className="text-sm leading-[1.65] text-zinc-300/95 my-1.5 font-light">
         {renderInline(trimmed)}
       </p>
     );

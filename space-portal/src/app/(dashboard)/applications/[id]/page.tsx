@@ -1356,32 +1356,16 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
       </div>
 
       {showFloatingChat && (
-        <div 
-          className="w-[380px] min-w-[380px] h-[calc(100vh-8rem)] flex flex-col bg-zinc-950 border-l border-zinc-800 sticky top-32 overflow-hidden"
+        <div
+          className="w-[400px] min-w-[400px] h-[calc(100vh-8rem)] flex flex-col sticky top-32 overflow-hidden border-l border-zinc-800/80 bg-black"
           onFocus={(e) => e.preventDefault()}
           onBlur={(e) => e.preventDefault()}
         >
-          <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800 bg-zinc-950 flex-shrink-0">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center">
-                <Brain className="h-4 w-4 text-zinc-400" />
-              </div>
-              <div>
-                <span className="font-medium text-zinc-100 text-sm block">SPLI Chat</span>
-                <span className="text-[11px] text-zinc-500">Copilot — you review and submit</span>
-              </div>
-            </div>
-            <button
-              className="text-zinc-500 hover:text-zinc-300 text-lg leading-none px-2 py-1 rounded-md hover:bg-zinc-900 transition-colors"
-              onClick={() => setShowFloatingChat(false)}
-              title="Close chat"
-            >
-              ×
-            </button>
-          </div>
           <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
             <AIAssistantPanel
               ref={aiPanelRef}
+              embedded
+              onClose={() => setShowFloatingChat(false)}
               applicationId={applicationId}
               formSummary={formSummary}
               formData={formData}

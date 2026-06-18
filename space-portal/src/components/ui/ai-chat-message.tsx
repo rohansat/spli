@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ChatMarkdown } from '@/components/ui/chat-markdown';
 import {
-  Bot,
   FileText,
   CheckCircle,
   AlertCircle,
@@ -103,16 +102,16 @@ function SectionBlock({
   tone?: 'default' | 'warning';
 }) {
   return (
-    <div className="mt-4 rounded-lg border border-zinc-700/60 bg-zinc-900/50 overflow-hidden">
+    <div className="mt-4 border border-zinc-800/80 bg-black/40 overflow-hidden">
       <div
-        className={`flex items-center gap-2 px-3 py-2 border-b border-zinc-700/40 ${
-          tone === 'warning' ? 'bg-orange-950/20' : 'bg-zinc-800/40'
+        className={`flex items-center gap-2 px-3 py-2 border-b border-zinc-800/60 ${
+          tone === 'warning' ? 'bg-amber-950/20' : 'bg-zinc-950/60'
         }`}
       >
-        <Icon className={`h-3.5 w-3.5 ${tone === 'warning' ? 'text-orange-400' : 'text-zinc-400'}`} />
-        <span className="text-xs font-medium text-zinc-300">{title}</span>
+        <Icon className={`h-3 w-3 ${tone === 'warning' ? 'text-amber-400/90' : 'text-zinc-500'}`} />
+        <span className="spli-chat-label text-zinc-400">{title}</span>
       </div>
-      <div className="px-3 py-2.5">{children}</div>
+      <div className="px-3 py-3">{children}</div>
     </div>
   );
 }
@@ -185,20 +184,20 @@ export function AiChatMessage({
 
   if (isUser) {
     return (
-      <div className="flex justify-end group">
-        <div className="max-w-[85%] space-y-1">
-          <div className="rounded-2xl rounded-br-md bg-violet-600/15 border border-violet-500/20 px-4 py-2.5">
-            <p className="text-sm leading-relaxed text-zinc-100 whitespace-pre-wrap">
+      <div className="flex justify-end">
+        <div className="max-w-[88%]">
+          <div className="border border-zinc-800 bg-zinc-950/80 px-4 py-3">
+            <p className="text-sm leading-relaxed text-zinc-100 whitespace-pre-wrap font-light">
               {message.content}
             </p>
             {message.attachedFiles && message.attachedFiles.length > 0 && (
-              <div className="mt-2.5 pt-2.5 border-t border-zinc-700/50 flex flex-wrap gap-1.5">
+              <div className="mt-3 pt-3 border-t border-zinc-800/80 flex flex-wrap gap-1.5">
                 {message.attachedFiles.map((file, index) => (
                   <span
                     key={index}
-                    className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-md bg-zinc-900/80 text-zinc-400 border border-zinc-700/50"
+                    className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 border border-zinc-800 bg-black text-zinc-500"
                   >
-                    <Paperclip className="h-3 w-3" />
+                    <Paperclip className="h-3 w-3 opacity-60" />
                     {file}
                   </span>
                 ))}
@@ -211,36 +210,34 @@ export function AiChatMessage({
   }
 
   return (
-    <div className="flex gap-2.5 items-start group">
-      <div className="flex-shrink-0 w-7 h-7 rounded-lg bg-gradient-to-br from-violet-600/15 to-blue-600/15 border border-violet-500/15 flex items-center justify-center mt-0.5">
-        <Bot className="h-3.5 w-3.5 text-violet-300" />
-      </div>
+    <div className="flex gap-3 items-start group">
+      <div className="flex-shrink-0 w-px self-stretch min-h-[24px] bg-zinc-700/60 mt-1" aria-hidden />
 
-      <div className="flex-1 min-w-0 max-w-[90%] space-y-1.5">
-        <div className="rounded-2xl rounded-tl-md border border-zinc-800/80 bg-zinc-900/50 px-4 py-3">
+      <div className="flex-1 min-w-0 space-y-2">
+        <div className="border-l-2 border-l-zinc-600/80 pl-4 py-0.5">
           {message.mode && message.mode !== 'chat' && (
-            <div className="mb-2 flex items-center gap-2">
-              <span className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-wide text-violet-300/80 px-2 py-0.5 rounded-md bg-violet-950/30 border border-violet-800/30">
-                <Sparkles className="h-3 w-3" />
+            <div className="mb-2.5 flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 spli-chat-label text-zinc-400 px-2 py-1 border border-zinc-800 bg-zinc-950">
+                <Sparkles className="h-3 w-3 opacity-60" />
                 {MODE_LABELS[message.mode] || message.mode}
               </span>
-              <span className="inline-flex items-center gap-1 text-[10px] text-zinc-600">
+              <span className="inline-flex items-center gap-1 text-[10px] text-zinc-600 tracking-wide">
                 <Shield className="h-3 w-3" />
-                Draft — review before applying
+                Draft — review required
               </span>
             </div>
           )}
 
           <ChatMarkdown content={message.content} />
           {message.isStreaming && (
-            <span className="inline-block w-1.5 h-4 bg-zinc-400 animate-pulse ml-0.5 align-middle rounded-sm" />
+            <span className="inline-block w-0.5 h-4 bg-zinc-400 animate-pulse ml-0.5 align-middle" />
           )}
 
           {message.suggestions && message.suggestions.length > 0 && !dismissedSuggestions && (
             <SectionBlock title={`Suggested drafts (${message.suggestions.length})`} icon={FileText}>
-              <p className="text-[11px] text-zinc-500 mb-3 flex items-center gap-1">
-                <Shield className="h-3 w-3" />
-                Review each suggestion — nothing is applied without your approval
+              <p className="text-[11px] text-zinc-500 mb-3 flex items-center gap-1.5 font-light">
+                <Shield className="h-3 w-3 opacity-60" />
+                Human approval required before applying
               </p>
               <div className="flex items-center justify-between gap-2 mb-3">
                 {message.confidence !== undefined && (
@@ -271,10 +268,10 @@ export function AiChatMessage({
                 {message.suggestions.map((suggestion, index) => (
                   <div
                     key={index}
-                    className={`rounded-md border px-3 py-2.5 ${
+                    className={`border px-3 py-2.5 ${
                       appliedSuggestions.has(index)
-                        ? 'border-zinc-700/40 bg-zinc-900/30 opacity-60'
-                        : 'border-zinc-700/60 bg-zinc-950/50'
+                        ? 'border-zinc-800/50 bg-zinc-950/20 opacity-50'
+                        : 'border-zinc-800 bg-black/30'
                     }`}
                   >
                     <div className="flex items-start justify-between gap-2">
@@ -350,62 +347,58 @@ export function AiChatMessage({
         </div>
 
         {!message.isStreaming && (
-          <div className="flex items-center justify-between gap-2 px-1">
-            <div className="flex items-center gap-0.5">
+          <div className="flex items-center gap-0.5 pl-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-7 w-7 p-0 rounded-none text-zinc-600 hover:text-zinc-400 hover:bg-zinc-900"
+              onClick={copyMessage}
+              title="Copy"
+            >
+              <Copy className="h-3.5 w-3.5" />
+            </Button>
+            {onRetry && previousUserMessage && (
               <Button
                 size="sm"
                 variant="ghost"
-                className="h-7 w-7 p-0 text-zinc-600 hover:text-zinc-400"
-                onClick={copyMessage}
-                title="Copy"
+                className="h-7 w-7 p-0 rounded-none text-zinc-600 hover:text-zinc-400 hover:bg-zinc-900"
+                onClick={() => onRetry(previousUserMessage)}
+                title="Retry"
               >
-                <Copy className="h-3.5 w-3.5" />
+                <RotateCcw className="h-3.5 w-3.5" />
               </Button>
-              {onRetry && previousUserMessage && (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="h-7 w-7 p-0 text-zinc-600 hover:text-zinc-400"
-                  onClick={() => onRetry(previousUserMessage)}
-                  title="Retry"
-                >
-                  <RotateCcw className="h-3.5 w-3.5" />
-                </Button>
-              )}
-              <Button
-                size="sm"
-                variant="ghost"
-                className={`h-7 w-7 p-0 ${feedback === 'up' ? 'text-zinc-300' : 'text-zinc-600 hover:text-zinc-400'}`}
-                onClick={() => handleFeedback('up')}
-                title="Helpful"
-              >
-                <ThumbsUp className="h-3.5 w-3.5" />
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                className={`h-7 w-7 p-0 ${feedback === 'down' ? 'text-zinc-300' : 'text-zinc-600 hover:text-zinc-400'}`}
-                onClick={() => handleFeedback('down')}
-                title="Not helpful"
-              >
-                <ThumbsDown className="h-3.5 w-3.5" />
-              </Button>
-            </div>
+            )}
+            <Button
+              size="sm"
+              variant="ghost"
+              className={`h-7 w-7 p-0 rounded-none ${feedback === 'up' ? 'text-zinc-300' : 'text-zinc-600 hover:text-zinc-400 hover:bg-zinc-900'}`}
+              onClick={() => handleFeedback('up')}
+              title="Helpful"
+            >
+              <ThumbsUp className="h-3.5 w-3.5" />
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              className={`h-7 w-7 p-0 rounded-none ${feedback === 'down' ? 'text-zinc-300' : 'text-zinc-600 hover:text-zinc-400 hover:bg-zinc-900'}`}
+              onClick={() => handleFeedback('down')}
+              title="Not helpful"
+            >
+              <ThumbsDown className="h-3.5 w-3.5" />
+            </Button>
           </div>
         )}
 
         {message.followUpPrompts && message.followUpPrompts.length > 0 && !message.isStreaming && (
-          <div className="space-y-2">
-            <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-600 px-1">
-              Suggested
-            </p>
+          <div className="space-y-2 pl-4">
+            <p className="spli-chat-label">Follow-up</p>
             <div className="flex flex-col gap-1">
               {message.followUpPrompts.map((prompt, index) => (
                 <button
                   key={index}
                   type="button"
                   onClick={() => onFollowUp?.(prompt)}
-                  className="text-left text-xs px-3 py-2 rounded-lg border border-zinc-800 bg-zinc-900/50 text-zinc-400 hover:text-zinc-200 hover:border-zinc-700 hover:bg-zinc-800/50 transition-colors"
+                  className="text-left text-[11px] px-3 py-2.5 border border-zinc-800/80 bg-black/30 text-zinc-500 hover:text-zinc-200 hover:border-zinc-600 hover:bg-zinc-950/80 transition-colors font-light leading-snug"
                 >
                   {prompt}
                 </button>

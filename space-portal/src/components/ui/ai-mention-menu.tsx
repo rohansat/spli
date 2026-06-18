@@ -36,10 +36,10 @@ export function AiMentionMenu({
   return (
     <div
       ref={listRef}
-      className={`overflow-hidden rounded-lg border border-zinc-700/80 bg-zinc-900 shadow-lg max-h-48 overflow-y-auto ${className}`}
+      className={`overflow-hidden border border-zinc-800 bg-zinc-950 shadow-xl max-h-48 overflow-y-auto ${className}`}
     >
-      <div className="px-3 py-2 border-b border-zinc-800 text-[11px] font-medium uppercase tracking-wider text-zinc-500">
-        Reference a field or action
+      <div className="px-3 py-2 border-b border-zinc-800 spli-chat-label">
+        Reference
       </div>
       {items.map((item, index) => {
         const Icon = item.icon;
@@ -53,7 +53,7 @@ export function AiMentionMenu({
               onSelect(item);
             }}
             className={`w-full text-left px-3 py-2.5 flex items-center gap-3 transition-colors ${
-              selected ? 'bg-zinc-800' : 'hover:bg-zinc-800/60'
+              selected ? 'bg-zinc-900 border-l-2 border-l-zinc-500' : 'hover:bg-zinc-900/60'
             }`}
           >
             <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md bg-zinc-800 border border-zinc-700/50">

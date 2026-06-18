@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import {
   AlertTriangle,
-  Bot,
   ChevronDown,
   ChevronUp,
   ClipboardList,
@@ -42,7 +41,6 @@ export function CopilotPanel({
   onFieldClick,
   className = '',
 }: CopilotPanelProps) {
-  const [isOpen, setIsOpen] = useState(true);
   const [faaInput, setFaaInput] = useState('');
   const [expandedSection, setExpandedSection] = useState<string | null>('inconsistencies');
 
@@ -60,38 +58,15 @@ export function CopilotPanel({
   };
 
   return (
-    <div className={`flex flex-col h-full min-h-0 bg-zinc-950 ${className}`}>
-      <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex-shrink-0 flex items-center justify-between gap-2 px-3 py-2.5 border-b border-zinc-800 hover:bg-zinc-900/50 transition-colors text-left"
-      >
-        <div className="flex items-center gap-2 min-w-0">
-          <Bot className="h-4 w-4 text-violet-400 flex-shrink-0" />
-          <span className="text-sm font-medium text-zinc-200">Copilot Memory</span>
-          {inconsistencies.length > 0 && (
-            <Badge variant="outline" className="text-[10px] h-5 border-orange-500/40 text-orange-400">
-              {inconsistencies.length} issues
-            </Badge>
-          )}
-          {openFaa.length > 0 && (
-            <Badge variant="outline" className="text-[10px] h-5 border-blue-500/40 text-blue-400">
-              {openFaa.length} FAA
-            </Badge>
-          )}
-        </div>
-        {isOpen ? (
-          <ChevronUp className="h-4 w-4 text-zinc-500 flex-shrink-0" />
-        ) : (
-          <ChevronDown className="h-4 w-4 text-zinc-500 flex-shrink-0" />
-        )}
-      </button>
+    <div className={`flex flex-col h-full min-h-0 bg-black spli-chat-messages ${className}`}>
+      <div className="flex-shrink-0 px-4 py-3 border-b border-zinc-800/80">
+        <p className="spli-chat-label mb-1">Mission memory</p>
+        <p className="text-[11px] text-zinc-600 font-light leading-relaxed">
+          Tracked changes, FAA requests, and cross-section alerts.
+        </p>
+      </div>
 
-      {isOpen && (
-        <div className="flex-1 overflow-y-auto ai-chat-scrollbar p-3 space-y-3">
-          <p className="text-[11px] text-zinc-500 leading-relaxed px-0.5">
-            SPLI drafts and flags — you review, decide, and submit. Compliance is validated independently.
-          </p>
+      <div className="flex-1 overflow-y-auto ai-chat-scrollbar p-4 space-y-3">
 
           {/* Inconsistencies */}
           <Section
@@ -112,7 +87,7 @@ export function CopilotPanel({
                     <button
                       type="button"
                       onClick={() => item.fieldName && onFieldClick?.(item.fieldName)}
-                      className="w-full text-left text-xs p-2.5 rounded-lg border border-orange-900/30 bg-orange-950/15 text-orange-200/90 hover:bg-orange-950/25 transition-colors"
+                      className="w-full text-left text-xs p-2.5 border border-amber-900/40 bg-amber-950/10 text-amber-200/90 hover:bg-amber-950/20 transition-colors"
                     >
                       <span className="font-medium">{item.sectionTitle}</span>
                       <p className="text-orange-300/70 mt-0.5 leading-relaxed">{item.message}</p>
@@ -138,14 +113,14 @@ export function CopilotPanel({
                 onChange={(e) => setFaaInput(e.target.value)}
                 placeholder="Log an FAA comment or change request…"
                 rows={2}
-                className="w-full text-xs px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-700 text-zinc-200 placeholder:text-zinc-600 resize-none focus:outline-none focus:border-zinc-600"
+                className="w-full text-xs px-3 py-2 bg-black border border-zinc-800 text-zinc-200 placeholder:text-zinc-600 resize-none focus:outline-none focus:border-zinc-600"
               />
               <Button
                 size="sm"
                 variant="outline"
                 onClick={handleAddFaaComment}
                 disabled={!faaInput.trim()}
-                className="h-7 text-xs border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+                className="h-7 text-[10px] font-bold uppercase tracking-wider rounded-none border-zinc-800 text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200"
               >
                 <Plus className="h-3 w-3 mr-1" />
                 Log request
@@ -267,8 +242,7 @@ export function CopilotPanel({
               </ul>
             )}
           </Section>
-        </div>
-      )}
+      </div>
     </div>
   );
 }
@@ -293,19 +267,19 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-lg border border-zinc-800 overflow-hidden">
+    <div className="border border-zinc-800/80 overflow-hidden">
       <button
         type="button"
         onClick={() => onToggle(id)}
-        className="w-full flex items-center justify-between gap-2 px-3 py-2 bg-zinc-900/60 hover:bg-zinc-900 transition-colors text-left"
+        className="w-full flex items-center justify-between gap-2 px-3 py-2.5 bg-zinc-950/80 hover:bg-zinc-950 transition-colors text-left"
       >
         <div className="flex items-center gap-2">
           <Icon
-            className={`h-3.5 w-3.5 ${tone === 'warning' ? 'text-orange-400' : 'text-zinc-500'}`}
+            className={`h-3 w-3 ${tone === 'warning' ? 'text-amber-400/90' : 'text-zinc-600'}`}
           />
-          <span className="text-xs font-medium text-zinc-300">{title}</span>
+          <span className="spli-chat-label text-zinc-400">{title}</span>
           {count > 0 && (
-            <span className="text-[10px] text-zinc-600 tabular-nums">{count}</span>
+            <span className="text-[10px] text-zinc-600 tabular-nums font-mono">{count}</span>
           )}
         </div>
         {expanded ? (

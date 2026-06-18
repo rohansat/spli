@@ -85,10 +85,10 @@ export function AIContextMenu({ onAction, className = '' }: AIContextMenuProps) 
       : quickActions.filter((a) => a.category === selectedCategory);
 
   return (
-    <div className={`space-y-4 ${className}`}>
+    <div className={`space-y-5 ${className}`}>
       <div>
-        <p className="text-sm font-medium text-zinc-200 mb-1">Quick actions</p>
-        <p className="text-xs text-zinc-500">Select an action to run in chat</p>
+        <p className="spli-chat-label mb-1">Quick actions</p>
+        <p className="text-[11px] text-zinc-600 font-light">Run a workflow in chat</p>
       </div>
 
       <div className="flex flex-wrap gap-1">
@@ -97,10 +97,10 @@ export function AIContextMenu({ onAction, className = '' }: AIContextMenuProps) 
             key={cat.id}
             type="button"
             onClick={() => setSelectedCategory(cat.id)}
-            className={`text-[11px] px-2.5 py-1 rounded-md border transition-colors ${
+            className={`text-[10px] font-bold uppercase tracking-[0.12em] px-2.5 py-1 border transition-colors ${
               selectedCategory === cat.id
-                ? 'bg-zinc-800 border-zinc-600 text-zinc-200'
-                : 'border-zinc-800 text-zinc-500 hover:text-zinc-300 hover:border-zinc-700'
+                ? 'bg-zinc-900 border-zinc-600 text-zinc-200'
+                : 'border-zinc-800/80 text-zinc-600 hover:text-zinc-400 hover:border-zinc-700'
             }`}
           >
             {cat.label}
@@ -108,7 +108,7 @@ export function AIContextMenu({ onAction, className = '' }: AIContextMenuProps) 
         ))}
       </div>
 
-      <div className="space-y-1">
+      <div className="space-y-0.5">
         {filteredActions.map((action) => {
           const Icon = action.icon;
           return (
@@ -116,14 +116,14 @@ export function AIContextMenu({ onAction, className = '' }: AIContextMenuProps) 
               key={action.id}
               type="button"
               onClick={() => onAction(action.id, action.prompt)}
-              className="w-full text-left flex items-start gap-3 px-3 py-2.5 rounded-lg border border-transparent hover:border-zinc-800 hover:bg-zinc-900/60 transition-colors group"
+              className="w-full text-left flex items-start gap-3 px-3 py-3 border border-transparent hover:border-zinc-800 hover:bg-zinc-950/80 transition-colors group"
             >
-              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md bg-zinc-900 border border-zinc-800 group-hover:border-zinc-700">
-                <Icon className="h-3.5 w-3.5 text-zinc-500 group-hover:text-zinc-400" />
+              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center border border-zinc-800 bg-black group-hover:border-zinc-700">
+                <Icon className="h-3.5 w-3.5 text-zinc-600 group-hover:text-zinc-400" />
               </div>
               <div className="min-w-0 pt-0.5">
-                <p className="text-sm text-zinc-200 group-hover:text-zinc-100">{action.title}</p>
-                <p className="text-xs text-zinc-500 mt-0.5">{action.description}</p>
+                <p className="text-xs font-medium text-zinc-300 group-hover:text-zinc-100">{action.title}</p>
+                <p className="text-[11px] text-zinc-600 mt-0.5 font-light">{action.description}</p>
               </div>
             </button>
           );
