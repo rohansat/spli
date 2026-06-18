@@ -3,11 +3,17 @@ import type { Message } from '@anthropic-ai/sdk/resources/messages/messages';
 
 /** Models to try in order — first available wins. */
 export const ANTHROPIC_MODELS = [
-  'claude-sonnet-4-20250514',
-  'claude-3-5-sonnet-20240620',
-  'claude-3-5-sonnet',
-  'claude-3-sonnet-20240229',
+  'claude-sonnet-4-6',
+  'claude-sonnet-4-5-20250929',
+  'claude-haiku-4-5',
 ] as const;
+
+function getModelsToTry(): readonly string[] {
+  if (process.env.ANTHROPIC_MODEL) {
+    return [process.env.ANTHROPIC_MODEL];
+  }
+  return ANTHROPIC_MODELS;
+}
 
 export type AnthropicModel = (typeof ANTHROPIC_MODELS)[number];
 
@@ -28,7 +34,7 @@ export async function createMessageWithFallback(
 ): Promise<Message> {
   let lastError: unknown = null;
 
-  for (const model of ANTHROPIC_MODELS) {
+  for (const model of getModelsToTry()) {
     try {
       const response = await anthropic.messages.create({ ...params, model, stream: false });
       return response as Message;
@@ -41,7 +47,10 @@ export async function createMessageWithFallback(
 
   throw lastError instanceof Error
     ? lastError
-    : new Error('No available Claude models found for this API key.');
+    : new Error(
+        `No available Claude models found (tried: ${getModelsToTry().join(', ')}). ` +
+          'Update ANTHROPIC_MODEL or check your API key at console.anthropic.com.'
+      );
 }
 
 export async function streamMessageWithFallback(
@@ -51,7 +60,7 @@ export async function streamMessageWithFallback(
 ): Promise<string> {
   let lastError: unknown = null;
 
-  for (const model of ANTHROPIC_MODELS) {
+  for (const model of getModelsToTry()) {
     try {
       const stream = anthropic.messages.stream({ ...params, model });
       let fullText = '';
@@ -76,5 +85,8 @@ export async function streamMessageWithFallback(
 
   throw lastError instanceof Error
     ? lastError
-    : new Error('No available Claude models found for this API key.');
+    : new Error(
+        `No available Claude models found (tried: ${getModelsToTry().join(', ')}). ` +
+          'Update ANTHROPIC_MODEL or check your API key at console.anthropic.com.'
+      );
 }
