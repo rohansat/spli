@@ -1,18 +1,11 @@
 'use client';
 
-import React, { useState, useRef, forwardRef, useImperativeHandle, useEffect } from 'react';
+import React, { useState, forwardRef, useImperativeHandle, useEffect } from 'react';
 import { AIChatInsights } from './ai-chat-insights';
 import { AIContextMenu } from './ai-context-menu';
 import { Button } from './button';
-import { Card, CardContent } from './card';
-import { Badge } from './badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './tabs';
-import { 
-  MessageSquare, 
-  Sparkles, 
-  Zap, 
-  Settings
-} from 'lucide-react';
+import { MessageSquare, Sparkles, Bot } from 'lucide-react';
 
 interface AIAssistantPanelProps {
   onFormUpdate?: (suggestions: any[]) => void;
@@ -35,9 +28,8 @@ export interface AIAssistantPanelHandle {
   hideTypingIndicator: () => void;
 }
 
-export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPanelProps>(({ 
-  onFormUpdate, 
-  onCommand,
+export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPanelProps>(({
+  onFormUpdate,
   onFileDrop,
   className,
   isCollapsed = false,
@@ -45,224 +37,111 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
   isFloating = false,
   applicationId,
   formSummary,
+  hideTabs = false,
 }, ref) => {
   const [activeTab, setActiveTab] = useState('chat');
-  const [isMinimized, setIsMinimized] = useState(false);
-  const [messages, setMessages] = useState<any[]>([]);
-  const [quickActionPrompt, setQuickActionPrompt] = useState<string>('');
+  const [quickActionPrompt, setQuickActionPrompt] = useState('');
 
-  // Clear the prompt after it's been sent
   useEffect(() => {
     if (quickActionPrompt) {
-      const timer = setTimeout(() => {
-        setQuickActionPrompt('');
-      }, 2000); // Clear after 2 seconds
+      const timer = setTimeout(() => setQuickActionPrompt(''), 2000);
       return () => clearTimeout(timer);
     }
   }, [quickActionPrompt]);
 
-  // Expose methods via ref
   useImperativeHandle(ref, () => ({
-    addAIMsg: (msg: string) => {
-      setMessages(prev => [...prev, { id: Date.now(), sender: 'ai', content: msg, timestamp: Date.now() }]);
-    },
-    addDiffMsg: (msg: string, oldContent: string, newContent: string, filePath: string, description: string) => {
-      setMessages(prev => [...prev, { 
-        id: Date.now(), 
-        sender: 'ai', 
-        content: msg, 
-        timestamp: Date.now(),
-        type: 'diff',
-        diffData: { oldContent, newContent, filePath, description }
-      }]);
-    },
-    addDocumentAnalysisMsg: (msg: string, insights: any) => {
-      setMessages(prev => [...prev, { 
-        id: Date.now(), 
-        sender: 'ai', 
-        content: msg, 
-        timestamp: Date.now(),
-        type: 'document_analysis',
-        documentInsights: insights
-      }]);
-    },
-    showTypingIndicator: () => {
-      setMessages(prev => [...prev, { 
-        id: Date.now(), 
-        sender: 'ai', 
-        content: '', 
-        timestamp: Date.now(),
-        isTyping: true
-      }]);
-    },
-    hideTypingIndicator: () => {
-      setMessages(prev => prev.filter(msg => !msg.isTyping));
-    }
+    addAIMsg: () => {},
+    addDiffMsg: () => {},
+    addDocumentAnalysisMsg: () => {},
+    showTypingIndicator: () => {},
+    hideTypingIndicator: () => {},
   }));
 
-  const handleContextAction = async (action: string, prompt?: string) => {
-    console.log('Context action:', action, prompt);
-    
-    // Switch to chat tab
+  const handleContextAction = (_action: string, prompt?: string) => {
     setActiveTab('chat');
-    
-    // Set the prompt to be sent to the chat
-    if (prompt) {
-      setQuickActionPrompt(prompt);
-    }
+    if (prompt) setQuickActionPrompt(prompt);
   };
 
-  const handleFormUpdate = (suggestions: any[]) => {
-    if (onFormUpdate) {
-      onFormUpdate(suggestions);
-    }
-  };
-
-  // If collapsed and floating, show floating button
   if (isCollapsed && isFloating) {
     return (
       <div className={`fixed bottom-4 right-4 z-50 ${className}`}>
         <Button
           onClick={onToggleCollapse}
-          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full w-12 h-12 shadow-lg"
+          className="h-11 w-11 rounded-xl bg-zinc-900 border border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white shadow-lg"
         >
-          <div className="w-5 h-5 flex items-center justify-center">
-            <span style={{fontSize: '1.25rem', lineHeight: 1}}>🚀</span>
-          </div>
+          <Bot className="h-5 w-5" />
         </Button>
       </div>
     );
   }
 
-  // If collapsed and not floating, show nothing
-  if (isCollapsed && !isFloating) {
-    return null;
-  }
+  if (isCollapsed && !isFloating) return null;
 
-  // Main component - either floating or inline
-  const containerClasses = isFloating 
+  const containerClasses = isFloating
     ? `fixed bottom-4 right-4 z-50 w-96 max-h-[600px] ${className}`
-    : `w-full h-full ${className}`;
+    : `w-full h-full flex flex-col min-h-0 ${className}`;
+
+  const chatContent = (
+    <AIChatInsights
+      onFormUpdate={onFormUpdate}
+      onFileDrop={onFileDrop}
+      className="flex-1 min-h-0"
+      isInline
+      initialPrompt={quickActionPrompt}
+      applicationId={applicationId}
+      formSummary={formSummary}
+    />
+  );
 
   return (
     <div className={containerClasses}>
-      <Card className="bg-zinc-900 border-zinc-800 shadow-2xl h-full">
-        {(!isFloating || !isMinimized) && (
-          <div className="p-3 border-b border-zinc-800 bg-zinc-900">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-2 bg-zinc-800">
-                <TabsTrigger 
-                  value="chat" 
-                  className="data-[state=active]:bg-zinc-700 data-[state=active]:text-white"
+      <div className="flex flex-col h-full min-h-0 rounded-xl border border-zinc-800 bg-zinc-950 overflow-hidden">
+        {hideTabs ? (
+          chatContent
+        ) : (
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col h-full min-h-0">
+            <div className="flex-shrink-0 px-3 pt-3 pb-2 border-b border-zinc-800">
+              <TabsList className="grid w-full grid-cols-2 h-9 bg-zinc-900 border border-zinc-800 p-0.5 rounded-lg">
+                <TabsTrigger
+                  value="chat"
+                  className="rounded-md text-xs data-[state=active]:bg-zinc-800 data-[state=active]:text-zinc-100 text-zinc-500"
                 >
-                  <MessageSquare className="h-4 w-4 mr-2" />
+                  <MessageSquare className="h-3.5 w-3.5 mr-1.5" />
                   Chat
                 </TabsTrigger>
-                <TabsTrigger 
-                  value="actions" 
-                  className="data-[state=active]:bg-zinc-700 data-[state=active]:text-white"
+                <TabsTrigger
+                  value="actions"
+                  className="rounded-md text-xs data-[state=active]:bg-zinc-800 data-[state=active]:text-zinc-100 text-zinc-500"
                 >
-                  <Sparkles className="h-4 w-4 mr-2" />
+                  <Sparkles className="h-3.5 w-3.5 mr-1.5" />
                   Actions
                 </TabsTrigger>
               </TabsList>
-            </Tabs>
-          </div>
-        )}
+            </div>
 
-        {(!isFloating || !isMinimized) && (
-          <div className="flex-1 flex flex-col min-h-0">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex-1 flex flex-col">
-              <TabsContent value="chat" className="mt-0 flex-1 flex flex-col min-h-0">
-                <AIChatInsights 
-                  onFormUpdate={handleFormUpdate}
-                  onFileDrop={onFileDrop}
-                  className="border-0 shadow-none flex-1 min-h-0"
-                  isInline={true}
-                  initialPrompt={quickActionPrompt}
-                  applicationId={applicationId}
-                  formSummary={formSummary}
-                />
-              </TabsContent>
+            <TabsContent value="chat" className="flex-1 flex flex-col min-h-0 mt-0 data-[state=inactive]:hidden">
+              {chatContent}
+            </TabsContent>
 
-              <TabsContent value="actions" className="mt-0 flex-1 min-h-0">
-                <div className="h-full overflow-y-auto ai-chat-scrollbar">
-                  <AIContextMenu 
-                    onAction={handleContextAction}
-                    className="p-4"
-                  />
-                </div>
-              </TabsContent>
-            </Tabs>
-          </div>
+            <TabsContent value="actions" className="flex-1 min-h-0 mt-0 overflow-y-auto ai-chat-scrollbar p-3 data-[state=inactive]:hidden">
+              <AIContextMenu onAction={handleContextAction} />
+            </TabsContent>
+          </Tabs>
         )}
-      </Card>
+      </div>
     </div>
   );
 });
 
 AIAssistantPanel.displayName = 'AIAssistantPanel';
 
-// Floating AI Button for mobile/compact view
 export function FloatingAIButton({ onClick }: { onClick: () => void }) {
   return (
     <Button
       onClick={onClick}
-      className="fixed bottom-4 right-4 z-50 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full w-14 h-14 shadow-lg animate-pulse"
+      className="fixed bottom-4 right-4 z-50 h-12 w-12 rounded-xl bg-zinc-900 border border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white shadow-lg"
     >
-      <div className="w-6 h-6 flex items-center justify-center">
-        <span style={{fontSize: '1.5rem', lineHeight: 1}}>🚀</span>
-      </div>
+      <Bot className="h-5 w-5" />
     </Button>
   );
 }
-
-// AI Status Indicator
-export function AIStatusIndicator({ 
-  isOnline = true, 
-  lastResponseTime 
-}: { 
-  isOnline?: boolean; 
-  lastResponseTime?: string; 
-}) {
-  return (
-    <div className="flex items-center gap-2 text-sm">
-      <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-green-500' : 'bg-red-500'}`} />
-      <span className={isOnline ? 'text-green-400' : 'text-red-400'}>
-        {isOnline ? 'AI Online' : 'AI Offline'}
-      </span>
-      {lastResponseTime && (
-        <span className="text-gray-400 text-xs">
-          Last response: {lastResponseTime}
-        </span>
-      )}
-    </div>
-  );
-}
-
-// AI Quick Actions Bar
-export function AIQuickActionsBar({ onAction }: { onAction: (action: string) => void }) {
-  const quickActions = [
-    { id: 'fill-form', label: 'Fill Form', icon: '📝' },
-    { id: 'compliance', label: 'Check Compliance', icon: '✅' },
-    { id: 'analyze', label: 'Analyze Mission', icon: '🔍' },
-    { id: 'help', label: 'Get Help', icon: '❓' }
-  ];
-
-  return (
-    <div className="flex items-center gap-2 p-2 bg-gray-800 rounded-lg">
-      {quickActions.map((action) => (
-        <Button
-          key={action.id}
-          variant="ghost"
-          size="sm"
-          onClick={() => onAction(action.id)}
-          className="text-gray-300 hover:text-white hover:bg-gray-700"
-        >
-          <span className="mr-1">{action.icon}</span>
-          {action.label}
-        </Button>
-      ))}
-    </div>
-  );
-} 

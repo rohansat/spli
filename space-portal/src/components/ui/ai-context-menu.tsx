@@ -1,20 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { 
-  Sparkles, 
-  FileText, 
-  CheckCircle, 
-  MessageSquare, 
-  Zap, 
-  Lightbulb,
+import {
+  FileText,
+  CheckCircle,
   Target,
   Shield,
   Clock,
-  TrendingUp
+  TrendingUp,
 } from 'lucide-react';
 
 interface AIContextMenuProps {
@@ -26,202 +19,116 @@ const quickActions = [
   {
     id: 'fill-form',
     title: 'Fill Application',
-    description: 'Auto-fill Part 450 form from mission description',
+    description: 'Auto-fill from mission description',
     icon: FileText,
     prompt: 'Help me fill out a Part 450 application with my mission details',
-    color: 'from-blue-500 to-cyan-500',
-    category: 'form'
+    category: 'form',
   },
   {
     id: 'compliance-check',
     title: 'Compliance Check',
-    description: 'Verify your application meets FAA requirements',
+    description: 'Verify FAA Part 450 requirements',
     icon: CheckCircle,
     prompt: 'Check my application for compliance with FAA Part 450 regulations',
-    color: 'from-green-500 to-emerald-500',
-    category: 'compliance'
+    category: 'compliance',
   },
   {
     id: 'mission-analysis',
     title: 'Mission Analysis',
-    description: 'Get detailed analysis of your space mission',
+    description: 'Detailed mission insights',
     icon: Target,
     prompt: 'Analyze my mission description and provide insights',
-    color: 'from-purple-500 to-pink-500',
-    category: 'analysis'
+    category: 'analysis',
   },
   {
     id: 'safety-review',
     title: 'Safety Review',
-    description: 'Review safety considerations and risk assessments',
+    description: 'Risk and safety considerations',
     icon: Shield,
     prompt: 'Review safety considerations for my launch mission',
-    color: 'from-orange-500 to-red-500',
-    category: 'safety'
+    category: 'safety',
   },
   {
     id: 'timeline-planning',
     title: 'Timeline Planning',
-    description: 'Plan your application and launch timeline',
+    description: 'Application and launch schedule',
     icon: Clock,
     prompt: 'Help me plan the timeline for my launch application',
-    color: 'from-indigo-500 to-purple-500',
-    category: 'planning'
+    category: 'planning',
   },
   {
     id: 'industry-insights',
     title: 'Industry Insights',
-    description: 'Get insights about the space industry and regulations',
+    description: 'Trends and regulations',
     icon: TrendingUp,
     prompt: 'Provide insights about current space industry trends and regulations',
-    color: 'from-teal-500 to-blue-500',
-    category: 'insights'
-  }
+    category: 'insights',
+  },
 ];
 
-const aiFeatures = [
-  {
-    title: 'Intelligent Form Filling',
-    description: 'AI automatically extracts information from mission descriptions and populates Part 450 forms',
-    icon: Sparkles,
-    benefit: 'Save 80% of form completion time'
-  },
-  {
-    title: 'Real-time Compliance',
-    description: 'Instant validation against FAA Part 450 requirements with detailed feedback',
-    icon: CheckCircle,
-    benefit: '95% compliance accuracy'
-  },
-  {
-    title: 'Smart Suggestions',
-    description: 'AI-powered recommendations for improving your application quality',
-    icon: Lightbulb,
-    benefit: 'Reduce application rejections'
-  },
-  {
-    title: 'Professional Guidance',
-    description: 'Expert assistance with space licensing and regulatory requirements',
-    icon: MessageSquare,
-    benefit: 'Access to regulatory expertise'
-  }
+const categories = [
+  { id: 'all', label: 'All' },
+  { id: 'form', label: 'Form' },
+  { id: 'compliance', label: 'Compliance' },
+  { id: 'analysis', label: 'Analysis' },
+  { id: 'safety', label: 'Safety' },
+  { id: 'planning', label: 'Planning' },
+  { id: 'insights', label: 'Insights' },
 ];
 
-export function AIContextMenu({ onAction, className }: AIContextMenuProps) {
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+export function AIContextMenu({ onAction, className = '' }: AIContextMenuProps) {
+  const [selectedCategory, setSelectedCategory] = useState('all');
 
-  const categories = [
-    { id: 'all', name: 'All Actions', count: quickActions.length },
-    { id: 'form', name: 'Form Filling', count: quickActions.filter(a => a.category === 'form').length },
-    { id: 'compliance', name: 'Compliance', count: quickActions.filter(a => a.category === 'compliance').length },
-    { id: 'analysis', name: 'Analysis', count: quickActions.filter(a => a.category === 'analysis').length },
-    { id: 'safety', name: 'Safety', count: quickActions.filter(a => a.category === 'safety').length },
-    { id: 'planning', name: 'Planning', count: quickActions.filter(a => a.category === 'planning').length },
-    { id: 'insights', name: 'Insights', count: quickActions.filter(a => a.category === 'insights').length }
-  ];
-
-  const filteredActions = selectedCategory === 'all' 
-    ? quickActions 
-    : quickActions.filter(action => action.category === selectedCategory);
+  const filteredActions =
+    selectedCategory === 'all'
+      ? quickActions
+      : quickActions.filter((a) => a.category === selectedCategory);
 
   return (
-    <div className={`space-y-4 max-h-full overflow-y-auto ${className}`}>
-      {/* Quick Actions */}
-      <Card className="bg-zinc-900 border-zinc-800">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-white text-lg">Quick Actions</CardTitle>
-          <p className="text-sm text-zinc-400">
-            Get instant help with common tasks and AI-powered assistance
-          </p>
-        </CardHeader>
-        <CardContent className="pt-0">
-          {/* Category Filter */}
-          <div className="flex flex-wrap gap-1 mb-3 max-w-full overflow-x-auto">
-            {categories.map((category) => (
-              <Button
-                key={category.id}
-                variant={selectedCategory === category.id ? "default" : "outline"}
-                size="sm"
-                onClick={() => setSelectedCategory(category.id)}
-                className={`whitespace-nowrap text-xs ${
-                  selectedCategory === category.id 
-                    ? "bg-zinc-700 hover:bg-zinc-600" 
-                    : "border-zinc-600 text-zinc-300 hover:bg-zinc-800"
-                }`}
-              >
-                {category.name}
-                <Badge variant="secondary" className="ml-1 text-xs">
-                  {category.count}
-                </Badge>
-              </Button>
-            ))}
-          </div>
+    <div className={`space-y-4 ${className}`}>
+      <div>
+        <p className="text-sm font-medium text-zinc-200 mb-1">Quick actions</p>
+        <p className="text-xs text-zinc-500">Select an action to run in chat</p>
+      </div>
 
-          {/* Action Grid */}
-          <div className="grid grid-cols-1 gap-2 max-w-full">
-            {filteredActions.map((action) => (
-              <Card 
-                key={action.id}
-                className="bg-zinc-800 border-zinc-700 hover:border-zinc-600 transition-all duration-200 cursor-pointer group"
-                onClick={() => onAction(action.id, action.prompt)}
-              >
-                <CardContent className="p-2">
-                  <div className="flex items-start gap-2">
-                    <div className="flex-shrink-0 p-1.5 rounded-lg bg-zinc-700 group-hover:bg-zinc-600 transition-colors">
-                      <action.icon className="h-3 w-3 text-white" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="text-xs font-medium text-white mb-1 group-hover:text-blue-400 transition-colors truncate">
-                        {action.title}
-                      </h4>
-                      <p className="text-xs text-zinc-400 leading-relaxed line-clamp-2">
-                        {action.description}
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      <div className="flex flex-wrap gap-1">
+        {categories.map((cat) => (
+          <button
+            key={cat.id}
+            type="button"
+            onClick={() => setSelectedCategory(cat.id)}
+            className={`text-[11px] px-2.5 py-1 rounded-md border transition-colors ${
+              selectedCategory === cat.id
+                ? 'bg-zinc-800 border-zinc-600 text-zinc-200'
+                : 'border-zinc-800 text-zinc-500 hover:text-zinc-300 hover:border-zinc-700'
+            }`}
+          >
+            {cat.label}
+          </button>
+        ))}
+      </div>
 
-      {/* AI Tips */}
-      <Card className="bg-zinc-900 border-zinc-800">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-white text-lg">
-            <Lightbulb className="h-5 w-5 text-yellow-400" />
-            AI Tips for Better Results
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <div className="space-y-2">
-            <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 w-2 h-2 bg-blue-400 rounded-full mt-2"></div>
-              <p className="text-sm text-zinc-300">
-                <strong>Be Specific:</strong> Include details like payload mass, launch site, and mission objectives for better form auto-fill
-              </p>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 w-2 h-2 bg-green-400 rounded-full mt-2"></div>
-              <p className="text-sm text-zinc-300">
-                <strong>Use Keywords:</strong> Mention terms like "satellite", "safety", "compliance" for targeted assistance
-              </p>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 w-2 h-2 bg-purple-400 rounded-full mt-2"></div>
-              <p className="text-sm text-zinc-300">
-                <strong>Ask for Reviews:</strong> Request compliance checks and safety reviews to ensure application quality
-              </p>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 w-2 h-2 bg-orange-400 rounded-full mt-2"></div>
-              <p className="text-sm text-zinc-300">
-                <strong>Provide Context:</strong> Share mission documents and technical specifications for comprehensive analysis
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="space-y-1">
+        {filteredActions.map((action) => {
+          const Icon = action.icon;
+          return (
+            <button
+              key={action.id}
+              type="button"
+              onClick={() => onAction(action.id, action.prompt)}
+              className="w-full text-left flex items-start gap-3 px-3 py-2.5 rounded-lg border border-transparent hover:border-zinc-800 hover:bg-zinc-900/60 transition-colors group"
+            >
+              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md bg-zinc-900 border border-zinc-800 group-hover:border-zinc-700">
+                <Icon className="h-3.5 w-3.5 text-zinc-500 group-hover:text-zinc-400" />
+              </div>
+              <div className="min-w-0 pt-0.5">
+                <p className="text-sm text-zinc-200 group-hover:text-zinc-100">{action.title}</p>
+                <p className="text-xs text-zinc-500 mt-0.5">{action.description}</p>
+              </div>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
-} 
+}

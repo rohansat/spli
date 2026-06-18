@@ -1,12 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ChatMarkdown } from '@/components/ui/chat-markdown';
 import {
   Bot,
-  User,
   FileText,
   CheckCircle,
   AlertCircle,
@@ -16,6 +14,8 @@ import {
   ThumbsDown,
   Check,
   X,
+  Sparkles,
+  Paperclip,
 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -61,60 +61,76 @@ interface AiChatMessageProps {
   previousUserMessage?: string;
 }
 
-function getConfidenceColor(confidence: number) {
-  if (confidence >= 0.8) return 'bg-green-600';
-  if (confidence >= 0.6) return 'bg-yellow-600';
-  return 'bg-red-600';
-}
+const MODE_LABELS: Record<string, string> = {
+  'form-fill': 'Form Fill',
+  compliance: 'Compliance',
+  analysis: 'Analysis',
+};
 
-function getConfidenceText(confidence: number) {
-  if (confidence >= 0.8) return 'High';
-  if (confidence >= 0.6) return 'Medium';
-  return 'Low';
-}
+const INSIGHT_SECTIONS: Array<{ key: keyof DocumentInsights; label: string }> = [
+  { key: 'technicalSpecs', label: 'Technical Specifications' },
+  { key: 'missionObjectives', label: 'Mission Objectives' },
+  { key: 'safetyConsiderations', label: 'Safety Considerations' },
+  { key: 'timelineInfo', label: 'Timeline' },
+  { key: 'missingInformation', label: 'Missing Information' },
+  { key: 'complianceRequirements', label: 'Compliance' },
+  { key: 'integrationSuggestions', label: 'Integration' },
+];
 
 function formatFieldName(field: string) {
   return field.replace(/([A-Z])/g, ' $1').replace(/^./, (s) => s.toUpperCase()).trim();
 }
 
-const INSIGHT_SECTIONS: Array<{
-  key: keyof DocumentInsights;
-  label: string;
-  color: string;
-}> = [
-  { key: 'technicalSpecs', label: 'Technical Specifications', color: 'text-blue-300' },
-  { key: 'missionObjectives', label: 'Mission Objectives', color: 'text-green-300' },
-  { key: 'safetyConsiderations', label: 'Safety Considerations', color: 'text-red-300' },
-  { key: 'timelineInfo', label: 'Timeline Information', color: 'text-yellow-300' },
-  { key: 'missingInformation', label: 'Missing Information', color: 'text-orange-300' },
-  { key: 'complianceRequirements', label: 'Compliance Requirements', color: 'text-purple-300' },
-  { key: 'integrationSuggestions', label: 'Integration Suggestions', color: 'text-emerald-300' },
-];
+function SectionBlock({
+  title,
+  icon: Icon,
+  children,
+  tone = 'default',
+}: {
+  title: string;
+  icon: React.ElementType;
+  children: React.ReactNode;
+  tone?: 'default' | 'warning';
+}) {
+  return (
+    <div className="mt-4 rounded-lg border border-zinc-700/60 bg-zinc-900/50 overflow-hidden">
+      <div
+        className={`flex items-center gap-2 px-3 py-2 border-b border-zinc-700/40 ${
+          tone === 'warning' ? 'bg-orange-950/20' : 'bg-zinc-800/40'
+        }`}
+      >
+        <Icon className={`h-3.5 w-3.5 ${tone === 'warning' ? 'text-orange-400' : 'text-zinc-400'}`} />
+        <span className="text-xs font-medium text-zinc-300">{title}</span>
+      </div>
+      <div className="px-3 py-2.5">{children}</div>
+    </div>
+  );
+}
 
 function DocumentInsightsPanel({ insights }: { insights: DocumentInsights }) {
   const sections = INSIGHT_SECTIONS.filter(
     (s) => insights[s.key] && (insights[s.key] as string[]).length > 0
   );
-
   if (sections.length === 0) return null;
 
   return (
-    <div className="mt-3 space-y-2">
-      <div className="text-xs font-medium text-zinc-300">Document Analysis</div>
-      {sections.map((section) => (
-        <div key={section.key} className="bg-zinc-900/80 rounded border border-zinc-700 p-2">
-          <div className={`text-xs font-medium mb-1 ${section.color}`}>{section.label}</div>
-          <ul className="text-xs space-y-0.5 text-zinc-400">
-            {(insights[section.key] as string[]).map((item, i) => (
-              <li key={i} className="flex items-start gap-1.5">
-                <span className="text-zinc-500 mt-0.5">•</span>
-                <span>{item}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ))}
-    </div>
+    <SectionBlock title="Document Analysis" icon={FileText}>
+      <div className="space-y-3">
+        {sections.map((section) => (
+          <div key={section.key}>
+            <div className="text-xs font-medium text-zinc-400 mb-1">{section.label}</div>
+            <ul className="space-y-1">
+              {(insights[section.key] as string[]).map((item, i) => (
+                <li key={i} className="flex gap-2 text-xs text-zinc-300 leading-relaxed">
+                  <span className="text-zinc-600 mt-0.5">·</span>
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </SectionBlock>
   );
 }
 
@@ -130,6 +146,8 @@ export function AiChatMessage({
   const [appliedSuggestions, setAppliedSuggestions] = useState<Set<number>>(new Set());
   const [dismissedSuggestions, setDismissedSuggestions] = useState(false);
 
+  const isUser = message.role === 'user';
+
   const copyMessage = async () => {
     await navigator.clipboard.writeText(message.content);
     toast({ title: 'Copied to clipboard' });
@@ -137,7 +155,7 @@ export function AiChatMessage({
 
   const handleFeedback = (type: 'up' | 'down') => {
     setFeedback(type);
-    toast({ title: type === 'up' ? 'Thanks for the feedback!' : 'Feedback noted — we\'ll improve.' });
+    toast({ title: type === 'up' ? 'Thanks for the feedback' : 'Feedback noted' });
   };
 
   const applySuggestion = (index: number) => {
@@ -155,229 +173,216 @@ export function AiChatMessage({
     }
   };
 
-  const isUser = message.role === 'user';
-
-  return (
-    <div className={`flex gap-3 ${isUser ? 'justify-end' : 'justify-start'}`}>
-      {!isUser && (
-        <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
-          <Bot className="h-4 w-4 text-white" />
-        </div>
-      )}
-
-      <div className={`max-w-[85%] ${isUser ? '' : 'flex flex-col gap-1'}`}>
-        <div
-          className={`rounded-lg p-3 ${
-            isUser ? 'bg-blue-600 text-white' : 'bg-zinc-800 text-white'
-          }`}
-        >
-          <div className="flex items-start gap-2">
-            {isUser && <User className="h-4 w-4 mt-0.5 flex-shrink-0" />}
-            <div className="flex-1 min-w-0">
-              {!isUser && message.mode && message.mode !== 'chat' && (
-                <Badge variant="outline" className="mb-2 text-xs border-blue-500 text-blue-300">
-                  {message.mode === 'form-fill' ? 'Form Fill' :
-                   message.mode === 'compliance' ? 'Compliance' :
-                   message.mode === 'analysis' ? 'Analysis' : message.mode}
-                </Badge>
-              )}
-
-              {isUser ? (
-                <p className="text-sm leading-relaxed">{message.content}</p>
-              ) : (
-                <ChatMarkdown content={message.content} />
-              )}
-
-              {message.isStreaming && (
-                <span className="inline-block w-2 h-4 bg-blue-400 animate-pulse ml-0.5 align-middle" />
-              )}
-
-              {message.suggestions && message.suggestions.length > 0 && !dismissedSuggestions && (
-                <div className="mt-3 space-y-2">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2 text-xs text-zinc-300">
-                      <FileText className="h-3 w-3" />
-                      <span className="font-medium">Form Suggestions</span>
-                      {message.confidence !== undefined && (
-                        <Badge className={`text-xs ${getConfidenceColor(message.confidence)} text-white border-0`}>
-                          {getConfidenceText(message.confidence)} Confidence
-                        </Badge>
-                      )}
-                    </div>
-                    <div className="flex gap-1">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-6 px-2 text-xs text-green-400 hover:text-green-300 hover:bg-green-900/30"
-                        onClick={applyAllSuggestions}
-                      >
-                        Apply All
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-6 w-6 p-0 text-zinc-400 hover:text-zinc-200"
-                        onClick={() => setDismissedSuggestions(true)}
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="space-y-1.5">
-                    {message.suggestions.map((suggestion, index) => (
-                      <div
-                        key={index}
-                        className={`text-xs bg-zinc-900 p-2.5 rounded border ${
-                          appliedSuggestions.has(index) ? 'border-green-600/50 opacity-60' : 'border-zinc-700'
-                        }`}
-                      >
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="font-medium text-zinc-200">
-                            {formatFieldName(suggestion.field)}
-                          </div>
-                          {!appliedSuggestions.has(index) && onApplySuggestions && (
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="h-5 px-1.5 text-xs text-green-400 hover:text-green-300 hover:bg-green-900/30 flex-shrink-0"
-                              onClick={() => applySuggestion(index)}
-                            >
-                              <Check className="h-3 w-3 mr-0.5" />
-                              Apply
-                            </Button>
-                          )}
-                          {appliedSuggestions.has(index) && (
-                            <span className="text-green-400 text-xs flex items-center gap-0.5">
-                              <Check className="h-3 w-3" /> Applied
-                            </span>
-                          )}
-                        </div>
-                        <div className="text-zinc-400 mt-1 line-clamp-3">{suggestion.value}</div>
-                        <div className="text-zinc-500 mt-1 italic text-[10px]">{suggestion.reasoning}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {message.nextSteps && message.nextSteps.length > 0 && (
-                <div className="mt-3">
-                  <div className="flex items-center gap-2 text-xs text-zinc-300 mb-2">
-                    <CheckCircle className="h-3 w-3" />
-                    <span className="font-medium">Next Steps</span>
-                  </div>
-                  <ul className="text-xs space-y-1">
-                    {message.nextSteps.map((step, index) => (
-                      <li key={index} className="flex items-start gap-2">
-                        <span className="text-blue-400 mt-0.5">•</span>
-                        <span>{step}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {message.warnings && message.warnings.length > 0 && (
-                <div className="mt-3">
-                  <div className="flex items-center gap-2 text-xs text-orange-400 mb-2">
-                    <AlertCircle className="h-3 w-3" />
-                    <span className="font-medium">Warnings</span>
-                  </div>
-                  <ul className="text-xs space-y-1">
-                    {message.warnings.map((warning, index) => (
-                      <li key={index} className="flex items-start gap-2">
-                        <span className="text-orange-400 mt-0.5">⚠</span>
-                        <span className="text-orange-300">{warning}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {message.attachedFiles && message.attachedFiles.length > 0 && (
-                <div className="mt-2 flex flex-wrap gap-1">
-                  {message.attachedFiles.map((file, index) => (
-                    <span
-                      key={index}
-                      className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-zinc-700 text-zinc-300"
-                    >
-                      <FileText className="h-3 w-3" />
-                      {file}
-                    </span>
-                  ))}
-                </div>
-              )}
-
-              {message.documentInsights && (
-                <DocumentInsightsPanel insights={message.documentInsights} />
-              )}
-            </div>
+  if (isUser) {
+    return (
+      <div className="flex justify-end">
+        <div className="max-w-[88%] space-y-1.5">
+          <div className="rounded-xl rounded-br-sm bg-zinc-800 border border-zinc-700/60 px-4 py-3">
+            <p className="text-sm leading-relaxed text-zinc-100 whitespace-pre-wrap">
+              {message.content}
+            </p>
+            {message.attachedFiles && message.attachedFiles.length > 0 && (
+              <div className="mt-2.5 pt-2.5 border-t border-zinc-700/50 flex flex-wrap gap-1.5">
+                {message.attachedFiles.map((file, index) => (
+                  <span
+                    key={index}
+                    className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-md bg-zinc-900/80 text-zinc-400 border border-zinc-700/50"
+                  >
+                    <Paperclip className="h-3 w-3" />
+                    {file}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
         </div>
+      </div>
+    );
+  }
 
-        {!isUser && !message.isStreaming && (
-          <div className="flex items-center gap-1 px-1">
-            <Button
-              size="sm"
-              variant="ghost"
-              className="h-6 w-6 p-0 text-zinc-500 hover:text-zinc-300"
-              onClick={copyMessage}
-              title="Copy"
-            >
-              <Copy className="h-3 w-3" />
-            </Button>
-            {onRetry && previousUserMessage && (
+  return (
+    <div className="flex gap-3 items-start">
+      <div className="flex-shrink-0 w-7 h-7 rounded-lg bg-zinc-800 border border-zinc-700/60 flex items-center justify-center mt-0.5">
+        <Bot className="h-3.5 w-3.5 text-zinc-400" />
+      </div>
+
+      <div className="flex-1 min-w-0 max-w-[92%] space-y-2">
+        <div className="rounded-xl rounded-tl-sm border border-zinc-700/60 bg-zinc-900/80 px-4 py-3">
+          {message.mode && message.mode !== 'chat' && (
+            <div className="mb-2.5">
+              <span className="inline-flex items-center gap-1 text-[11px] font-medium uppercase tracking-wide text-zinc-400 px-2 py-0.5 rounded-md bg-zinc-800 border border-zinc-700/50">
+                <Sparkles className="h-3 w-3" />
+                {MODE_LABELS[message.mode] || message.mode}
+              </span>
+            </div>
+          )}
+
+          <ChatMarkdown content={message.content} />
+          {message.isStreaming && (
+            <span className="inline-block w-1.5 h-4 bg-zinc-400 animate-pulse ml-0.5 align-middle rounded-sm" />
+          )}
+
+          {message.suggestions && message.suggestions.length > 0 && !dismissedSuggestions && (
+            <SectionBlock title={`Form Suggestions (${message.suggestions.length})`} icon={FileText}>
+              <div className="flex items-center justify-between gap-2 mb-3">
+                {message.confidence !== undefined && (
+                  <span className="text-[11px] text-zinc-500">
+                    Confidence: {Math.round(message.confidence * 100)}%
+                  </span>
+                )}
+                <div className="flex gap-1 ml-auto">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-7 px-2.5 text-xs text-zinc-300 hover:text-white hover:bg-zinc-700"
+                    onClick={applyAllSuggestions}
+                  >
+                    Apply all
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-7 w-7 p-0 text-zinc-500 hover:text-zinc-300"
+                    onClick={() => setDismissedSuggestions(true)}
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              </div>
+              <div className="space-y-2">
+                {message.suggestions.map((suggestion, index) => (
+                  <div
+                    key={index}
+                    className={`rounded-md border px-3 py-2.5 ${
+                      appliedSuggestions.has(index)
+                        ? 'border-zinc-700/40 bg-zinc-900/30 opacity-60'
+                        : 'border-zinc-700/60 bg-zinc-950/50'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <span className="text-xs font-medium text-zinc-200">
+                        {formatFieldName(suggestion.field)}
+                      </span>
+                      {appliedSuggestions.has(index) ? (
+                        <span className="text-[11px] text-zinc-500 flex items-center gap-1">
+                          <Check className="h-3 w-3" /> Applied
+                        </span>
+                      ) : (
+                        onApplySuggestions && (
+                          <button
+                            type="button"
+                            onClick={() => applySuggestion(index)}
+                            className="text-[11px] text-zinc-400 hover:text-zinc-200 transition-colors"
+                          >
+                            Apply
+                          </button>
+                        )
+                      )}
+                    </div>
+                    <p className="text-xs text-zinc-400 mt-1.5 line-clamp-2 leading-relaxed">
+                      {suggestion.value}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </SectionBlock>
+          )}
+
+          {message.nextSteps && message.nextSteps.length > 0 && (
+            <SectionBlock title="Next Steps" icon={CheckCircle}>
+              <ul className="space-y-1.5">
+                {message.nextSteps.map((step, index) => (
+                  <li key={index} className="flex gap-2 text-xs text-zinc-300 leading-relaxed">
+                    <span className="text-zinc-600">{index + 1}.</span>
+                    <span>{step}</span>
+                  </li>
+                ))}
+              </ul>
+            </SectionBlock>
+          )}
+
+          {message.warnings && message.warnings.length > 0 && (
+            <SectionBlock title="Warnings" icon={AlertCircle} tone="warning">
+              <ul className="space-y-1.5">
+                {message.warnings.map((warning, index) => (
+                  <li key={index} className="text-xs text-orange-200/90 leading-relaxed">
+                    {warning}
+                  </li>
+                ))}
+              </ul>
+            </SectionBlock>
+          )}
+
+          {message.documentInsights && (
+            <DocumentInsightsPanel insights={message.documentInsights} />
+          )}
+        </div>
+
+        {!message.isStreaming && (
+          <div className="flex items-center justify-between gap-2 px-1">
+            <div className="flex items-center gap-0.5">
               <Button
                 size="sm"
                 variant="ghost"
-                className="h-6 w-6 p-0 text-zinc-500 hover:text-zinc-300"
-                onClick={() => onRetry(previousUserMessage)}
-                title="Retry"
+                className="h-7 w-7 p-0 text-zinc-600 hover:text-zinc-400"
+                onClick={copyMessage}
+                title="Copy"
               >
-                <RotateCcw className="h-3 w-3" />
+                <Copy className="h-3.5 w-3.5" />
               </Button>
-            )}
-            <Button
-              size="sm"
-              variant="ghost"
-              className={`h-6 w-6 p-0 ${feedback === 'up' ? 'text-green-400' : 'text-zinc-500 hover:text-zinc-300'}`}
-              onClick={() => handleFeedback('up')}
-              title="Helpful"
-            >
-              <ThumbsUp className="h-3 w-3" />
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              className={`h-6 w-6 p-0 ${feedback === 'down' ? 'text-red-400' : 'text-zinc-500 hover:text-zinc-300'}`}
-              onClick={() => handleFeedback('down')}
-              title="Not helpful"
-            >
-              <ThumbsDown className="h-3 w-3" />
-            </Button>
+              {onRetry && previousUserMessage && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 w-7 p-0 text-zinc-600 hover:text-zinc-400"
+                  onClick={() => onRetry(previousUserMessage)}
+                  title="Retry"
+                >
+                  <RotateCcw className="h-3.5 w-3.5" />
+                </Button>
+              )}
+              <Button
+                size="sm"
+                variant="ghost"
+                className={`h-7 w-7 p-0 ${feedback === 'up' ? 'text-zinc-300' : 'text-zinc-600 hover:text-zinc-400'}`}
+                onClick={() => handleFeedback('up')}
+                title="Helpful"
+              >
+                <ThumbsUp className="h-3.5 w-3.5" />
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                className={`h-7 w-7 p-0 ${feedback === 'down' ? 'text-zinc-300' : 'text-zinc-600 hover:text-zinc-400'}`}
+                onClick={() => handleFeedback('down')}
+                title="Not helpful"
+              >
+                <ThumbsDown className="h-3.5 w-3.5" />
+              </Button>
+            </div>
           </div>
         )}
 
-        {!isUser && message.followUpPrompts && message.followUpPrompts.length > 0 && !message.isStreaming && (
-          <div className="flex flex-wrap gap-1.5 mt-1">
-            {message.followUpPrompts.map((prompt, index) => (
-              <button
-                key={index}
-                onClick={() => onFollowUp?.(prompt)}
-                className="text-xs px-2.5 py-1 rounded-full border border-zinc-700 text-zinc-300 hover:border-blue-500 hover:text-blue-300 hover:bg-blue-950/30 transition-colors text-left"
-              >
-                {prompt}
-              </button>
-            ))}
+        {message.followUpPrompts && message.followUpPrompts.length > 0 && !message.isStreaming && (
+          <div className="space-y-2">
+            <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-600 px-1">
+              Suggested
+            </p>
+            <div className="flex flex-col gap-1">
+              {message.followUpPrompts.map((prompt, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={() => onFollowUp?.(prompt)}
+                  className="text-left text-xs px-3 py-2 rounded-lg border border-zinc-800 bg-zinc-900/50 text-zinc-400 hover:text-zinc-200 hover:border-zinc-700 hover:bg-zinc-800/50 transition-colors"
+                >
+                  {prompt}
+                </button>
+              ))}
+            </div>
           </div>
         )}
       </div>
-
-      {isUser && (
-        <div className="flex-shrink-0 w-8 h-8 bg-zinc-700 rounded-full flex items-center justify-center">
-          <User className="h-4 w-4 text-white" />
-        </div>
-      )}
     </div>
   );
 }

@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Button } from './button';
-import { Brain, Sparkles } from 'lucide-react';
+import { Bot } from 'lucide-react';
 
 interface AICursorButtonProps {
   onClick: () => void;
@@ -18,24 +18,18 @@ export function AICursorButton({ onClick, className = "" }: AICursorButtonProps)
         onClick={onClick}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        className="relative group bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white rounded-full w-14 h-14 p-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110"
+        className="relative h-12 w-12 rounded-xl bg-zinc-900 border border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white shadow-lg p-0"
       >
-        <Brain className="h-6 w-6" />
-        
-        {/* Tooltip */}
-        <div className={`absolute bottom-full right-0 mb-2 px-3 py-2 bg-zinc-900 text-white text-sm rounded-lg shadow-lg whitespace-nowrap transition-opacity duration-200 ${
-          isHovered ? 'opacity-100' : 'opacity-0'
-        }`}>
-          <div className="flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-blue-400" />
-            <span>AI Form Assistant</span>
-          </div>
-          <div className="absolute top-full right-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-zinc-900"></div>
+        <Bot className="h-5 w-5" />
+
+        <div
+          className={`absolute bottom-full right-0 mb-2 px-3 py-1.5 bg-zinc-900 border border-zinc-800 text-zinc-300 text-xs rounded-lg shadow-lg whitespace-nowrap transition-opacity duration-200 ${
+            isHovered ? 'opacity-100' : 'opacity-0 pointer-events-none'
+          }`}
+        >
+          SPLI Chat
         </div>
-        
-        {/* Pulse animation */}
-        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 opacity-20 animate-ping"></div>
       </Button>
     </div>
   );
-} 
+}
