@@ -54,7 +54,7 @@ const WELCOME_MESSAGE: ChatMessage = {
   id: 'welcome',
   role: 'assistant',
   content:
-    "I'm **SPLI Chat**, your copilot for FAA Part 450 applications.\n\nI draft responses from your docs, flag section inconsistencies, and log FAA feedback — **you review and submit**.",
+    'Draft Part 450 field content, flag cross-section inconsistencies, and track FAA feedback — you review and submit.',
   timestamp: new Date(),
   followUpPrompts: [
     'Check my application for cross-section inconsistencies',
@@ -482,13 +482,12 @@ export function AIChatInsights({
       <div className={`flex-1 overflow-y-auto spli-chat-messages ${isInline ? 'px-4 py-4' : 'p-4'} ai-chat-scrollbar`}>
         <div className="space-y-5 max-w-none">
           {inconsistencies.length > 0 && (
-            <div className="border border-amber-900/40 bg-amber-950/15 px-3 py-2.5">
-              <p className="spli-chat-label text-amber-500/90 mb-1">
-                Cross-section alert · {inconsistencies.length}
+            <div className="rounded-lg border border-amber-500/20 bg-amber-500/[0.06] px-3 py-2.5">
+              <p className="text-[12px] font-medium text-amber-400/90 mb-0.5">
+                {inconsistencies.length} cross-section alert{inconsistencies.length !== 1 ? 's' : ''}
               </p>
-              <p className="text-[11px] text-amber-200/70 leading-relaxed font-light">
+              <p className="text-[11px] text-amber-200/60 leading-relaxed">
                 {inconsistencies[0].message}
-                {inconsistencies.length > 1 ? ` (+${inconsistencies.length - 1} in Memory)` : ''}
               </p>
             </div>
           )}
@@ -520,6 +519,7 @@ export function AIChatInsights({
             <AiChatMessage
               key={message.id}
               message={message}
+              isWelcome={message.id === 'welcome' || message.id.startsWith('welcome-')}
               previousUserMessage={getPreviousUserMessage(index)}
               onRetry={handleRetry}
               onApplySuggestions={onFormUpdate ? (s) => onFormUpdate(s) : undefined}
@@ -528,13 +528,13 @@ export function AIChatInsights({
           ))}
 
           {isLoading && !streamingMessageId && (
-            <div className="flex items-center gap-2.5 px-1 py-2">
+            <div className="flex items-center gap-2 px-1 py-2">
               <div className="flex gap-1">
                 <span className="h-1 w-1 rounded-full bg-zinc-500 animate-pulse" />
                 <span className="h-1 w-1 rounded-full bg-zinc-500 animate-pulse [animation-delay:150ms]" />
                 <span className="h-1 w-1 rounded-full bg-zinc-500 animate-pulse [animation-delay:300ms]" />
               </div>
-              <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">Processing</span>
+              <span className="text-[12px] text-zinc-500">Thinking…</span>
             </div>
           )}
 
@@ -543,7 +543,7 @@ export function AIChatInsights({
       </div>
 
       {/* Composer */}
-      <div className="flex-shrink-0 spli-chat-composer p-4">
+      <div className="flex-shrink-0 spli-chat-composer">
         <input
           ref={fileInputRef}
           type="file"
@@ -563,7 +563,7 @@ export function AIChatInsights({
         )}
 
         {attachedDocuments.length > 0 && (
-          <div className="mb-3 border border-zinc-800/80 bg-zinc-950/80 px-3 py-2.5">
+          <div className="mb-2.5 rounded-xl border border-white/[0.06] bg-white/[0.02] px-3 py-2">
             <div className="flex items-center justify-between mb-2">
               <span className="spli-chat-label">Attachments</span>
               <button
@@ -573,7 +573,7 @@ export function AIChatInsights({
                     'Analyze the attached documents for Part 450 application relevance'
                   )
                 }
-                className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 hover:text-zinc-300 transition-colors"
+                className="text-[11px] text-zinc-500 hover:text-zinc-300 transition-colors"
               >
                 Analyze
               </button>
@@ -582,7 +582,7 @@ export function AIChatInsights({
               {attachedDocuments.map((doc, index) => (
                 <span
                   key={`${doc.name}-${index}`}
-                  className="inline-flex items-center gap-1.5 text-[10px] px-2 py-1 border border-zinc-800 bg-black text-zinc-400"
+                  className="inline-flex items-center gap-1.5 text-[11px] px-2 py-1 rounded-md bg-white/[0.04] text-zinc-400"
                 >
                   <Paperclip className="h-3 w-3 opacity-60" />
                   <span className="max-w-[140px] truncate">{doc.name}</span>
@@ -600,7 +600,7 @@ export function AIChatInsights({
           </div>
         )}
 
-        <div className="border border-zinc-800/90 bg-zinc-950/90 focus-within:border-zinc-600 transition-colors duration-200">
+        <div className="spli-chat-input-box">
           <textarea
             ref={inputRef}
             value={input}
@@ -608,21 +608,21 @@ export function AIChatInsights({
               handleInputChange(e);
               const t = e.target;
               t.style.height = 'auto';
-              t.style.height = `${Math.min(t.scrollHeight, 160)}px`;
+              t.style.height = `${Math.min(t.scrollHeight, 140)}px`;
             }}
             onKeyDown={handleKeyDown}
             onClick={(e) =>
               updateMentionState(input, (e.target as HTMLTextAreaElement).selectionStart ?? 0)
             }
-            placeholder="Message SPLI Copilot…"
-            className="w-full min-h-[48px] max-h-[160px] px-4 pt-3.5 pb-2 bg-transparent text-sm text-zinc-100 placeholder:text-zinc-600 resize-none focus:outline-none font-light"
+            placeholder="Ask anything about your application…"
+            className="w-full min-h-[44px] max-h-[140px] px-3.5 pt-3 pb-1 bg-transparent text-[13px] text-zinc-100 placeholder:text-zinc-600 resize-none focus:outline-none"
             disabled={isLoading}
             rows={1}
-            style={{ height: '48px', lineHeight: '1.55' }}
+            style={{ height: '44px', lineHeight: '1.5' }}
           />
 
-          <div className="flex items-center justify-between px-2 pb-2 pt-0">
-            <div className="flex items-center">
+          <div className="flex items-center justify-between px-2 pb-2">
+            <div className="flex items-center gap-0.5">
               <Button
                 type="button"
                 variant="ghost"
@@ -630,7 +630,7 @@ export function AIChatInsights({
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isLoading}
                 title="Attach document"
-                className="h-8 w-8 p-0 rounded-none text-zinc-600 hover:text-zinc-300 hover:bg-zinc-900"
+                className="h-7 w-7 p-0 rounded-md text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.06]"
               >
                 <Paperclip className="h-4 w-4" />
               </Button>
@@ -642,15 +642,12 @@ export function AIChatInsights({
                   onClick={toggleListening}
                   disabled={isLoading}
                   title={isListening ? 'Stop listening' : 'Voice input'}
-                  className={`h-8 w-8 p-0 rounded-none hover:bg-zinc-900 ${
-                    isListening ? 'text-red-400' : 'text-zinc-600 hover:text-zinc-300'
+                  className={`h-7 w-7 p-0 rounded-md hover:bg-white/[0.06] ${
+                    isListening ? 'text-red-400' : 'text-zinc-500 hover:text-zinc-300'
                   }`}
                 >
                   {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
                 </Button>
-              )}
-              {isListening && (
-                <span className="text-[10px] uppercase tracking-wider text-red-400/80 ml-1">Rec</span>
               )}
             </div>
 
@@ -659,19 +656,20 @@ export function AIChatInsights({
               onClick={() => sendMessageWithContent(input)}
               disabled={!canSend}
               size="sm"
-              className="h-8 px-4 gap-2 rounded-none border border-zinc-600 bg-zinc-100 text-zinc-900 hover:bg-white hover:border-zinc-400 disabled:opacity-25 disabled:border-zinc-800 disabled:bg-zinc-800 disabled:text-zinc-600 text-[10px] font-bold uppercase tracking-[0.12em]"
+              className="h-7 w-7 p-0 rounded-md bg-zinc-100 text-zinc-900 hover:bg-white disabled:opacity-20 disabled:bg-zinc-700 disabled:text-zinc-500"
+              title="Send"
             >
               {isLoading ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
               ) : (
-                <>
-                  <Send className="h-3.5 w-3.5" />
-                  Send
-                </>
+                <Send className="h-3.5 w-3.5" />
               )}
             </Button>
           </div>
         </div>
+        <p className="text-[10px] text-zinc-600 text-center mt-2">
+          SPLI drafts suggestions — you review and submit
+        </p>
       </div>
     </div>
   );

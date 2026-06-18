@@ -15,13 +15,12 @@ import {
   updateSession,
   deleteSession,
 } from '@/lib/chat-session-service';
-import { X } from 'lucide-react';
 
 const WELCOME_MESSAGE: ChatMessage = {
   id: 'welcome',
   role: 'assistant',
   content:
-    "I'm **SPLI Chat**, your copilot for FAA Part 450 applications.\n\nI draft responses from your docs, flag section inconsistencies, and log FAA feedback — **you review and submit**.",
+    'Draft Part 450 field content, flag cross-section inconsistencies, and track FAA feedback — you review and submit.',
   timestamp: new Date(),
   followUpPrompts: [
     'Check my application for cross-section inconsistencies',
@@ -65,7 +64,7 @@ export function SpliChatWorkspace({
 
   const { width, isResizing, handleMouseDown } = useResizablePanel({
     storageKey: `spli-chat-width-${userEmail}_${applicationId}`,
-    defaultWidth: 420,
+    defaultWidth: 440,
     minWidth: 340,
     maxWidth: 720,
     edge: 'left',
@@ -147,23 +146,20 @@ export function SpliChatWorkspace({
 
   return (
     <div
-      className="relative flex flex-shrink-0 h-full border-l border-zinc-800/80 bg-black"
+      className="relative flex flex-shrink-0 h-full spli-chat-shell"
       style={{ width }}
     >
-      {/* Resize handle */}
       <div
         role="separator"
         aria-orientation="vertical"
         aria-label="Resize chat panel"
         onMouseDown={handleMouseDown}
-        className={`absolute left-0 top-0 bottom-0 w-1 z-10 cursor-col-resize group hover:bg-zinc-600/50 transition-colors ${
-          isResizing ? 'bg-zinc-500/60' : 'bg-transparent'
+        className={`absolute left-0 top-0 bottom-0 w-[3px] z-10 cursor-col-resize group transition-colors ${
+          isResizing ? 'bg-zinc-500/40' : 'hover:bg-white/[0.08]'
         }`}
-      >
-        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-12 rounded-full bg-zinc-700/0 group-hover:bg-zinc-600/80 transition-colors" />
-      </div>
+      />
 
-      <div className="flex flex-1 min-w-0 h-full pl-1">
+      <div className="flex flex-1 min-w-0 h-full">
         <ChatHistoryRail
           sessions={sessionStore.sessions}
           activeSessionId={sessionStore.activeSessionId}
@@ -174,26 +170,13 @@ export function SpliChatWorkspace({
           onDeleteSession={handleDeleteSession}
         />
 
-        <div className="flex-1 min-w-0 flex flex-col h-full">
-          <div className="flex-shrink-0 flex items-center justify-between px-4 py-2.5 border-b border-zinc-800/80 bg-zinc-950/80">
-            <p className="text-sm text-zinc-300 truncate font-light">
-              {activeSession?.title ?? 'New chat'}
-            </p>
-            <button
-              type="button"
-              onClick={onClose}
-              className="h-7 w-7 flex items-center justify-center text-zinc-500 hover:text-zinc-200 hover:bg-zinc-900 transition-colors flex-shrink-0"
-              title="Close panel"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-
+        <div className="flex-1 min-w-0 flex flex-col h-full bg-[#0c0c0e]">
           <AIAssistantPanel
             ref={panelRef}
             key={`${sessionStore.activeSessionId}-${sessionKey}`}
             embedded
             workspace
+            onClose={onClose}
             applicationId={applicationId}
             formSummary={formSummary}
             formData={formData}

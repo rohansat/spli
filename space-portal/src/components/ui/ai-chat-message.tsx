@@ -68,6 +68,7 @@ interface AiChatMessageProps {
   onApplySuggestions?: (suggestions: FormSuggestion[]) => void;
   onFollowUp?: (prompt: string) => void;
   previousUserMessage?: string;
+  isWelcome?: boolean;
 }
 
 const MODE_LABELS: Record<string, string> = {
@@ -102,16 +103,16 @@ function SectionBlock({
   tone?: 'default' | 'warning';
 }) {
   return (
-    <div className="mt-4 border border-zinc-800/80 bg-black/40 overflow-hidden">
+    <div className="mt-3 rounded-lg border border-white/[0.06] bg-white/[0.02] overflow-hidden">
       <div
-        className={`flex items-center gap-2 px-3 py-2 border-b border-zinc-800/60 ${
-          tone === 'warning' ? 'bg-amber-950/20' : 'bg-zinc-950/60'
+        className={`flex items-center gap-2 px-3 py-2 border-b border-white/[0.05] ${
+          tone === 'warning' ? 'bg-amber-500/[0.06]' : 'bg-white/[0.02]'
         }`}
       >
-        <Icon className={`h-3 w-3 ${tone === 'warning' ? 'text-amber-400/90' : 'text-zinc-500'}`} />
-        <span className="spli-chat-label text-zinc-400">{title}</span>
+        <Icon className={`h-3.5 w-3.5 ${tone === 'warning' ? 'text-amber-400/90' : 'text-zinc-500'}`} />
+        <span className="text-[12px] font-medium text-zinc-400">{title}</span>
       </div>
-      <div className="px-3 py-3">{children}</div>
+      <div className="px-3 py-2.5">{children}</div>
     </div>
   );
 }
@@ -149,6 +150,7 @@ export function AiChatMessage({
   onApplySuggestions,
   onFollowUp,
   previousUserMessage,
+  isWelcome = false,
 }: AiChatMessageProps) {
   const { toast } = useToast();
   const [feedback, setFeedback] = useState<'up' | 'down' | null>(message.feedback ?? null);
@@ -184,18 +186,18 @@ export function AiChatMessage({
 
   if (isUser) {
     return (
-      <div className="flex justify-end">
-        <div className="max-w-[88%]">
-          <div className="border border-zinc-800 bg-zinc-950/80 px-4 py-3">
-            <p className="text-sm leading-relaxed text-zinc-100 whitespace-pre-wrap font-light">
+      <div className="flex justify-end pl-8">
+        <div className="max-w-[92%]">
+          <div className="rounded-2xl rounded-br-md bg-zinc-800/90 px-3.5 py-2.5">
+            <p className="text-[13px] leading-relaxed text-zinc-100 whitespace-pre-wrap">
               {message.content}
             </p>
             {message.attachedFiles && message.attachedFiles.length > 0 && (
-              <div className="mt-3 pt-3 border-t border-zinc-800/80 flex flex-wrap gap-1.5">
+              <div className="mt-2 pt-2 border-t border-white/[0.06] flex flex-wrap gap-1.5">
                 {message.attachedFiles.map((file, index) => (
                   <span
                     key={index}
-                    className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 border border-zinc-800 bg-black text-zinc-500"
+                    className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-md bg-black/30 text-zinc-400"
                   >
                     <Paperclip className="h-3 w-3 opacity-60" />
                     {file}
@@ -209,19 +211,44 @@ export function AiChatMessage({
     );
   }
 
-  return (
-    <div className="flex gap-3 items-start group">
-      <div className="flex-shrink-0 w-px self-stretch min-h-[24px] bg-zinc-700/60 mt-1" aria-hidden />
+  if (isWelcome) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[min(320px,45vh)] py-8 px-2">
+        <div className="h-10 w-10 rounded-full bg-white/[0.04] border border-white/[0.08] flex items-center justify-center mb-4">
+          <Sparkles className="h-4 w-4 text-zinc-400" />
+        </div>
+        <p className="text-[15px] font-medium text-zinc-200 mb-1.5">SPLI Copilot</p>
+        <div className="text-[13px] text-zinc-500 text-center max-w-[280px] leading-relaxed mb-6">
+          <ChatMarkdown content={message.content} />
+        </div>
+        {message.followUpPrompts && message.followUpPrompts.length > 0 && !message.isStreaming && (
+          <div className="w-full max-w-[320px] space-y-1.5">
+            {message.followUpPrompts.map((prompt, index) => (
+              <button
+                key={index}
+                type="button"
+                onClick={() => onFollowUp?.(prompt)}
+                className="spli-chat-prompt-chip w-full"
+              >
+                {prompt}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
 
-      <div className="flex-1 min-w-0 space-y-2">
-        <div className="border-l-2 border-l-zinc-600/80 pl-4 py-0.5">
+  return (
+    <div className="group py-0.5">
+      <div className="pr-2">
           {message.mode && message.mode !== 'chat' && (
-            <div className="mb-2.5 flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 spli-chat-label text-zinc-400 px-2 py-1 border border-zinc-800 bg-zinc-950">
+            <div className="mb-2 flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 text-[11px] text-zinc-400 px-2 py-0.5 rounded-md bg-white/[0.04]">
                 <Sparkles className="h-3 w-3 opacity-60" />
                 {MODE_LABELS[message.mode] || message.mode}
               </span>
-              <span className="inline-flex items-center gap-1 text-[10px] text-zinc-600 tracking-wide">
+              <span className="inline-flex items-center gap-1 text-[11px] text-zinc-600">
                 <Shield className="h-3 w-3" />
                 Draft — review required
               </span>
@@ -344,14 +371,14 @@ export function AiChatMessage({
           {message.documentInsights && (
             <DocumentInsightsPanel insights={message.documentInsights} />
           )}
-        </div>
+      </div>
 
         {!message.isStreaming && (
-          <div className="flex items-center gap-0.5 pl-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          <div className="flex items-center gap-0.5 mt-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
             <Button
               size="sm"
               variant="ghost"
-              className="h-7 w-7 p-0 rounded-none text-zinc-600 hover:text-zinc-400 hover:bg-zinc-900"
+              className="h-7 w-7 p-0 rounded-md text-zinc-600 hover:text-zinc-400 hover:bg-white/[0.06]"
               onClick={copyMessage}
               title="Copy"
             >
@@ -361,7 +388,7 @@ export function AiChatMessage({
               <Button
                 size="sm"
                 variant="ghost"
-                className="h-7 w-7 p-0 rounded-none text-zinc-600 hover:text-zinc-400 hover:bg-zinc-900"
+                className="h-7 w-7 p-0 rounded-md text-zinc-600 hover:text-zinc-400 hover:bg-white/[0.06]"
                 onClick={() => onRetry(previousUserMessage)}
                 title="Retry"
               >
@@ -371,7 +398,7 @@ export function AiChatMessage({
             <Button
               size="sm"
               variant="ghost"
-              className={`h-7 w-7 p-0 rounded-none ${feedback === 'up' ? 'text-zinc-300' : 'text-zinc-600 hover:text-zinc-400 hover:bg-zinc-900'}`}
+              className={`h-7 w-7 p-0 rounded-md ${feedback === 'up' ? 'text-zinc-300' : 'text-zinc-600 hover:text-zinc-400 hover:bg-white/[0.06]'}`}
               onClick={() => handleFeedback('up')}
               title="Helpful"
             >
@@ -380,7 +407,7 @@ export function AiChatMessage({
             <Button
               size="sm"
               variant="ghost"
-              className={`h-7 w-7 p-0 rounded-none ${feedback === 'down' ? 'text-zinc-300' : 'text-zinc-600 hover:text-zinc-400 hover:bg-zinc-900'}`}
+              className={`h-7 w-7 p-0 rounded-md ${feedback === 'down' ? 'text-zinc-300' : 'text-zinc-600 hover:text-zinc-400 hover:bg-white/[0.06]'}`}
               onClick={() => handleFeedback('down')}
               title="Not helpful"
             >
@@ -390,15 +417,15 @@ export function AiChatMessage({
         )}
 
         {message.followUpPrompts && message.followUpPrompts.length > 0 && !message.isStreaming && (
-          <div className="space-y-2 pl-4">
-            <p className="spli-chat-label">Follow-up</p>
-            <div className="flex flex-wrap gap-1.5">
+          <div className="space-y-2 mt-3">
+            <p className="spli-chat-label">Suggested</p>
+            <div className="flex flex-col gap-1.5">
               {message.followUpPrompts.map((prompt, index) => (
                 <button
                   key={index}
                   type="button"
                   onClick={() => onFollowUp?.(prompt)}
-                  className="text-left text-[11px] px-2.5 py-1.5 border border-zinc-800/80 bg-zinc-950/50 text-zinc-500 hover:text-zinc-200 hover:border-zinc-600 transition-colors font-light leading-snug max-w-full"
+                  className="spli-chat-prompt-chip w-full"
                 >
                   {prompt}
                 </button>
@@ -406,7 +433,6 @@ export function AiChatMessage({
             </div>
           </div>
         )}
-      </div>
     </div>
   );
 }

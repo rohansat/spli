@@ -58,8 +58,8 @@ export function CopilotPanel({
   };
 
   return (
-    <div className={`flex flex-col h-full min-h-0 bg-black spli-chat-messages ${className}`}>
-      <div className="flex-shrink-0 px-4 py-3 border-b border-zinc-800/80">
+    <div className={`flex flex-col h-full min-h-0 bg-[#0c0c0e] spli-chat-messages ${className}`}>
+      <div className="flex-shrink-0 px-4 py-3 border-b border-white/[0.06]">
         <p className="spli-chat-label mb-1">Mission memory</p>
         <p className="text-[11px] text-zinc-600 font-light leading-relaxed">
           Tracked changes, FAA requests, and cross-section alerts.

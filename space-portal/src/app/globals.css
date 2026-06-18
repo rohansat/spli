@@ -186,41 +186,54 @@
     opacity: 1;
   }
 
-  /* SPLI Chat — mission-control panel styling */
-  .spli-chat-panel {
-    @apply bg-black text-zinc-100;
-    background-image:
-      radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.035) 1px, transparent 0);
-    background-size: 20px 20px;
+  /* SPLI Chat — IDE-style panel */
+  .spli-chat-shell {
+    @apply bg-[#0c0c0e] text-zinc-100;
+    border-left: 1px solid rgba(255, 255, 255, 0.06);
   }
 
   .spli-chat-messages {
-    background-image:
-      linear-gradient(to bottom, rgba(0, 0, 0, 0.4) 0%, transparent 12px),
-      radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.025) 1px, transparent 0);
-    background-size: 100% 100%, 24px 24px;
+    @apply bg-[#0c0c0e];
   }
 
   .spli-chat-composer {
-    @apply border-t border-zinc-800/80;
-    background: linear-gradient(to top, rgba(0, 0, 0, 0.95), rgba(9, 9, 11, 0.88));
-    backdrop-filter: blur(8px);
+    @apply border-t border-white/[0.06] bg-[#0c0c0e] px-4 py-3;
   }
 
   .spli-chat-tab {
-    @apply text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500 transition-all duration-200;
+    @apply relative text-[13px] font-normal text-zinc-500 transition-colors duration-150 px-3 h-9 flex items-center;
   }
 
-  .spli-chat-tab[data-state='active'] {
-    @apply text-zinc-100 bg-zinc-800/80 shadow-sm;
+  .spli-chat-tab-active {
+    @apply text-zinc-100 font-medium;
+  }
+
+  .spli-chat-tab-active::after {
+    content: '';
+    @apply absolute bottom-0 left-2 right-2 h-px bg-zinc-300/90;
   }
 
   .spli-chat-label {
-    @apply text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500;
+    @apply text-[11px] font-medium text-zinc-500 tracking-normal normal-case;
   }
 
-  .spli-chat-status-dot {
-    @apply h-1.5 w-1.5 rounded-full bg-emerald-500/90;
-    box-shadow: 0 0 6px rgba(16, 185, 129, 0.45);
+  .spli-chat-input-box {
+    @apply rounded-2xl border border-white/[0.08] bg-[#18181b]/90;
+  }
+
+  .spli-chat-input-box:focus-within {
+    @apply border-white/[0.12] ring-0;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.04);
+  }
+
+  .spli-chat-history-item-active {
+    @apply bg-white/[0.06] text-zinc-100;
+  }
+
+  .spli-chat-prompt-chip {
+    @apply inline-flex items-center text-left text-[12px] leading-snug px-3 py-2.5 rounded-xl
+      border border-white/[0.06] bg-transparent text-zinc-400
+      hover:text-zinc-200 hover:bg-white/[0.04] hover:border-white/[0.1]
+      transition-colors duration-150;
   }
 }

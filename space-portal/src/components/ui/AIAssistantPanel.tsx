@@ -158,10 +158,10 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
   );
 
   const shellClass = workspace
-    ? 'flex flex-col h-full min-h-0 overflow-hidden bg-black'
+    ? 'flex flex-col h-full min-h-0 overflow-hidden bg-[#0c0c0e]'
     : embedded
-      ? 'flex flex-col h-full min-h-0 spli-chat-panel overflow-hidden'
-      : 'flex flex-col h-full min-h-0 rounded-none border border-zinc-800/80 bg-black overflow-hidden shadow-2xl shadow-black/40 spli-chat-panel';
+      ? 'flex flex-col h-full min-h-0 spli-chat-shell overflow-hidden'
+      : 'flex flex-col h-full min-h-0 spli-chat-shell overflow-hidden shadow-2xl shadow-black/40';
 
   const showPanelHeader = !workspace;
 
@@ -226,28 +226,40 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
             )}
 
             {workspace && (
-            <div className="flex-shrink-0 px-3 py-1.5 border-b border-zinc-800/60 bg-zinc-950/50 flex gap-1">
-              <button
-                type="button"
-                onClick={() => setActiveTab('chat')}
-                className={`flex-1 spli-chat-tab px-2 py-1.5 ${activeTab === 'chat' ? 'bg-zinc-800/80 text-zinc-100 border border-zinc-700/60' : 'text-zinc-500 hover:text-zinc-300'}`}
-              >
-                Chat
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab('copilot')}
-                className={`flex-1 spli-chat-tab px-2 py-1.5 ${activeTab === 'copilot' ? 'bg-zinc-800/80 text-zinc-100 border border-zinc-700/60' : 'text-zinc-500 hover:text-zinc-300'}`}
-              >
-                Memory
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab('actions')}
-                className={`flex-1 spli-chat-tab px-2 py-1.5 ${activeTab === 'actions' ? 'bg-zinc-800/80 text-zinc-100 border border-zinc-700/60' : 'text-zinc-500 hover:text-zinc-300'}`}
-              >
-                Actions
-              </button>
+            <div className="flex-shrink-0 flex items-center justify-between border-b border-white/[0.06] bg-[#0c0c0e] pl-2 pr-1 h-9">
+              <div className="flex items-center">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('chat')}
+                  className={`spli-chat-tab ${activeTab === 'chat' ? 'spli-chat-tab-active' : 'hover:text-zinc-300'}`}
+                >
+                  Chat
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('copilot')}
+                  className={`spli-chat-tab ${activeTab === 'copilot' ? 'spli-chat-tab-active' : 'hover:text-zinc-300'}`}
+                >
+                  Memory
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('actions')}
+                  className={`spli-chat-tab ${activeTab === 'actions' ? 'spli-chat-tab-active' : 'hover:text-zinc-300'}`}
+                >
+                  Actions
+                </button>
+              </div>
+              {onClose && (
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="h-8 w-8 mr-1 flex items-center justify-center rounded-md text-zinc-500 hover:text-zinc-200 hover:bg-white/[0.05] transition-colors"
+                  title="Close panel"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
             </div>
             )}
 
@@ -255,7 +267,7 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
               {chatContent}
             </TabsContent>
 
-            <TabsContent value="copilot" className="flex-1 min-h-0 mt-0 data-[state=inactive]:hidden bg-black">
+            <TabsContent value="copilot" className="flex-1 min-h-0 mt-0 data-[state=inactive]:hidden bg-[#0c0c0e]">
               <CopilotPanel
                 state={copilotState}
                 inconsistencies={inconsistencies}
@@ -265,7 +277,7 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
               />
             </TabsContent>
 
-            <TabsContent value="actions" className="flex-1 min-h-0 mt-0 overflow-y-auto ai-chat-scrollbar p-4 bg-black data-[state=inactive]:hidden">
+            <TabsContent value="actions" className="flex-1 min-h-0 mt-0 overflow-y-auto ai-chat-scrollbar p-4 bg-[#0c0c0e] data-[state=inactive]:hidden">
               <AIContextMenu onAction={handleContextAction} />
             </TabsContent>
           </Tabs>

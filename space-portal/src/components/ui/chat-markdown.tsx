@@ -132,7 +132,7 @@ export function ChatMarkdown({ content, className = '' }: ChatMarkdownProps) {
 
     flushList();
     elements.push(
-      <p key={index} className="text-sm leading-[1.65] text-zinc-300/95 my-1.5 font-light">
+      <p key={index} className="text-[13px] leading-[1.65] text-zinc-300 my-1">
         {renderInline(trimmed)}
       </p>
     );
