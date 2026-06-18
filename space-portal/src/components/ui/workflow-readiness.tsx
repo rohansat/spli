@@ -1,20 +1,28 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { workflowEngine } from '@/lib/workflow-engine';
-import { TEAM_LABELS } from '@/lib/part450-schema';
+import { getSectionById, TEAM_LABELS } from '@/lib/part450-schema';
 import type { ApplicationRecord } from '@/types/application-record';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { AlertTriangle, CheckCircle, Lock, Users } from 'lucide-react';
+import {
+  AlertTriangle,
+  CheckCircle,
+  ChevronDown,
+  ChevronUp,
+  ClipboardCheck,
+  Lock,
+  Users,
+} from 'lucide-react';
 
 interface WorkflowReadinessPanelProps {
   formData: Record<string, string>;
   record?: ApplicationRecord | null;
   onSectionClick?: (sectionId: string) => void;
   onFieldClick?: (fieldName: string) => void;
-  compact?: boolean;
+  defaultOpen?: boolean;
 }
 
 export function WorkflowReadinessPanel({
@@ -22,8 +30,10 @@ export function WorkflowReadinessPanel({
   record,
   onSectionClick,
   onFieldClick,
-  compact = false,
+  defaultOpen = false,
 }: WorkflowReadinessPanelProps) {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
+
   const readiness = useMemo(
     () => workflowEngine.evaluateReadiness(formData, record ?? undefined),
     [formData, record]
@@ -32,160 +42,184 @@ export function WorkflowReadinessPanel({
   const blocking = readiness.blockingItems.filter((i) => i.severity === 'blocking');
   const warnings = readiness.blockingItems.filter((i) => i.severity === 'warning');
 
-  if (compact) {
-    return (
-      <div className="flex flex-wrap items-center gap-3 p-3 bg-zinc-900/80 border border-zinc-800 rounded-lg">
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-zinc-400">Readiness</span>
-          <span className={`text-sm font-bold ${readiness.overallPercent >= 72 ? 'text-green-400' : 'text-yellow-400'}`}>
-            {readiness.overallPercent}%
-          </span>
-        </div>
-        <div className="w-24">
-          <Progress value={readiness.overallPercent} className="h-1.5" />
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-zinc-400">Compliance</span>
-          <span className="text-sm font-medium text-white">{readiness.complianceScore}/100</span>
-        </div>
-        {blocking.length > 0 && (
-          <Badge variant="outline" className="border-red-500/50 text-red-400 text-xs">
-            {blocking.length} blocking
-          </Badge>
-        )}
-        {readiness.canSubmit ? (
-          <Badge className="bg-green-600/20 text-green-400 border-green-600/30 text-xs">
-            <CheckCircle className="h-3 w-3 mr-1" />
-            Ready to submit
-          </Badge>
-        ) : (
-          <Badge variant="outline" className="border-yellow-500/50 text-yellow-400 text-xs">
-            <Lock className="h-3 w-3 mr-1" />
-            Gated
-          </Badge>
-        )}
-      </div>
-    );
-  }
-
   return (
     <Card className="bg-zinc-900/80 border-zinc-800">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-white text-lg">Application Readiness</CardTitle>
-          {readiness.canSubmit ? (
-            <Badge className="bg-green-600/20 text-green-400 border-green-600/30">
-              <CheckCircle className="h-3 w-3 mr-1" />
-              Ready to submit
-            </Badge>
-          ) : (
-            <Badge variant="outline" className="border-yellow-500/50 text-yellow-400">
-              <Lock className="h-3 w-3 mr-1" />
-              Submission gated
-            </Badge>
-          )}
+      <CardHeader
+        className="pb-2 cursor-pointer select-none"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <div className="flex items-center justify-between gap-3">
+          <CardTitle className="text-white text-base flex items-center gap-2 min-w-0">
+            <ClipboardCheck className="h-4 w-4 text-zinc-400 flex-shrink-0" />
+            <span className="truncate">Application Readiness</span>
+          </CardTitle>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {!isOpen && (
+              <>
+                <span
+                  className={`text-sm font-semibold tabular-nums ${
+                    readiness.overallPercent >= 72 ? 'text-green-400' : 'text-yellow-400'
+                  }`}
+                >
+                  {readiness.overallPercent}%
+                </span>
+                <span className="text-xs text-zinc-500 hidden sm:inline">
+                  · {readiness.complianceScore}/100 compliance
+                </span>
+                {blocking.length > 0 && (
+                  <Badge variant="outline" className="border-red-500/40 text-red-400 text-[10px] h-5">
+                    {blocking.length} blocking
+                  </Badge>
+                )}
+                {readiness.canSubmit ? (
+                  <Badge className="bg-green-600/15 text-green-400 border-green-600/25 text-[10px] h-5">
+                    Ready
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="border-yellow-500/40 text-yellow-400 text-[10px] h-5">
+                    Gated
+                  </Badge>
+                )}
+              </>
+            )}
+            {isOpen ? (
+              <ChevronUp className="h-4 w-4 text-zinc-400" />
+            ) : (
+              <ChevronDown className="h-4 w-4 text-zinc-400" />
+            )}
+          </div>
         </div>
-        {readiness.submissionGateMessage && (
-          <p className="text-sm text-yellow-400/90 mt-1">{readiness.submissionGateMessage}</p>
+        {!isOpen && readiness.submissionGateMessage && blocking.length > 0 && (
+          <p className="text-xs text-zinc-500 mt-1.5 line-clamp-1">{readiness.submissionGateMessage}</p>
         )}
       </CardHeader>
-      <CardContent className="space-y-5">
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <div className="flex justify-between text-sm mb-1.5">
-              <span className="text-zinc-400">Overall completion</span>
-              <span className="text-white font-medium">{readiness.overallPercent}%</span>
-            </div>
-            <Progress value={readiness.overallPercent} className="h-2" />
-          </div>
-          <div>
-            <div className="flex justify-between text-sm mb-1.5">
-              <span className="text-zinc-400">Compliance score</span>
-              <span className="text-white font-medium">{readiness.complianceScore}/100</span>
-            </div>
-            <Progress value={readiness.complianceScore} className="h-2" />
-          </div>
-        </div>
 
-        <div>
-          <h4 className="text-xs font-medium text-zinc-400 uppercase tracking-wide mb-2">Section status</h4>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {readiness.sectionStates.map((state) => (
-              <button
-                key={state.sectionId}
-                type="button"
-                onClick={() => onSectionClick?.(state.sectionId)}
-                className={`flex items-center justify-between p-2 rounded-lg border text-left transition-colors ${
-                  state.isLocked
-                    ? 'border-zinc-700 bg-zinc-800/50 opacity-60 cursor-not-allowed'
-                    : 'border-zinc-700 hover:border-zinc-600 bg-zinc-800/30'
-                }`}
-                disabled={state.isLocked}
-              >
-                <div className="flex items-center gap-2 min-w-0">
-                  {state.isLocked ? (
-                    <Lock className="h-3.5 w-3.5 text-zinc-500 flex-shrink-0" />
-                  ) : state.completionPercent >= 100 ? (
-                    <CheckCircle className="h-3.5 w-3.5 text-green-400 flex-shrink-0" />
-                  ) : (
-                    <div className="h-3.5 w-3.5 rounded-full border border-zinc-500 flex-shrink-0" />
-                  )}
-                  <span className="text-xs text-white truncate">
-                    {state.sectionId.replace(/_/g, ' ')}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  <span className="text-[10px] text-zinc-500">{TEAM_LABELS[state.ownerTeam]}</span>
-                  <span className="text-xs text-zinc-400">{state.completionPercent}%</span>
-                </div>
-              </button>
-            ))}
+      {isOpen && (
+        <CardContent className="pt-0 space-y-5">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            {readiness.canSubmit ? (
+              <Badge className="bg-green-600/15 text-green-400 border-green-600/25">
+                <CheckCircle className="h-3 w-3 mr-1" />
+                Ready to submit
+              </Badge>
+            ) : (
+              <Badge variant="outline" className="border-yellow-500/40 text-yellow-400">
+                <Lock className="h-3 w-3 mr-1" />
+                Submission gated
+              </Badge>
+            )}
+            {readiness.submissionGateMessage && (
+              <p className="text-xs text-yellow-400/80 flex-1 min-w-[200px]">
+                {readiness.submissionGateMessage}
+              </p>
+            )}
           </div>
-        </div>
 
-        {blocking.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <div className="flex justify-between text-sm mb-1.5">
+                <span className="text-zinc-400">Overall completion</span>
+                <span className="text-white font-medium tabular-nums">{readiness.overallPercent}%</span>
+              </div>
+              <Progress value={readiness.overallPercent} className="h-1.5" />
+            </div>
+            <div>
+              <div className="flex justify-between text-sm mb-1.5">
+                <span className="text-zinc-400">Compliance score</span>
+                <span className="text-white font-medium tabular-nums">{readiness.complianceScore}/100</span>
+              </div>
+              <Progress value={readiness.complianceScore} className="h-1.5" />
+            </div>
+          </div>
+
           <div>
-            <h4 className="text-xs font-medium text-red-400 uppercase tracking-wide mb-2 flex items-center gap-1">
-              <AlertTriangle className="h-3.5 w-3.5" />
-              Blocking items ({blocking.length})
+            <h4 className="text-[11px] font-medium text-zinc-500 uppercase tracking-wider mb-2">
+              Sections
             </h4>
-            <ul className="space-y-1.5">
-              {blocking.slice(0, 5).map((item) => (
-                <li key={item.id}>
+            <div className="grid grid-cols-1 gap-1.5">
+              {readiness.sectionStates.map((state) => {
+                const section = getSectionById(state.sectionId);
+                return (
                   <button
+                    key={state.sectionId}
                     type="button"
-                    onClick={() => item.fieldName && onFieldClick?.(item.fieldName)}
-                    className="w-full text-left text-xs p-2 rounded bg-red-950/30 border border-red-900/40 text-red-200 hover:bg-red-950/50"
+                    onClick={() => onSectionClick?.(state.sectionId)}
+                    className={`flex items-center justify-between p-2.5 rounded-lg border text-left transition-colors ${
+                      state.isLocked
+                        ? 'border-zinc-800 bg-zinc-950/50 opacity-60 cursor-not-allowed'
+                        : 'border-zinc-800 hover:border-zinc-700 bg-zinc-950/30'
+                    }`}
+                    disabled={state.isLocked}
                   >
-                    <span className="font-medium">{item.sectionTitle}</span>
-                    {item.fieldLabel && <span className="text-red-300/70"> · {item.fieldLabel}</span>}
-                    <p className="text-red-300/80 mt-0.5">{item.message}</p>
-                    <span className="text-[10px] text-red-400/60 flex items-center gap-1 mt-1">
-                      <Users className="h-3 w-3" />
-                      {TEAM_LABELS[item.ownerTeam]}
-                    </span>
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      {state.isLocked ? (
+                        <Lock className="h-3.5 w-3.5 text-zinc-600 flex-shrink-0" />
+                      ) : state.completionPercent >= 100 ? (
+                        <CheckCircle className="h-3.5 w-3.5 text-green-500 flex-shrink-0" />
+                      ) : (
+                        <div className="h-3.5 w-3.5 rounded-full border border-zinc-600 flex-shrink-0" />
+                      )}
+                      <span className="text-xs text-zinc-200 truncate">
+                        {section?.title ?? state.sectionId}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                      <span className="text-[10px] text-zinc-600">{TEAM_LABELS[state.ownerTeam]}</span>
+                      <span className="text-xs text-zinc-400 tabular-nums w-8 text-right">
+                        {state.completionPercent}%
+                      </span>
+                    </div>
                   </button>
-                </li>
-              ))}
-            </ul>
+                );
+              })}
+            </div>
           </div>
-        )}
 
-        {warnings.length > 0 && (
-          <div>
-            <h4 className="text-xs font-medium text-yellow-400/80 uppercase tracking-wide mb-2">
-              Cross-reference warnings ({warnings.length})
-            </h4>
-            <ul className="space-y-1">
-              {warnings.slice(0, 3).map((item) => (
-                <li key={item.id} className="text-xs text-yellow-200/70 p-2 rounded bg-yellow-950/20 border border-yellow-900/30">
-                  {item.message}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </CardContent>
+          {blocking.length > 0 && (
+            <div>
+              <h4 className="text-[11px] font-medium text-red-400 uppercase tracking-wider mb-2 flex items-center gap-1">
+                <AlertTriangle className="h-3.5 w-3.5" />
+                Blocking ({blocking.length})
+              </h4>
+              <ul className="space-y-1.5">
+                {blocking.slice(0, 5).map((item) => (
+                  <li key={item.id}>
+                    <button
+                      type="button"
+                      onClick={() => item.fieldName && onFieldClick?.(item.fieldName)}
+                      className="w-full text-left text-xs p-2.5 rounded-lg bg-red-950/20 border border-red-900/30 text-red-200/90 hover:bg-red-950/30 transition-colors"
+                    >
+                      <span className="font-medium text-red-200">{item.sectionTitle}</span>
+                      {item.fieldLabel && (
+                        <span className="text-red-300/60"> · {item.fieldLabel}</span>
+                      )}
+                      <p className="text-red-300/70 mt-0.5 leading-relaxed">{item.message}</p>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {warnings.length > 0 && (
+            <div>
+              <h4 className="text-[11px] font-medium text-yellow-500/80 uppercase tracking-wider mb-2">
+                Warnings ({warnings.length})
+              </h4>
+              <ul className="space-y-1">
+                {warnings.slice(0, 3).map((item) => (
+                  <li
+                    key={item.id}
+                    className="text-xs text-yellow-200/70 p-2 rounded-lg bg-yellow-950/15 border border-yellow-900/25"
+                  >
+                    {item.message}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </CardContent>
+      )}
     </Card>
   );
 }

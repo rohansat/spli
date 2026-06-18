@@ -737,17 +737,17 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
           </p>
         )}
         {crossRefs.length > 0 && (
-          <div className="flex flex-wrap gap-1">
+          <div className="flex flex-wrap gap-1 pt-1">
             {crossRefs.map((ref) => (
               <button
                 key={`${ref.sourceField}-${ref.targetField}`}
                 type="button"
                 onClick={() => navigateToField(ref.sourceField === field.name ? ref.targetField : ref.sourceField)}
-                className="text-[10px] px-1.5 py-0.5 rounded bg-blue-950/40 text-blue-300/80 border border-blue-800/40 hover:bg-blue-950/60 flex items-center gap-0.5"
+                className="text-[10px] px-1.5 py-0.5 rounded-md bg-zinc-800/80 text-zinc-500 border border-zinc-700/50 hover:text-zinc-300 hover:border-zinc-600 flex items-center gap-1 transition-colors"
                 title={ref.description}
               >
-                <Link2 className="h-2.5 w-2.5" />
-                {ref.relationship === 'must_align' ? 'Must align' : 'Related'}:{' '}
+                <Link2 className="h-2.5 w-2.5 opacity-60" />
+                {ref.relationship === 'must_align' ? 'Aligns with' : 'Related to'}{' '}
                 {ref.sourceField === field.name ? ref.targetField : ref.sourceField}
               </button>
             ))}
@@ -776,8 +776,8 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
               onChange={(e) => handleInputChange(field.name, e.target.value)}
               placeholder={field.label}
               disabled={isLocked}
-              className={`bg-white/10 border-white/20 text-white transition-all duration-300 ${
-                isRecentlyUpdated ? 'border-green-400 bg-green-900/20' : ''
+              className={`bg-zinc-900 border-zinc-700 text-white placeholder:text-zinc-600 transition-all duration-300 ${
+                isRecentlyUpdated ? 'border-green-600/50 bg-green-950/20' : ''
               } ${isLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
             />
             {isRecentlyUpdated && (
@@ -799,8 +799,8 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
               placeholder={field.label}
               rows={4}
               disabled={isLocked}
-              className={`bg-white/10 border-white/20 text-white max-h-[300px] overflow-y-auto transition-all duration-300 ${
-                isRecentlyUpdated ? 'border-green-400 bg-green-900/20' : ''
+              className={`bg-zinc-900 border-zinc-700 text-white placeholder:text-zinc-600 max-h-[300px] overflow-y-auto transition-all duration-300 ${
+                isRecentlyUpdated ? 'border-green-600/50 bg-green-950/20' : ''
               } ${isLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
             />
             {isRecentlyUpdated && (
@@ -820,8 +820,8 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
               value={formData[field.name] || ""}
               onChange={(e) => handleInputChange(field.name, e.target.value)}
               disabled={isLocked}
-              className={`w-full p-2 rounded-md bg-white/10 border border-white/20 text-white transition-all duration-300 ${
-                isRecentlyUpdated ? 'border-green-400 bg-green-900/20' : ''
+              className={`w-full p-2 rounded-md bg-zinc-900 border border-zinc-700 text-white transition-all duration-300 ${
+                isRecentlyUpdated ? 'border-green-600/50 bg-green-950/20' : ''
               } ${isLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               <option value="">Select {field.label}</option>
@@ -845,7 +845,6 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
   };
 
   const buttonSizeClass = showFloatingChat ? 'h-8 px-3 text-sm' : 'h-10 px-6 text-base';
-  console.log('showFloatingChat:', showFloatingChat, 'buttonSizeClass:', buttonSizeClass);
 
   const handleSendMessage = async () => {
     setIsSendingMessage(true);
@@ -1088,22 +1087,32 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
           </Alert>
         )}
 
-        <div className="mb-6">
+        <div className="mb-6 grid grid-cols-1 lg:grid-cols-2 gap-3">
           <WorkflowReadinessPanel
             formData={formData}
             record={applicationRecord}
-            compact
             onSectionClick={navigateToSection}
             onFieldClick={navigateToField}
           />
+          {user?.email && (
+            <SectionHistoryPanel
+              applicationId={applicationId}
+              userEmail={user.email}
+              currentVersion={applicationRecord?.currentVersion ?? 0}
+              onRollback={(data) => {
+                setFormData(data);
+                toast({ title: 'Restored previous version', description: 'Save to persist the rollback.' });
+              }}
+            />
+          )}
         </div>
 
         {application.status === "draft" && (
-          <Alert className="mb-6 bg-blue-500/20 border-blue-500/30 text-white">
-            <AlertTriangle className="h-4 w-4 mr-2" stroke="white" />
-            <AlertTitle className="text-white">Draft Mode</AlertTitle>
-            <AlertDescription className="text-white">
-              This application is in draft mode. Complete all required fields before submitting.
+          <Alert className="mb-6 bg-zinc-900/50 border-zinc-800 text-zinc-300">
+            <AlertTriangle className="h-4 w-4 text-yellow-500" />
+            <AlertTitle className="text-zinc-200">Draft mode</AlertTitle>
+            <AlertDescription className="text-zinc-400">
+              Complete required fields in each section before submitting.
             </AlertDescription>
           </Alert>
         )}
@@ -1129,101 +1138,74 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-          <div className="lg:col-span-2">
-            <WorkflowReadinessPanel
-              formData={formData}
-              record={applicationRecord}
-              onSectionClick={navigateToSection}
-              onFieldClick={navigateToField}
-            />
-          </div>
-          <div>
-            {user?.email && (
-              <SectionHistoryPanel
-                applicationId={applicationId}
-                userEmail={user.email}
-                currentVersion={applicationRecord?.currentVersion ?? 0}
-                onRollback={(data) => {
-                  setFormData(data);
-                  toast({ title: 'Restored previous version', description: 'Save to persist the rollback.' });
-                }}
-              />
-            )}
-          </div>
-        </div>
-
         <div>
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold text-white">Part 450 License Application Form</h1>
-            <p className="text-white/60 mt-2">Complete all sections of the pre application form to schedule your consultation with the FAA</p>
-          </div>
-          
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex gap-6 mt-8 items-start">
-            <div className="w-[280px] mt-20">
-              <TabsList className="flex flex-col w-full min-h-[500px] gap-4 bg-black">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex gap-8 items-start">
+            <aside className="w-[240px] flex-shrink-0 sticky top-24 self-start">
+              <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-500 mb-3 px-1">
+                Sections
+              </p>
+              <TabsList className="flex flex-col w-full gap-1 bg-transparent p-0 h-auto">
                 {part450FormTemplate.sections.map((section, index) => {
                   const sectionId = PART450_SCHEMA.sectionIds[index];
                   const state = workflowReadiness.sectionStates.find((s) => s.sectionId === sectionId);
+                  const isActive = activeTab === `section-${index}`;
                   return (
                   <TabsTrigger
                     key={`section-${index}`}
                     value={`section-${index}`}
                     disabled={state?.isLocked}
-                    className="relative flex items-start gap-4 w-full bg-transparent hover:bg-zinc-900/50
-                      data-[state=active]:bg-zinc-900 data-[state=active]:text-white
-                      px-4 py-4 text-white/70 justify-start text-left rounded-lg
-                      hover:text-white transition-all duration-200 border border-transparent
-                      data-[state=active]:border-white/10 disabled:opacity-40"
+                    className="relative flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-left justify-start
+                      bg-transparent text-zinc-500 border border-transparent
+                      hover:bg-zinc-900 hover:text-zinc-300
+                      data-[state=active]:bg-zinc-900 data-[state=active]:text-white data-[state=active]:border-zinc-800
+                      disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                   >
-                    <div className="flex items-start gap-4 w-full">
-                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center
-                        data-[state=active]:bg-gradient-to-r from-blue-500 to-purple-500 mt-1"
-                        data-state={activeTab === `section-${index}` ? 'active' : ''}>
-                        {state?.isLocked ? (
-                          <Lock className="h-3.5 w-3.5 text-zinc-500" />
-                        ) : (
-                          <span className="text-sm font-medium">{index + 1}</span>
-                        )}
-                      </div>
-                      <div className="flex flex-col min-w-0 flex-1">
-                        <span className="font-medium text-sm leading-tight break-words whitespace-pre-line">{section.title}</span>
-                        <span className="text-xs text-white/50 mt-1">
-                          {state?.isLocked ? state.lockReason : `${state?.completionPercent ?? 0}% · ${TEAM_LABELS[state?.ownerTeam ?? 'ops']}`}
-                        </span>
-                      </div>
+                    <div className={`flex-shrink-0 w-6 h-6 rounded-md flex items-center justify-center text-xs font-medium ${
+                      isActive ? 'bg-zinc-800 text-white' : 'bg-zinc-900 text-zinc-500 border border-zinc-800'
+                    }`}>
+                      {state?.isLocked ? (
+                        <Lock className="h-3 w-3" />
+                      ) : (
+                        index + 1
+                      )}
+                    </div>
+                    <div className="flex flex-col min-w-0 flex-1">
+                      <span className="text-xs font-medium leading-snug whitespace-pre-line">{section.title}</span>
+                      <span className="text-[10px] text-zinc-600 mt-0.5 truncate">
+                        {state?.isLocked ? 'Locked' : `${state?.completionPercent ?? 0}% complete`}
+                      </span>
                     </div>
                   </TabsTrigger>
                   );
                 })}
               </TabsList>
-            </div>
+            </aside>
 
             <div className="flex-1 min-w-0">
               {part450FormTemplate.sections.map((section, sectionIndex) => (
                 <TabsContent
                   key={`section-content-${sectionIndex}`}
                   value={`section-${sectionIndex}`}
-                  className="space-y-8 mt-0 focus-visible:outline-none focus-visible:ring-0"
+                  className="space-y-6 mt-0 focus-visible:outline-none focus-visible:ring-0"
                 >
-                  <div className="space-y-3">
-                    <h2 className="text-3xl font-bold text-white bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
+                  <div className="pb-2 border-b border-zinc-800">
+                    <h2 className="text-xl font-semibold text-white whitespace-pre-line leading-snug">
                       {section.title}
                     </h2>
-                    <p className="text-white/60 text-lg">
-                      Complete the {section.title.toLowerCase()} details
+                    <p className="text-sm text-zinc-500 mt-1">
+                      Section {sectionIndex + 1} of {part450FormTemplate.sections.length}
                     </p>
                   </div>
 
-                  <div className="space-y-6">
+                  <div className="space-y-4">
                     {section.fields.map((field, fieldIndex) => (
                       <div 
                         key={`field-${sectionIndex}-${fieldIndex}`} 
-                        className="space-y-3 bg-zinc-900/50 p-6 rounded-xl border border-white/5 hover:border-white/10 transition-colors"
+                        className="space-y-2 rounded-lg border border-zinc-800 bg-zinc-950/50 p-4"
                       >
                         <label
                           htmlFor={field.name}
-                          className="text-base font-medium text-white flex items-center space-x-2"
+                          className="text-sm font-medium text-zinc-200 block"
                         >
                           {field.label}
                         </label>
@@ -1232,14 +1214,14 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
                     ))}
                   </div>
 
-                  {/* Next Section Button - Show for all sections except section 6 (index 6) */}
                   {sectionIndex < 6 && (
-                    <div className="flex justify-end pt-4">
+                    <div className="flex justify-end pt-2 border-t border-zinc-800">
                       <Button
                         onClick={() => setActiveTab(`section-${sectionIndex + 1}`)}
-                        className="bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:opacity-90 transition-opacity px-6 py-3"
+                        variant="outline"
+                        className="border-zinc-700 text-zinc-300 hover:bg-zinc-900 hover:text-white"
                       >
-                        Next Section
+                        Next section
                         <ArrowRight className="ml-2 h-4 w-4" />
                       </Button>
                     </div>
