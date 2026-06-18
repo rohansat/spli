@@ -2,6 +2,7 @@
 // High-end AI assistant for FAA Part 450 license applications
 
 import Anthropic from '@anthropic-ai/sdk';
+import { createMessageWithFallback, streamMessageWithFallback } from '@/lib/ai-models';
 
 // Core AI interfaces
 export interface AIFormSuggestion {
@@ -150,7 +151,11 @@ export class SPLIAIService {
   }
 
   // Build sophisticated conversation messages
-  private buildConversationMessages(userInput: string, mode: string): Array<{ role: 'user' | 'assistant'; content: string }> {
+  private buildConversationMessages(
+    userInput: string,
+    mode: string,
+    copilotContext?: string
+  ): Array<{ role: 'user' | 'assistant'; content: string }> {
     const messages: Array<{ role: 'user' | 'assistant'; content: string }> = [];
     
     // Add system prompt based on mode
@@ -182,10 +187,11 @@ export class SPLIAIService {
     }
 
     // Add application context if available
-    if (this.context.applicationId || this.context.currentSection) {
+    if (this.context.applicationId || this.context.currentSection || copilotContext) {
       const appContext = [
         this.context.applicationId ? `Application ID: ${this.context.applicationId}` : '',
         this.context.currentSection ? `Form state: ${this.context.currentSection}` : '',
+        copilotContext ? `Copilot memory:\n${copilotContext}` : '',
       ].filter(Boolean).join('\n');
       messages.push({
         role: 'user',
@@ -193,7 +199,7 @@ export class SPLIAIService {
       });
       messages.push({
         role: 'assistant',
-        content: 'I have the application context. I will tailor my responses accordingly.'
+        content: 'I have the application context. I will draft suggestions for your review — you decide what to apply and submit.'
       });
     }
 
@@ -214,11 +220,20 @@ CORE IDENTITY:
 - Understanding of aerospace technology and industry practices
 
 CAPABILITIES:
-- Intelligent form filling for Part 450 applications
-- Regulatory compliance analysis and validation
-- Document analysis and information extraction
-- Professional guidance on space licensing
-- Real-time compliance checking and suggestions
+- Draft initial responses from mission docs and vehicle specs
+- Extract relevant data from CONOPS, risk analyses, and uploaded documents
+- Flag inconsistencies across application sections (suggestions only)
+- Track FAA reviewer requests when provided by the user
+- Maintain awareness of recent changes and why they were made
+
+COPILOT CONSTRAINTS (CRITICAL):
+- You are a COPILOT, not an authority — draft and suggest, never decide
+- Do NOT make final compliance judgments — the compliance engine validates independently
+- Do NOT submit applications or claim submission readiness without human sign-off
+- Do NOT override compliance logic or guarantee FAA approval
+- Always frame outputs as drafts for human review
+- When flagging inconsistencies, cite specific fields and suggest alignment — do not auto-correct
+- Label form-fill output as "Suggested draft" requiring user review before applying
 
 CONVERSATION STYLE:
 - Professional yet approachable
@@ -401,67 +416,32 @@ Always maintain professional expertise while being helpful and engaging.`;
 
   // Get AI response with proper error handling
   private async getAIResponse(messages: Array<{ role: 'user' | 'assistant'; content: string }>, mode: string): Promise<string> {
-    // Try multiple model names, starting with the most specific ones
-    const models = [
-      'claude-sonnet-4-20250514', // Model shown in user's API interface
-      'claude-3-5-sonnet', // Latest Claude 3.5 Sonnet (without date)
-      'claude-3-5-sonnet-20240620', // Stable Claude 3.5 Sonnet
-      'claude-3-sonnet-20240229' // Fallback to Claude 3 Sonnet
-    ];
-    let lastError: any = null;
-
-    for (const model of models) {
     try {
-      const response = await this.anthropic.messages.create({
-          model: model,
+      const response = await createMessageWithFallback(this.anthropic, {
         max_tokens: 4096,
-        messages: messages,
-        temperature: mode === 'compliance' ? 0.1 : 0.3, // Lower temperature for compliance
-        system: this.getSystemPrompt(mode)
+        messages,
+        temperature: mode === 'compliance' ? 0.1 : 0.3,
+        system: this.getSystemPrompt(mode),
       });
 
       return response.content[0].type === 'text' ? response.content[0].text : '';
-      } catch (error: any) {
-        lastError = error;
-        
-        // If it's a 404 (model not found), try the next model
-        if (error?.status === 404 || error?.statusCode === 404) {
-          console.warn(`Model ${model} not available, trying fallback...`);
-          continue;
-        }
-        
-        // For other errors, log and throw
-        console.error('Claude API error details:', {
-          message: error?.message,
-          status: error?.status,
-          statusCode: error?.statusCode,
-          type: error?.type,
-          error: error?.error,
-          code: error?.code,
-          stack: error?.stack
-        });
-        
-        // Provide specific error messages based on error type
-        if (error?.status === 401 || error?.statusCode === 401) {
-          throw new Error('Invalid API key. Please check your ANTHROPIC_API_KEY environment variable.');
-        } else if (error?.status === 429 || error?.statusCode === 429) {
-          throw new Error('Rate limit exceeded. Please try again in a moment.');
-        } else if (error?.status === 400 || error?.statusCode === 400) {
-          throw new Error(`Invalid request: ${error?.message || 'Check your input parameters'}`);
-        } else if (error?.message) {
-          throw new Error(`AI service error: ${error.message}`);
-        } else {
+    } catch (error: unknown) {
+      const err = error as { status?: number; statusCode?: number; message?: string };
+
+      if (err?.status === 401 || err?.statusCode === 401) {
+        throw new Error('Invalid API key. Please check your ANTHROPIC_API_KEY environment variable.');
+      }
+      if (err?.status === 429 || err?.statusCode === 429) {
+        throw new Error('Rate limit exceeded. Please try again in a moment.');
+      }
+      if (err?.status === 400 || err?.statusCode === 400) {
+        throw new Error(`Invalid request: ${err?.message || 'Check your input parameters'}`);
+      }
+      if (err?.message) {
+        throw new Error(`AI service error: ${err.message}`);
+      }
       throw new Error('AI service temporarily unavailable. Please try again.');
     }
-      }
-    }
-
-    // If all models failed with 404, throw the last error
-    if (lastError) {
-      throw new Error(`No available models found. Your API key may not have access to Claude models. Error: ${lastError?.message || 'Model not found'}`);
-    }
-
-    throw new Error('AI service temporarily unavailable. Please try again.');
   }
 
   // Process AI response intelligently
@@ -1836,29 +1816,22 @@ Always maintain professional expertise while being helpful and engaging.`;
   async streamUserInput(
     userInput: string,
     mode: 'chat' | 'form-fill' | 'analysis' | 'compliance' = 'chat',
-    onChunk: (text: string) => void
+    onChunk: (text: string) => void,
+    copilotContext?: string
   ): Promise<AIAnalysisResponse> {
-    const messages = this.buildConversationMessages(userInput, mode);
+    const messages = this.buildConversationMessages(userInput, mode, copilotContext);
     const systemPrompt = this.getSystemPrompt(mode);
 
-    const stream = this.anthropic.messages.stream({
-      model: 'claude-3-5-sonnet-20241022',
-      max_tokens: 4096,
-      messages,
-      temperature: mode === 'compliance' ? 0.1 : 0.3,
-      system: systemPrompt,
-    });
-
-    let fullText = '';
-    for await (const event of stream) {
-      if (
-        event.type === 'content_block_delta' &&
-        event.delta.type === 'text_delta'
-      ) {
-        fullText += event.delta.text;
-        onChunk(event.delta.text);
-      }
-    }
+    const fullText = await streamMessageWithFallback(
+      this.anthropic,
+      {
+        max_tokens: 4096,
+        messages,
+        temperature: mode === 'compliance' ? 0.1 : 0.3,
+        system: systemPrompt,
+      },
+      onChunk
+    );
 
     const processedResponse = await this.processAIResponse(fullText, mode);
     this.updateConversationHistory(userInput, processedResponse);

@@ -1,5 +1,7 @@
 import { NextRequest } from 'next/server';
 import { getSPLIAIService } from '@/lib/ai-service';
+import { buildCopilotContextSummary, detectInconsistencies } from '@/lib/copilot-service';
+import type { CopilotState } from '@/types/copilot';
 
 export const runtime = 'nodejs';
 
@@ -50,6 +52,8 @@ export async function POST(request: NextRequest) {
       documents = [],
       applicationId,
       formSummary,
+      formData,
+      copilotState,
     } = await request.json();
 
     if (!userInput || typeof userInput !== 'string') {
@@ -89,6 +93,17 @@ export async function POST(request: NextRequest) {
 
     const processingMode = resolveMode(mode, userInput, documents.length > 0);
 
+    const typedFormData = (formData ?? {}) as Record<string, string>;
+    const inconsistencies = detectInconsistencies(typedFormData);
+    const copilotContext = copilotState
+      ? buildCopilotContextSummary(copilotState as CopilotState, inconsistencies)
+      : inconsistencies.length > 0
+        ? buildCopilotContextSummary(
+            { faaComments: [], changeHistory: [], aiSuggestions: [], updatedAt: '' },
+            inconsistencies
+          )
+        : undefined;
+
     const encoder = new TextEncoder();
     const stream = new ReadableStream({
       async start(controller) {
@@ -102,7 +117,8 @@ export async function POST(request: NextRequest) {
           const result = await aiService.streamUserInput(
             userInput,
             processingMode,
-            (text) => send({ type: 'chunk', text })
+            (text) => send({ type: 'chunk', text }),
+            copilotContext
           );
 
           send({
@@ -115,6 +131,7 @@ export async function POST(request: NextRequest) {
             followUpPrompts: result.followUpPrompts,
             documentInsights: result.documentInsights,
             mode: processingMode,
+            inconsistencies,
           });
         } catch (error) {
           send({

@@ -28,6 +28,12 @@ import { useSession } from 'next-auth/react';
 import { AICursor } from "@/components/ui/ai-cursor";
 import { AIAssistantPanel, AIAssistantPanelHandle } from "@/components/ui/AIAssistantPanel";
 import { useToast } from "@/components/ui/use-toast";
+import {
+  loadCopilotState,
+  saveCopilotState,
+  recordChange,
+  markSuggestionApplied,
+} from "@/lib/copilot-service";
 import type { Document } from "@/types";
 // import { ComplianceDashboard } from '@/components/ui/compliance-dashboard';
 
@@ -1362,7 +1368,7 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
               </div>
               <div>
                 <span className="font-medium text-zinc-100 text-sm block">SPLI Chat</span>
-                <span className="text-[11px] text-zinc-500">Application assistant</span>
+                <span className="text-[11px] text-zinc-500">Copilot — you review and submit</span>
               </div>
             </div>
             <button
@@ -1378,16 +1384,45 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
               ref={aiPanelRef}
               applicationId={applicationId}
               formSummary={formSummary}
+              formData={formData}
+              userEmail={user?.email ?? undefined}
+              onFieldClick={navigateToField}
               onFormUpdate={(suggestions) => {
-                console.log('Form update suggestions received:', suggestions);
-                if (suggestions && suggestions.length > 0) {
+                if (suggestions && suggestions.length > 0 && user?.email) {
+                  const copilotState = loadCopilotState(user.email, applicationId);
+                  let nextState = copilotState;
                   const newFormData = { ...formData };
-                  suggestions.forEach((suggestion: any) => {
+
+                  suggestions.forEach((suggestion: { field: string; value: string }) => {
+                    const prev = formData[suggestion.field] ?? '';
                     newFormData[suggestion.field] = suggestion.value;
+                    nextState = recordChange(nextState, {
+                      fieldName: suggestion.field,
+                      previousValue: prev,
+                      newValue: suggestion.value,
+                      source: 'ai_suggestion',
+                      attribution: 'User approved AI draft',
+                    });
+                    const pending = nextState.aiSuggestions.find(
+                      (s) => s.field === suggestion.field && s.status === 'pending'
+                    );
+                    if (pending) {
+                      nextState = markSuggestionApplied(
+                        nextState,
+                        pending.id,
+                        suggestion.value,
+                        suggestion.value !== pending.suggestedValue
+                      );
+                    }
                   });
+
+                  saveCopilotState(user.email, applicationId, nextState);
                   setFormData(newFormData);
                   handleSave();
-                  aiPanelRef.current?.addAIMsg(`✅ Successfully applied ${suggestions.length} form field updates from your mission description!`);
+                  toast({
+                    title: `${suggestions.length} draft${suggestions.length > 1 ? 's' : ''} applied`,
+                    description: 'Review the updated fields before submitting.',
+                  });
                 }
               }}
               onCommand={async (cmd) => {

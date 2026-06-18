@@ -16,6 +16,8 @@ import {
   X,
   Sparkles,
   Paperclip,
+  Shield,
+  AlertTriangle,
 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -41,6 +43,14 @@ export interface ChatMessage {
   feedback?: 'up' | 'down' | null;
   attachedFiles?: string[];
   documentInsights?: DocumentInsights;
+  inconsistencies?: Array<{
+    id: string;
+    severity: 'blocking' | 'warning';
+    message: string;
+    sectionTitle: string;
+    fieldName?: string;
+    fieldLabel?: string;
+  }>;
 }
 
 export interface DocumentInsights {
@@ -175,9 +185,9 @@ export function AiChatMessage({
 
   if (isUser) {
     return (
-      <div className="flex justify-end">
-        <div className="max-w-[88%] space-y-1.5">
-          <div className="rounded-xl rounded-br-sm bg-zinc-800 border border-zinc-700/60 px-4 py-3">
+      <div className="flex justify-end group">
+        <div className="max-w-[85%] space-y-1">
+          <div className="rounded-2xl rounded-br-md bg-violet-600/15 border border-violet-500/20 px-4 py-2.5">
             <p className="text-sm leading-relaxed text-zinc-100 whitespace-pre-wrap">
               {message.content}
             </p>
@@ -201,18 +211,22 @@ export function AiChatMessage({
   }
 
   return (
-    <div className="flex gap-3 items-start">
-      <div className="flex-shrink-0 w-7 h-7 rounded-lg bg-zinc-800 border border-zinc-700/60 flex items-center justify-center mt-0.5">
-        <Bot className="h-3.5 w-3.5 text-zinc-400" />
+    <div className="flex gap-2.5 items-start group">
+      <div className="flex-shrink-0 w-7 h-7 rounded-lg bg-gradient-to-br from-violet-600/15 to-blue-600/15 border border-violet-500/15 flex items-center justify-center mt-0.5">
+        <Bot className="h-3.5 w-3.5 text-violet-300" />
       </div>
 
-      <div className="flex-1 min-w-0 max-w-[92%] space-y-2">
-        <div className="rounded-xl rounded-tl-sm border border-zinc-700/60 bg-zinc-900/80 px-4 py-3">
+      <div className="flex-1 min-w-0 max-w-[90%] space-y-1.5">
+        <div className="rounded-2xl rounded-tl-md border border-zinc-800/80 bg-zinc-900/50 px-4 py-3">
           {message.mode && message.mode !== 'chat' && (
-            <div className="mb-2.5">
-              <span className="inline-flex items-center gap-1 text-[11px] font-medium uppercase tracking-wide text-zinc-400 px-2 py-0.5 rounded-md bg-zinc-800 border border-zinc-700/50">
+            <div className="mb-2 flex items-center gap-2">
+              <span className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-wide text-violet-300/80 px-2 py-0.5 rounded-md bg-violet-950/30 border border-violet-800/30">
                 <Sparkles className="h-3 w-3" />
                 {MODE_LABELS[message.mode] || message.mode}
+              </span>
+              <span className="inline-flex items-center gap-1 text-[10px] text-zinc-600">
+                <Shield className="h-3 w-3" />
+                Draft — review before applying
               </span>
             </div>
           )}
@@ -223,7 +237,11 @@ export function AiChatMessage({
           )}
 
           {message.suggestions && message.suggestions.length > 0 && !dismissedSuggestions && (
-            <SectionBlock title={`Form Suggestions (${message.suggestions.length})`} icon={FileText}>
+            <SectionBlock title={`Suggested drafts (${message.suggestions.length})`} icon={FileText}>
+              <p className="text-[11px] text-zinc-500 mb-3 flex items-center gap-1">
+                <Shield className="h-3 w-3" />
+                Review each suggestion — nothing is applied without your approval
+              </p>
               <div className="flex items-center justify-between gap-2 mb-3">
                 {message.confidence !== undefined && (
                   <span className="text-[11px] text-zinc-500">
@@ -307,6 +325,19 @@ export function AiChatMessage({
                 {message.warnings.map((warning, index) => (
                   <li key={index} className="text-xs text-orange-200/90 leading-relaxed">
                     {warning}
+                  </li>
+                ))}
+              </ul>
+            </SectionBlock>
+          )}
+
+          {message.inconsistencies && message.inconsistencies.length > 0 && (
+            <SectionBlock title="Section inconsistencies" icon={AlertTriangle} tone="warning">
+              <ul className="space-y-1.5">
+                {message.inconsistencies.map((item) => (
+                  <li key={item.id} className="text-xs text-orange-200/90 leading-relaxed">
+                    <span className="font-medium text-orange-300">{item.sectionTitle}:</span>{' '}
+                    {item.message}
                   </li>
                 ))}
               </ul>
