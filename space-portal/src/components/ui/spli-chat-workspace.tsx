@@ -145,53 +145,55 @@ export function SpliChatWorkspace({
   );
 
   return (
-    <div
-      className="relative flex flex-shrink-0 self-stretch min-h-0 spli-chat-shell"
-      style={{ width }}
-    >
+    <div className="flex-shrink-0 self-stretch min-h-0 pl-2 pr-4 pb-4 pt-0.5">
       <div
-        role="separator"
-        aria-orientation="vertical"
-        aria-label="Resize chat panel"
-        onMouseDown={handleMouseDown}
-        className={`absolute left-0 top-0 bottom-0 w-[3px] z-10 cursor-col-resize group transition-colors ${
-          isResizing ? 'bg-zinc-500/40' : 'hover:bg-white/[0.08]'
-        }`}
-      />
-
-      <div className="flex flex-1 min-w-0 min-h-0 self-stretch">
-        <ChatHistoryRail
-          sessions={sessionStore.sessions}
-          activeSessionId={sessionStore.activeSessionId}
-          collapsed={historyCollapsed}
-          onToggleCollapse={() => setHistoryCollapsed((c) => !c)}
-          onSelectSession={handleSelectSession}
-          onNewChat={handleNewChat}
-          onDeleteSession={handleDeleteSession}
+        className="relative flex h-full min-h-0 spli-chat-shell"
+        style={{ width }}
+      >
+        <div
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Resize chat panel"
+          onMouseDown={handleMouseDown}
+          className={`absolute left-0 top-0 bottom-0 w-[3px] z-10 cursor-col-resize group transition-colors ${
+            isResizing ? 'bg-zinc-500/40' : 'hover:bg-white/[0.08]'
+          }`}
         />
 
-        <div className="flex-1 min-w-0 flex flex-col min-h-0 self-stretch bg-[#0c0c0e]">
-          <AIAssistantPanel
-            ref={panelRef}
-            key={`${sessionStore.activeSessionId}-${sessionKey}`}
-            embedded
-            workspace
-            onClose={onClose}
-            applicationId={applicationId}
-            formSummary={formSummary}
-            formData={formData}
-            userEmail={userEmail}
-            onFieldClick={onFieldClick}
-            onFormUpdate={onFormUpdate}
-            onCommand={onCommand}
-            onFileDrop={onFileDrop}
-            onCopilotStateChange={onCopilotStateChange}
-            initialMessages={activeSession?.messages}
-            initialConversationHistory={activeSession?.conversationHistory}
-            onSessionUpdate={handleSessionUpdate}
-            welcomeMessage={WELCOME_MESSAGE}
-            className="flex-1 min-h-0"
+        <div className="flex flex-1 min-w-0 min-h-0">
+          <ChatHistoryRail
+            sessions={sessionStore.sessions}
+            activeSessionId={sessionStore.activeSessionId}
+            collapsed={historyCollapsed}
+            onToggleCollapse={() => setHistoryCollapsed((c) => !c)}
+            onSelectSession={handleSelectSession}
+            onNewChat={handleNewChat}
+            onDeleteSession={handleDeleteSession}
           />
+
+          <div className="flex-1 min-w-0 flex flex-col min-h-0 bg-[#0c0c0e]">
+            <AIAssistantPanel
+              ref={panelRef}
+              key={`${sessionStore.activeSessionId}-${sessionKey}`}
+              embedded
+              workspace
+              onClose={onClose}
+              applicationId={applicationId}
+              formSummary={formSummary}
+              formData={formData}
+              userEmail={userEmail}
+              onFieldClick={onFieldClick}
+              onFormUpdate={onFormUpdate}
+              onCommand={onCommand}
+              onFileDrop={onFileDrop}
+              onCopilotStateChange={onCopilotStateChange}
+              initialMessages={activeSession?.messages}
+              initialConversationHistory={activeSession?.conversationHistory}
+              onSessionUpdate={handleSessionUpdate}
+              welcomeMessage={WELCOME_MESSAGE}
+              className="flex-1 min-h-0"
+            />
+          </div>
         </div>
       </div>
     </div>
