@@ -146,7 +146,7 @@ export function SpliChatWorkspace({
 
   return (
     <div
-      className="relative flex flex-shrink-0 h-full spli-chat-shell"
+      className="relative flex flex-shrink-0 self-stretch min-h-0 spli-chat-shell"
       style={{ width }}
     >
       <div
@@ -159,7 +159,7 @@ export function SpliChatWorkspace({
         }`}
       />
 
-      <div className="flex flex-1 min-w-0 h-full">
+      <div className="flex flex-1 min-w-0 min-h-0 self-stretch">
         <ChatHistoryRail
           sessions={sessionStore.sessions}
           activeSessionId={sessionStore.activeSessionId}
@@ -170,7 +170,7 @@ export function SpliChatWorkspace({
           onDeleteSession={handleDeleteSession}
         />
 
-        <div className="flex-1 min-w-0 flex flex-col h-full bg-[#0c0c0e]">
+        <div className="flex-1 min-w-0 flex flex-col min-h-0 self-stretch bg-[#0c0c0e]">
           <AIAssistantPanel
             ref={panelRef}
             key={`${sessionStore.activeSessionId}-${sessionKey}`}

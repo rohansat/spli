@@ -64,8 +64,6 @@ export default function ApplicationPage() {
   const user = session?.user;
   const aiPanelRef = useRef<AIAssistantPanelHandle>(null);
   const [showFloatingChat, setShowFloatingChat] = useState(false);
-  const [chatWidth, setChatWidth] = useState(400);
-  const [chatHeight, setChatHeight] = useState(600);
   
   // Compose message state
   const [isComposeOpen, setIsComposeOpen] = useState(false);
@@ -915,9 +913,8 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
   };
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] bg-black overflow-hidden">
-      <div className="flex-1 min-w-0 overflow-y-auto">
-        <div className="relative max-w-[1400px] mx-auto py-8 px-6 min-h-full">
+    <div className="flex flex-col h-[calc(100vh-4rem)] bg-black overflow-hidden">
+      <div className={`flex-shrink-0 px-6 pt-8 pb-4 w-full ${showFloatingChat ? '' : 'max-w-[1400px] mx-auto'}`}>
         <div className="mb-8">
           <Link href="/dashboard" className="flex items-center text-white/70 hover:text-white transition-colors">
             <ChevronLeft className="mr-1 h-4 w-4" />
@@ -925,38 +922,39 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
           </Link>
         </div>
 
-        <div className={`flex flex-col ${showFloatingChat ? 'lg:flex-row' : 'md:flex-row'} justify-between items-start ${showFloatingChat ? 'lg:items-center' : 'md:items-center'} mb-8`}>
-          <div className={`${showFloatingChat ? 'min-w-0 flex-1' : ''}`}>
-            <h1 className={`${showFloatingChat ? 'text-2xl lg:text-3xl' : 'text-3xl'} font-bold text-white mb-3 break-words`}>{application.name}</h1>
-            <div className={`flex ${showFloatingChat ? 'flex-col sm:flex-row' : 'items-center'} ${showFloatingChat ? 'gap-2' : ''}`}>
-              <p className={`text-white/60 ${showFloatingChat ? 'text-sm' : 'mr-3'}`}>
-                {application.type} • Created on{" "}
-                {new Date(application.createdAt).toLocaleDateString()}
-              </p>
-              <span
-                className={`px-3 py-1 rounded-full text-xs font-medium self-start ${
-                  application.status === "draft"
-                    ? "bg-zinc-500/20 text-zinc-300"
-                    : application.status === "under_review"
-                    ? "bg-yellow-500/20 text-yellow-300"
-                    : application.status === "submitted"
-                    ? "bg-blue-500/20 text-blue-300"
-                    : "bg-green-500/20 text-green-300"
-                }`}
-              >
-                {application.status === "submitted" ? "SUBMITTED" : application.status.replace("_", " ").toUpperCase()}
-              </span>
-            </div>
+        <div className="mb-2">
+          <h1 className={`${showFloatingChat ? 'text-2xl lg:text-3xl' : 'text-3xl'} font-bold text-white mb-3 break-words`}>{application.name}</h1>
+          <div className={`flex ${showFloatingChat ? 'flex-col sm:flex-row' : 'items-center'} ${showFloatingChat ? 'gap-2' : ''}`}>
+            <p className={`text-white/60 ${showFloatingChat ? 'text-sm' : 'mr-3'}`}>
+              {application.type} • Created on{" "}
+              {new Date(application.createdAt).toLocaleDateString()}
+            </p>
+            <span
+              className={`px-3 py-1 rounded-full text-xs font-medium self-start ${
+                application.status === "draft"
+                  ? "bg-zinc-500/20 text-zinc-300"
+                  : application.status === "under_review"
+                  ? "bg-yellow-500/20 text-yellow-300"
+                  : application.status === "submitted"
+                  ? "bg-blue-500/20 text-blue-300"
+                  : "bg-green-500/20 text-green-300"
+              }`}
+            >
+              {application.status === "submitted" ? "SUBMITTED" : application.status.replace("_", " ").toUpperCase()}
+            </span>
           </div>
+        </div>
+      </div>
 
-          <div className={`flex flex-col ${showFloatingChat ? 'lg:flex-row' : 'md:flex-row'} space-y-4 ${showFloatingChat ? 'lg:space-y-0 lg:space-x-2' : 'md:space-y-0 md:space-x-4'} mt-4 ${showFloatingChat ? 'lg:mt-0' : 'md:mt-0'}`}>
+      <div className="flex flex-1 min-h-0 w-full">
+        <div className={`flex flex-col flex-1 min-w-0 min-h-0 ${showFloatingChat ? '' : 'max-w-[1400px] mx-auto w-full'}`}>
+          <div className={`flex-shrink-0 px-6 pb-4 flex flex-col ${showFloatingChat ? 'lg:flex-row' : 'md:flex-row'} flex-wrap gap-2 ${showFloatingChat ? 'lg:items-center' : 'md:items-center'}`}>
             <Button
               variant="outline"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                e.currentTarget.blur(); // Remove focus to prevent scroll
-                console.log('AI Mode button clicked, setting showFloatingChat to true');
+                e.currentTarget.blur();
                 setShowFloatingChat(!showFloatingChat);
               }}
               className={`border-white/40 text-white flex items-center justify-center ${buttonSizeClass}`}
@@ -1080,7 +1078,8 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
               </DialogContent>
             </Dialog>
           </div>
-        </div>
+
+          <div className="flex-1 min-w-0 overflow-y-auto px-6 pb-8">
 
         {saveMessage && (
           <Alert
@@ -1148,7 +1147,7 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
 
         <div>
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex gap-8 items-start">
-            <aside className="w-[240px] flex-shrink-0 sticky top-24 self-start">
+            <aside className="w-[240px] flex-shrink-0 sticky top-4 self-start">
               <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-500 mb-3 px-1">
                 Sections
               </p>
@@ -1356,7 +1355,7 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
           formFields={getAllFormFields()}
         />
         </div>
-      </div>
+        </div>
 
       {showFloatingChat && user?.email && (
         <SpliChatWorkspace
@@ -1692,6 +1691,7 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
           }}
         />
       )}
+      </div>
     </div>
   );
 }
