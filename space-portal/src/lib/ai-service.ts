@@ -352,13 +352,13 @@ Always maintain professional expertise while being helpful and engaging.`;
 
   // Get AI response with proper error handling
   private async getAIResponse(messages: Array<{ role: 'user' | 'assistant'; content: string }>, mode: string): Promise<string> {
-    // Try multiple model names, starting with the most specific ones
-    const models = [
-      'claude-sonnet-4-20250514', // Model shown in user's API interface
-      'claude-3-5-sonnet', // Latest Claude 3.5 Sonnet (without date)
-      'claude-3-5-sonnet-20240620', // Stable Claude 3.5 Sonnet
-      'claude-3-sonnet-20240229' // Fallback to Claude 3 Sonnet
-    ];
+    const models = process.env.ANTHROPIC_MODEL
+      ? [process.env.ANTHROPIC_MODEL]
+      : [
+          'claude-sonnet-4-6',
+          'claude-sonnet-4-5-20250929',
+          'claude-haiku-4-5',
+        ];
     let lastError: any = null;
 
     for (const model of models) {
@@ -407,9 +407,12 @@ Always maintain professional expertise while being helpful and engaging.`;
       }
     }
 
-    // If all models failed with 404, throw the last error
     if (lastError) {
-      throw new Error(`No available models found. Your API key may not have access to Claude models. Error: ${lastError?.message || 'Model not found'}`);
+      throw new Error(
+        `No available Claude models found (tried: ${models.join(', ')}). ` +
+          'Update ANTHROPIC_MODEL or check your API key at console.anthropic.com. ' +
+          `Last error: ${lastError?.message || 'Model not found'}`
+      );
     }
 
     throw new Error('AI service temporarily unavailable. Please try again.');
