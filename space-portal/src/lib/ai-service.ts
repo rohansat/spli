@@ -464,7 +464,7 @@ RESPONSE FORMAT:
       : suggestions;
 
     const qualitySuggestions = mergedSuggestions.filter(
-      (s) => s.value.trim().length >= 20 && !/^information not provided$/i.test(s.value.trim())
+      (s) => s.value.trim().length >= 8 && !/^information not provided$/i.test(s.value.trim())
     );
 
     const fieldLabel = (field: string) =>

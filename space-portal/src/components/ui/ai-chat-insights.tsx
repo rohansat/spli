@@ -16,6 +16,7 @@ import {
   mergeFormSuggestions,
   parseMissionToFormFields,
 } from '@/lib/mission-field-parser';
+import { extractFormSuggestionsFromText } from '@/lib/form-field-extract';
 import type { ApplicationActionResult } from '@/lib/application-ai-actions';
 import { readDocumentContents, ParsedDocument } from '@/lib/document-reader';
 import { useSpeechRecognition } from '@/hooks/use-speech-recognition';
@@ -438,16 +439,32 @@ export const AIChatInsights = forwardRef<AIChatInsightsHandle, AIChatInsightsPro
             }
 
             if (event.type === 'done') {
-              const suggestions = mergeFormSuggestions(
+              const historyWithCurrent = [
+                ...conversationHistory,
+                { sender: 'user', content: userDisplayContent },
+              ];
+
+              let suggestions = mergeFormSuggestions(
                 (event.suggestions ?? []) as FormSuggestion[],
                 localFormSuggestions
               );
+
+              if (
+                (event.mode === 'form-fill' || event.mode === 'section-edit') &&
+                streamedText.trim()
+              ) {
+                suggestions = mergeFormSuggestions(
+                  suggestions,
+                  extractFormSuggestionsFromText(streamedText)
+                );
+              }
+
               const autoApply =
                 shouldAutoApplyFormSuggestions(
                   event.mode as string,
                   suggestions.length,
                   expandedContent,
-                  conversationHistory
+                  historyWithCurrent
                 ) && !!onFormUpdate;
 
               if (autoApply) {
@@ -498,9 +515,9 @@ export const AIChatInsights = forwardRef<AIChatInsightsHandle, AIChatInsightsPro
                 return next;
               });
 
-              if (event.suggestions?.length && copilotState && onCopilotStateChange) {
+              if (suggestions.length && copilotState && onCopilotStateChange) {
                 let nextState = copilotState;
-                for (const s of event.suggestions) {
+                for (const s of suggestions) {
                   const { state } = recordAISuggestion(nextState, {
                     field: s.field,
                     suggestedValue: s.value,

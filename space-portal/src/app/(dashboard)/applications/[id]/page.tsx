@@ -644,15 +644,16 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
     }));
   };
 
-  const handleSave = async () => {
+  const handleSave = async (dataOverride?: Record<string, string>) => {
     setIsSaving(true);
+    const dataToSave = dataOverride ?? formData;
     try {
       if (user?.email && applicationId) {
         const baseRecord =
           applicationRecord ?? (await loadApplicationRecord(applicationId, user.email)).record;
         const { record } = await saveApplicationRecord(
           baseRecord,
-          formData,
+          dataToSave,
           user.email,
           user.name ?? undefined
         );
@@ -684,6 +685,10 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
     setFormData,
     handleSave,
     navigateToField,
+    onFieldApplied: (fieldName) => {
+      setAiLastUpdated(fieldName);
+      setTimeout(() => setAiLastUpdated(null), 3000);
+    },
     executeCommand: async (command, params) => executeCommand(command, params),
     toast,
   });
@@ -989,7 +994,7 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
 
             <Button
               variant="outline"
-              onClick={handleSave}
+              onClick={() => void handleSave()}
               disabled={isSaving || application.status === "approved"}
               className={`border-white/40 text-white flex items-center justify-center ${buttonSizeClass}`}
             >

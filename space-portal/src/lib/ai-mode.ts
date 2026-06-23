@@ -281,5 +281,5 @@ export function shouldAutoApplyFormSuggestions(
   if (mode !== 'form-fill') return false;
 
   const missionContent = getMissionContentForProcessing(userInput, conversationHistory);
-  return !!(missionContent && looksLikeMissionDescription(missionContent));
+  return !!missionContent;
 }

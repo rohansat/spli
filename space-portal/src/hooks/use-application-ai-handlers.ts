@@ -21,8 +21,9 @@ interface UseApplicationAIHandlersOptions {
   userEmail?: string;
   formData: Record<string, string>;
   setFormData: React.Dispatch<React.SetStateAction<Record<string, string>>>;
-  handleSave: () => Promise<void>;
+  handleSave: (dataOverride?: Record<string, string>) => Promise<void>;
   navigateToField: (fieldName: string) => void;
+  onFieldApplied?: (fieldName: string) => void;
   executeCommand: (
     command: string,
     params?: Record<string, string>
@@ -37,6 +38,7 @@ export function useApplicationAIHandlers({
   setFormData,
   handleSave,
   navigateToField,
+  onFieldApplied,
   executeCommand,
   toast,
 }: UseApplicationAIHandlersOptions) {
@@ -44,18 +46,26 @@ export function useApplicationAIHandlers({
     (suggestions: FormSuggestion[]) => {
       if (!suggestions.length || !userEmail) return;
 
-      const { newFormData, firstField } = applyFormSuggestions({
-        formData,
-        suggestions,
-        userEmail,
-        applicationId,
+      let newFormData: Record<string, string> = {};
+      let firstField: string | undefined;
+
+      setFormData((prev) => {
+        const result = applyFormSuggestions({
+          formData: prev,
+          suggestions,
+          userEmail,
+          applicationId,
+        });
+        newFormData = result.newFormData;
+        firstField = result.firstField;
+        return newFormData;
       });
 
-      setFormData(newFormData);
-      void handleSave();
+      void handleSave(newFormData);
 
       if (firstField) {
         navigateToField(firstField);
+        onFieldApplied?.(firstField);
       }
 
       toast({
@@ -63,7 +73,7 @@ export function useApplicationAIHandlers({
         description: 'Review the updated fields before submitting.',
       });
     },
-    [applicationId, formData, handleSave, navigateToField, setFormData, toast, userEmail]
+    [applicationId, handleSave, navigateToField, onFieldApplied, setFormData, toast, userEmail]
   );
 
   const handleApplicationInput = useCallback(
