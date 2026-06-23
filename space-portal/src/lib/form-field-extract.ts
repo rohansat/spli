@@ -1,112 +1,80 @@
 import type { FormSuggestion } from '@/components/ui/ai-chat-message';
+import { part450FormTemplate } from '@/lib/mock-data';
 
-const HEADER_TO_FIELD: Record<string, string> = {
-  'mission objective': 'missionObjective',
-  missionobjective: 'missionObjective',
-  objective: 'missionObjective',
-  'vehicle description': 'vehicleDescription',
-  vehicledescription: 'vehicleDescription',
-  vehicle: 'vehicleDescription',
-  'launch reentry sequence': 'launchReEntrySequence',
-  'launch/reentry sequence': 'launchReEntrySequence',
-  launchreentrysequence: 'launchReEntrySequence',
-  'launch sequence': 'launchReEntrySequence',
-  'reentry sequence': 'launchReEntrySequence',
-  'trajectory overview': 'trajectoryOverview',
-  trajectoryoverview: 'trajectoryOverview',
-  trajectory: 'trajectoryOverview',
-  'safety considerations': 'safetyConsiderations',
-  safetyconsiderations: 'safetyConsiderations',
-  safety: 'safetyConsiderations',
-  'ground operations': 'groundOperations',
-  groundoperations: 'groundOperations',
-  'ground ops': 'groundOperations',
-  'technical summary': 'technicalSummary',
-  technicalsummary: 'technicalSummary',
-  technical: 'technicalSummary',
-  'dimensions mass stages': 'dimensionsMassStages',
-  'dimensions/mass/stages': 'dimensionsMassStages',
-  dimensionsmassstages: 'dimensionsMassStages',
-  dimensions: 'dimensionsMassStages',
-  'mass stages': 'dimensionsMassStages',
-  'propulsion types': 'propulsionTypes',
-  propulsiontypes: 'propulsionTypes',
-  propulsion: 'propulsionTypes',
-  'recovery systems': 'recoverySystems',
-  recoverysystems: 'recoverySystems',
-  recovery: 'recoverySystems',
-  'ground support equipment': 'groundSupportEquipment',
-  groundsupportequipment: 'groundSupportEquipment',
-  'ground support': 'groundSupportEquipment',
-  'site names coordinates': 'siteNamesCoordinates',
-  'site names/coordinates': 'siteNamesCoordinates',
-  sitenamescoordinates: 'siteNamesCoordinates',
-  'site coordinates': 'siteNamesCoordinates',
-  coordinates: 'siteNamesCoordinates',
-  'site operator': 'siteOperator',
-  siteoperator: 'siteOperator',
-  operator: 'siteOperator',
-  'airspace maritime notes': 'airspaceMaritimeNotes',
-  'airspace/maritime notes': 'airspaceMaritimeNotes',
-  airspacemaritimenotes: 'airspaceMaritimeNotes',
-  'airspace notes': 'airspaceMaritimeNotes',
-  'maritime notes': 'airspaceMaritimeNotes',
-  'launch site': 'launchSite',
-  launchsite: 'launchSite',
-  'launch location': 'launchSite',
-  'launch window': 'launchWindow',
-  launchwindow: 'launchWindow',
-  window: 'launchWindow',
-  'flight path': 'flightPath',
-  flightpath: 'flightPath',
-  path: 'flightPath',
-  'landing site': 'landingSite',
-  landingsite: 'landingSite',
-  'landing location': 'landingSite',
-  'early risk assessments': 'earlyRiskAssessments',
-  earlyriskassessments: 'earlyRiskAssessments',
-  'risk assessments': 'earlyRiskAssessments',
-  'public safety challenges': 'publicSafetyChallenges',
-  publicsafetychallenges: 'publicSafetyChallenges',
-  'public safety': 'publicSafetyChallenges',
-  'planned safety tools': 'plannedSafetyTools',
-  plannedsafetytools: 'plannedSafetyTools',
-  'safety tools': 'plannedSafetyTools',
-  'full application timeline': 'fullApplicationTimeline',
-  fullapplicationtimeline: 'fullApplicationTimeline',
-  timeline: 'fullApplicationTimeline',
-  'intended window': 'intendedWindow',
-  intendedwindow: 'intendedWindow',
-  'license type intent': 'licenseTypeIntent',
-  licensetypeintent: 'licenseTypeIntent',
-  'license intent': 'licenseTypeIntent',
-  'license type': 'licenseTypeIntent',
-  'clarify part450': 'clarifyPart450',
-  'clarify part 450': 'clarifyPart450',
-  clarifypart450: 'clarifyPart450',
-  part450: 'clarifyPart450',
-  'part 450': 'clarifyPart450',
-  'unique tech international': 'uniqueTechInternational',
-  'unique tech/international': 'uniqueTechInternational',
-  uniquetechinternational: 'uniqueTechInternational',
-  'unique tech': 'uniqueTechInternational',
-  international: 'uniqueTechInternational',
-};
-
-function normalizeHeader(header: string): string {
-  return header.toLowerCase().replace(/[#*_\s]+/g, ' ').trim();
+const LABEL_TO_FIELD: Record<string, string> = {};
+for (const section of part450FormTemplate.sections) {
+  for (const field of section.fields) {
+    LABEL_TO_FIELD[field.label.toLowerCase()] = field.name;
+    LABEL_TO_FIELD[field.name.toLowerCase()] = field.name;
+  }
 }
 
-function resolveField(header: string): string | undefined {
-  const norm = normalizeHeader(header);
-  if (HEADER_TO_FIELD[norm]) return HEADER_TO_FIELD[norm];
-  for (const [key, fieldName] of Object.entries(HEADER_TO_FIELD)) {
-    const keyNorm = key.replace(/\//g, ' ');
-    if (norm === keyNorm || norm.includes(keyNorm) || keyNorm.includes(norm)) {
+LABEL_TO_FIELD['launch/reentry sequence'] = 'launchReEntrySequence';
+LABEL_TO_FIELD['dimensions, mass, stages'] = 'dimensionsMassStages';
+LABEL_TO_FIELD['flight path description'] = 'flightPath';
+LABEL_TO_FIELD['landing/recovery site (if applicable)'] = 'landingSite';
+LABEL_TO_FIELD['when you plan to submit a full application'] = 'fullApplicationTimeline';
+LABEL_TO_FIELD['intended launch/reentry window'] = 'intendedWindow';
+LABEL_TO_FIELD['whether you seek a vehicle/operator license or mission-specific license'] =
+  'licenseTypeIntent';
+LABEL_TO_FIELD['clarify points about part 450 requirements'] = 'clarifyPart450';
+LABEL_TO_FIELD['any unique tech or international aspects'] = 'uniqueTechInternational';
+LABEL_TO_FIELD['any early risk assessments'] = 'earlyRiskAssessments';
+LABEL_TO_FIELD['known public safety challenges'] = 'publicSafetyChallenges';
+LABEL_TO_FIELD['any planned use of safety tools (debris, sara, etc.)'] = 'plannedSafetyTools';
+LABEL_TO_FIELD['site names and coordinates'] = 'siteNamesCoordinates';
+LABEL_TO_FIELD['site operator (if 3rd party)'] = 'siteOperator';
+LABEL_TO_FIELD['airspace/maritime notes (if applicable)'] = 'airspaceMaritimeNotes';
+LABEL_TO_FIELD['technical summary or data sheet'] = 'technicalSummary';
+LABEL_TO_FIELD['propulsion type(s)'] = 'propulsionTypes';
+LABEL_TO_FIELD['recovery systems (if any)'] = 'recoverySystems';
+
+function normalizeLabel(label: string): string {
+  return label
+    .toLowerCase()
+    .replace(/[#*_`]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function resolveFieldFromLabel(label: string): string | undefined {
+  const norm = normalizeLabel(label);
+  if (LABEL_TO_FIELD[norm]) return LABEL_TO_FIELD[norm];
+  for (const [key, fieldName] of Object.entries(LABEL_TO_FIELD)) {
+    if (norm === key || norm.startsWith(key) || key.startsWith(norm)) {
       return fieldName;
     }
   }
   return undefined;
+}
+
+function isSkippableLine(line: string): boolean {
+  const t = line.trim();
+  if (!t) return true;
+  if (/^[-─—]{2,}$/.test(t)) return true;
+  if (/^section\s+\d+/i.test(t)) return true;
+  if (/^📋|^⚠️|^\|/.test(t)) return true;
+  if (/^for human review/i.test(t)) return true;
+  if (/^not a compliance/i.test(t)) return true;
+  if (/^key gaps identified/i.test(t)) return true;
+  if (/^suggested draft/i.test(t)) return true;
+  if (/^application id:/i.test(t)) return true;
+  return false;
+}
+
+function cleanFieldContent(lines: string[]): string {
+  return lines
+    .filter((line) => {
+      const t = line.trim();
+      if (!t) return false;
+      if (t.startsWith('⚠️')) return false;
+      if (t.startsWith('|')) return false;
+      if (/^not provided/i.test(t)) return false;
+      if (/^please (supply|confirm|provide|advise)/i.test(t)) return false;
+      return true;
+    })
+    .join('\n')
+    .trim();
 }
 
 export function extractFormFieldsFromText(text: string): Record<string, string> {
@@ -115,38 +83,51 @@ export function extractFormFieldsFromText(text: string): Record<string, string> 
   let currentField: string | undefined;
   const chunks: Record<string, string[]> = {};
 
+  const flush = () => {
+    if (!currentField) return;
+    const content = cleanFieldContent(chunks[currentField] ?? []);
+    if (content.length >= 8) {
+      sections[currentField] = content;
+    }
+    currentField = undefined;
+  };
+
   for (const line of lines) {
     const trimmed = line.trim();
-    if (!trimmed) {
-      if (currentField) chunks[currentField].push('');
+    if (isSkippableLine(trimmed)) {
+      if (!trimmed) flush();
       continue;
     }
 
-    const mdMatch = trimmed.match(/^#{1,4}\s*(.+)$/) || trimmed.match(/^\*\*(.+?)\*\*$/);
-    const capsMatch =
-      !mdMatch && /^[A-Z][A-Z0-9\s\/\-]{2,55}$/.test(trimmed) ? trimmed : null;
-    const rawHeader = mdMatch?.[1] ?? capsMatch;
-    if (rawHeader) {
-      const field = resolveField(rawHeader);
+    const mdHeader = trimmed.match(/^#{1,4}\s*(.+)$/)?.[1];
+    const boldHeader = trimmed.match(/^\*\*(.+?)\*\*$/)?.[1];
+    const capsHeader =
+      !mdHeader && !boldHeader && /^[A-Z][A-Z0-9\s\/\-,()]{2,70}$/.test(trimmed)
+        ? trimmed
+        : null;
+
+    const candidateLabel =
+      mdHeader ??
+      boldHeader ??
+      capsHeader ??
+      (trimmed.length <= 72 && !trimmed.startsWith('-') && !trimmed.endsWith('.') ? trimmed : null);
+    if (candidateLabel) {
+      const field = resolveFieldFromLabel(candidateLabel);
       if (field) {
+        flush();
         currentField = field;
-        chunks[field] = chunks[field] ?? [];
+        chunks[field] = [];
         continue;
       }
     }
 
     if (currentField) {
+      chunks[currentField] = chunks[currentField] ?? [];
       chunks[currentField].push(line);
     }
   }
 
-  for (const [field, contentLines] of Object.entries(chunks)) {
-    const content = contentLines.join('\n').trim();
-    if (content && content.length >= 8 && !/^information not provided$/i.test(content)) {
-      sections[field] = content;
-    }
-  }
-
+  flush();
   return sections;
 }
 

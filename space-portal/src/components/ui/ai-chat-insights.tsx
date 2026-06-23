@@ -10,7 +10,7 @@ import {
   getMentionQueryAtCursor,
   MentionItem,
 } from '@/lib/ai-mentions';
-import { resolveAIMode, shouldAutoApplyFormSuggestions, getMissionContentForProcessing } from '@/lib/ai-mode';
+import { resolveAIMode, shouldAutoApplyFormSuggestions, getMissionContentForProcessing, looksLikeMissionDescription } from '@/lib/ai-mode';
 import {
   buildFormFillSummaryMessage,
   mergeFormSuggestions,
@@ -333,11 +333,12 @@ export const AIChatInsights = forwardRef<AIChatInsightsHandle, AIChatInsightsPro
       `Analyze the attached document${docNames.length > 1 ? 's' : ''}: ${docNames.join(', ')}`;
     const resolvedMode = resolveAIMode(undefined, expandedContent, hasDocs, conversationHistory);
     const missionContent = getMissionContentForProcessing(expandedContent, conversationHistory);
-    const isMissionPaste = resolvedMode === 'form-fill' && !!missionContent;
+    const hasMissionPaste = !!missionContent && looksLikeMissionDescription(missionContent);
+    const isMissionPaste = hasMissionPaste || resolvedMode === 'form-fill';
     const isSectionEdit = resolvedMode === 'section-edit';
-    const silentFormFill = isMissionPaste;
+    const silentFormFill = hasMissionPaste;
     const missionText = missionContent ?? '';
-    const localFormSuggestions = isMissionPaste ? parseMissionToFormFields(missionText) : [];
+    const localFormSuggestions = missionText ? parseMissionToFormFields(missionText) : [];
     const apiInput =
       isMissionPaste
         ? `Extract all FAA Part 450 application fields (Sections 1–7) from this mission description. Use the structured section format and populate every field you can.\n\n${missionText}`
@@ -397,7 +398,7 @@ export const AIChatInsights = forwardRef<AIChatInsightsHandle, AIChatInsightsPro
           formSummary,
           formData,
           copilotState,
-          mode: resolvedMode,
+          mode: isMissionPaste ? 'form-fill' : resolvedMode,
         }),
       });
 
@@ -449,10 +450,14 @@ export const AIChatInsights = forwardRef<AIChatInsightsHandle, AIChatInsightsPro
                 localFormSuggestions
               );
 
-              if (
-                (event.mode === 'form-fill' || event.mode === 'section-edit') &&
-                streamedText.trim()
-              ) {
+              if (missionText) {
+                suggestions = mergeFormSuggestions(
+                  suggestions,
+                  parseMissionToFormFields(missionText)
+                );
+              }
+
+              if (streamedText.trim()) {
                 suggestions = mergeFormSuggestions(
                   suggestions,
                   extractFormSuggestionsFromText(streamedText)
@@ -472,15 +477,14 @@ export const AIChatInsights = forwardRef<AIChatInsightsHandle, AIChatInsightsPro
               }
 
               let finalContent =
-                event.mode === 'chat'
-                  ? event.message || streamedText
-                  : streamedText || event.message;
+                autoApply
+                  ? buildFormFillSummaryMessage(suggestions, formatFieldLabel)
+                  : event.mode === 'chat'
+                    ? event.message || streamedText
+                    : streamedText || event.message;
 
-              if (autoApply) {
-                finalContent =
-                  event.mode === 'section-edit'
-                    ? `Updated **${suggestions.length} field${suggestions.length === 1 ? '' : 's'}** in your application. Review the form on the left.`
-                    : buildFormFillSummaryMessage(suggestions, formatFieldLabel);
+              if (autoApply && event.mode === 'section-edit') {
+                finalContent = `Updated **${suggestions.length} field${suggestions.length === 1 ? '' : 's'}** in your application. Review the form on the left.`;
               }
 
               setConversationHistory((prev) => {

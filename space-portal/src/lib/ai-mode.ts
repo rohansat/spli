@@ -274,12 +274,18 @@ export function shouldAutoApplyFormSuggestions(
 ): boolean {
   if (suggestionCount === 0) return false;
 
+  const missionContent = getMissionContentForProcessing(userInput, conversationHistory);
+  if (missionContent && looksLikeMissionDescription(missionContent)) {
+    return true;
+  }
+
   if (mode === 'section-edit') {
     return true;
   }
 
-  if (mode !== 'form-fill') return false;
+  if (mode === 'form-fill' && missionContent) {
+    return true;
+  }
 
-  const missionContent = getMissionContentForProcessing(userInput, conversationHistory);
-  return !!missionContent;
+  return false;
 }

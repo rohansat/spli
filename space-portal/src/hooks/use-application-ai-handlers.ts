@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useRef, useEffect } from 'react';
 import type { FormSuggestion } from '@/components/ui/ai-chat-message';
 import {
   applyFormSuggestions,
@@ -42,25 +42,24 @@ export function useApplicationAIHandlers({
   executeCommand,
   toast,
 }: UseApplicationAIHandlersOptions) {
+  const formDataRef = useRef(formData);
+  useEffect(() => {
+    formDataRef.current = formData;
+  }, [formData]);
+
   const applySuggestions = useCallback(
     (suggestions: FormSuggestion[]) => {
       if (!suggestions.length || !userEmail) return;
 
-      let newFormData: Record<string, string> = {};
-      let firstField: string | undefined;
-
-      setFormData((prev) => {
-        const result = applyFormSuggestions({
-          formData: prev,
-          suggestions,
-          userEmail,
-          applicationId,
-        });
-        newFormData = result.newFormData;
-        firstField = result.firstField;
-        return newFormData;
+      const { newFormData, firstField } = applyFormSuggestions({
+        formData: formDataRef.current,
+        suggestions,
+        userEmail,
+        applicationId,
       });
 
+      formDataRef.current = newFormData;
+      setFormData(newFormData);
       void handleSave(newFormData);
 
       if (firstField) {
