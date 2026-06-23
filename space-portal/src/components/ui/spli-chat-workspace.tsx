@@ -20,13 +20,11 @@ import {
 const WELCOME_MESSAGE: ChatMessage = {
   id: 'welcome',
   role: 'assistant',
-  content:
-    'Draft Part 450 field content, flag cross-section inconsistencies, and track FAA feedback — you review and submit.',
+  content: 'Paste a mission description and I will fill the form. You review and submit.',
   timestamp: new Date(),
   followUpPrompts: [
     'Check my application for cross-section inconsistencies',
-    'Paste my mission description to auto-fill CONOPS fields',
-    'What are the key Part 450 requirements?',
+    'Help me draft CONOPS from my mission description',
   ],
 };
 

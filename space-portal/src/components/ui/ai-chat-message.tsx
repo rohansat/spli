@@ -246,24 +246,25 @@ export function AiChatMessage({
   return (
     <div className="group py-0.5">
       <div className="pr-2">
-          {message.mode && message.mode !== 'chat' && (
+          {message.mode && message.mode !== 'chat' && !message.autoApplied && (
             <div className="mb-2 flex flex-wrap items-center gap-2">
               <span className="inline-flex items-center gap-1.5 text-[11px] text-zinc-400 px-2 py-0.5 rounded-md bg-white/[0.04]">
                 <Sparkles className="h-3 w-3 opacity-60" />
                 {MODE_LABELS[message.mode] || message.mode}
               </span>
-              {message.autoApplied && (
-                <span className="inline-flex items-center gap-1 text-[11px] text-emerald-400/90 px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20">
-                  <Check className="h-3 w-3" />
-                  Applied to form
-                </span>
-              )}
-              {!message.autoApplied && (
-                <span className="inline-flex items-center gap-1 text-[11px] text-zinc-600">
-                  <Shield className="h-3 w-3" />
-                  Draft — review required
-                </span>
-              )}
+              <span className="inline-flex items-center gap-1 text-[11px] text-zinc-600">
+                <Shield className="h-3 w-3" />
+                Draft — review required
+              </span>
+            </div>
+          )}
+
+          {message.autoApplied && (
+            <div className="mb-2">
+              <span className="inline-flex items-center gap-1 text-[11px] text-emerald-400/90 px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20">
+                <Check className="h-3 w-3" />
+                Applied to form
+              </span>
             </div>
           )}
 
@@ -346,7 +347,7 @@ export function AiChatMessage({
             </SectionBlock>
           )}
 
-          {message.nextSteps && message.nextSteps.length > 0 && (
+          {message.nextSteps && message.nextSteps.length > 0 && !message.autoApplied && (
             <SectionBlock title="Next Steps" icon={CheckCircle}>
               <ul className="space-y-1.5">
                 {message.nextSteps.map((step, index) => (
@@ -359,7 +360,7 @@ export function AiChatMessage({
             </SectionBlock>
           )}
 
-          {message.warnings && message.warnings.length > 0 && (
+          {message.warnings && message.warnings.length > 0 && !message.autoApplied && (
             <SectionBlock title="Warnings" icon={AlertCircle} tone="warning">
               <ul className="space-y-1.5">
                 {message.warnings.map((warning, index) => (
@@ -438,7 +439,7 @@ export function AiChatMessage({
           </div>
         )}
 
-        {message.followUpPrompts && message.followUpPrompts.length > 0 && !message.isStreaming && (
+        {message.followUpPrompts && message.followUpPrompts.length > 0 && !message.isStreaming && !message.autoApplied && (
           <div className="space-y-2 mt-3">
             <p className="spli-chat-label">Suggested</p>
             <div className="flex flex-col gap-1.5">

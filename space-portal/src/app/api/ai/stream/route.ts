@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { getSPLIAIService } from '@/lib/ai-service';
-import { resolveAIMode } from '@/lib/ai-mode';
+import { resolveAIMode, looksLikeMissionDescription } from '@/lib/ai-mode';
+import { extractRawMissionText } from '@/lib/mission-field-parser';
 import { buildCopilotContextSummary, detectInconsistencies } from '@/lib/copilot-service';
 import type { CopilotState } from '@/types/copilot';
 
@@ -55,6 +56,9 @@ export async function POST(request: NextRequest) {
     }
 
     const processingMode = resolveAIMode(mode, userInput, documents.length > 0, conversationHistory);
+    const sourceMissionText = looksLikeMissionDescription(userInput)
+      ? extractRawMissionText(userInput)
+      : undefined;
 
     const typedFormData = (formData ?? {}) as Record<string, string>;
     const inconsistencies = detectInconsistencies(typedFormData);
@@ -81,7 +85,8 @@ export async function POST(request: NextRequest) {
             userInput,
             processingMode,
             (text) => send({ type: 'chunk', text }),
-            copilotContext
+            copilotContext,
+            sourceMissionText
           );
 
           send({

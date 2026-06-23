@@ -11,6 +11,12 @@ import {
   MentionItem,
 } from '@/lib/ai-mentions';
 import { resolveAIMode, shouldAutoApplyFormSuggestions, looksLikeMissionDescription } from '@/lib/ai-mode';
+import {
+  buildFormFillSummaryMessage,
+  extractRawMissionText,
+  mergeFormSuggestions,
+  parseMissionToFormFields,
+} from '@/lib/mission-field-parser';
 import type { ApplicationActionResult } from '@/lib/application-ai-actions';
 import { readDocumentContents, ParsedDocument } from '@/lib/document-reader';
 import { useSpeechRecognition } from '@/hooks/use-speech-recognition';
@@ -23,8 +29,6 @@ import {
   Paperclip,
   FileText,
   CheckCircle,
-  MessageSquare,
-  Sparkles,
   Mic,
   MicOff,
   X,
@@ -66,21 +70,17 @@ export interface AIChatInsightsHandle {
 const WELCOME_MESSAGE: ChatMessage = {
   id: 'welcome',
   role: 'assistant',
-  content:
-    'Draft Part 450 field content, flag cross-section inconsistencies, and track FAA feedback — you review and submit.',
+  content: 'Paste a mission description and I will fill the form. You review and submit.',
   timestamp: new Date(),
   followUpPrompts: [
     'Check my application for cross-section inconsistencies',
-    'Paste my mission description to auto-fill CONOPS fields',
-    'What are the key Part 450 requirements?',
+    'Help me draft CONOPS from my mission description',
   ],
 };
 
 const QUICK_PROMPTS = [
-  { label: 'Draft form', icon: FileText, prompt: 'Draft Part 450 field content from my mission details — I will review before applying' },
-  { label: 'Inconsistencies', icon: CheckCircle, prompt: 'Review my application for cross-section inconsistencies and flag conflicts' },
-  { label: 'Analyze docs', icon: MessageSquare, prompt: 'Analyze my uploaded documents and extract relevant application data' },
-  { label: 'Best practices', icon: Sparkles, prompt: 'What are best practices for a successful Part 450 application?' },
+  { label: 'Auto-fill form', icon: FileText, prompt: 'Help me draft CONOPS from my mission description' },
+  { label: 'Inconsistencies', icon: CheckCircle, prompt: 'Review my application for cross-section inconsistencies' },
 ];
 
 function formatFieldLabel(field: string): string {
@@ -332,8 +332,12 @@ export const AIChatInsights = forwardRef<AIChatInsightsHandle, AIChatInsightsPro
       trimmed ||
       `Analyze the attached document${docNames.length > 1 ? 's' : ''}: ${docNames.join(', ')}`;
     const resolvedMode = resolveAIMode(undefined, expandedContent, hasDocs, conversationHistory);
+    const isMissionPaste = looksLikeMissionDescription(expandedContent);
+    const silentFormFill = resolvedMode === 'form-fill' && isMissionPaste;
+    const missionText = isMissionPaste ? extractRawMissionText(expandedContent) : '';
+    const localFormSuggestions = missionText ? parseMissionToFormFields(missionText) : [];
     const apiInput =
-      resolvedMode === 'form-fill' && looksLikeMissionDescription(expandedContent)
+      resolvedMode === 'form-fill' && isMissionPaste
         ? `Extract all FAA Part 450 application form fields from this mission description. Use the structured section format and populate every field you can.\n\n${expandedContent}`
         : hasDocs
           ? `${expandedContent || 'Analyze the attached documents for Part 450 application relevance. Extract technical specifications, mission objectives, safety considerations, timeline information, missing information, compliance requirements, and integration suggestions.'}`
@@ -366,7 +370,13 @@ export const AIChatInsights = forwardRef<AIChatInsightsHandle, AIChatInsightsPro
     const assistantId = `assistant-${Date.now()}`;
     setMessages((prev) => [
       ...prev,
-      { id: assistantId, role: 'assistant', content: '', timestamp: new Date(), isStreaming: true },
+      {
+        id: assistantId,
+        role: 'assistant',
+        content: silentFormFill ? 'Parsing your mission description…' : '',
+        timestamp: new Date(),
+        isStreaming: true,
+      },
     ]);
     setStreamingMessageId(assistantId);
 
@@ -417,13 +427,18 @@ export const AIChatInsights = forwardRef<AIChatInsightsHandle, AIChatInsightsPro
 
             if (event.type === 'chunk' && event.text) {
               streamedText += event.text;
-              setMessages((prev) =>
-                prev.map((m) => (m.id === assistantId ? { ...m, content: streamedText } : m))
-              );
+              if (!silentFormFill) {
+                setMessages((prev) =>
+                  prev.map((m) => (m.id === assistantId ? { ...m, content: streamedText } : m))
+                );
+              }
             }
 
             if (event.type === 'done') {
-              const suggestions = (event.suggestions ?? []) as FormSuggestion[];
+              const suggestions = mergeFormSuggestions(
+                (event.suggestions ?? []) as FormSuggestion[],
+                localFormSuggestions
+              );
               const autoApply =
                 shouldAutoApplyFormSuggestions(event.mode as string, suggestions.length) &&
                 !!onFormUpdate;
@@ -432,14 +447,13 @@ export const AIChatInsights = forwardRef<AIChatInsightsHandle, AIChatInsightsPro
                 onFormUpdate!(suggestions);
               }
 
-              const appliedFieldLabels = suggestions.map((s) => formatFieldLabel(s.field));
               let finalContent =
                 event.mode === 'chat'
                   ? event.message || streamedText
                   : streamedText || event.message;
 
               if (autoApply) {
-                finalContent = `I've parsed your mission description and filled **${suggestions.length} field${suggestions.length !== 1 ? 's' : ''}** in your application.\n\n**Updated:** ${appliedFieldLabels.join(', ')}\n\nReview each section in the form and edit anything before submitting.`;
+                finalContent = buildFormFillSummaryMessage(suggestions, formatFieldLabel);
               }
 
               setConversationHistory((prev) => {
@@ -456,10 +470,10 @@ export const AIChatInsights = forwardRef<AIChatInsightsHandle, AIChatInsightsPro
                           content: finalContent,
                           isStreaming: false,
                           suggestions: autoApply ? undefined : suggestions,
-                          confidence: event.confidence,
-                          nextSteps: event.nextSteps,
-                          warnings: event.warnings,
-                          followUpPrompts: event.followUpPrompts,
+                          confidence: autoApply ? undefined : event.confidence,
+                          nextSteps: autoApply ? undefined : event.nextSteps,
+                          warnings: autoApply ? undefined : event.warnings,
+                          followUpPrompts: autoApply ? undefined : event.followUpPrompts,
                           documentInsights: event.documentInsights,
                           mode: event.mode,
                           inconsistencies: event.inconsistencies,

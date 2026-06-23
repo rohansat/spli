@@ -3,6 +3,11 @@
 
 import Anthropic from '@anthropic-ai/sdk';
 import { createMessageWithFallback, streamMessageWithFallback } from '@/lib/ai-models';
+import {
+  buildFormFillSummaryMessage,
+  mergeFormSuggestions,
+  parseMissionToFormFields,
+} from '@/lib/mission-field-parser';
 
 // Core AI interfaces
 export interface AIFormSuggestion {
@@ -247,114 +252,42 @@ CONVERSATION STYLE:
         return `${basePrompt}
 
 FORM FILLING MODE:
-When users provide mission descriptions, ALWAYS extract ALL relevant information and populate Part 450 form sections. Be extremely thorough and comprehensive - extract every single detail mentioned.
+Extract mission details into FAA Part 450 fields. The application form updates automatically from your output.
 
-INFORMATION ASSESSMENT:
-- ALWAYS extract information from mission descriptions, even if some details are missing
-- Look for ANY relevant information that could populate form fields
-- Extract partial information when full details aren't available
-- Be comprehensive and thorough in your extraction
-- Extract specific technical details, measurements, coordinates, timelines, specifications
-- Look for safety systems, propulsion details, payload information, launch sites, trajectories
-- Extract all numerical values, dates, locations, and technical specifications
-- Be exhaustive in finding and extracting information
+OUTPUT RULES (CRITICAL):
+- No introductions, summaries, questions, or follow-ups
+- Never ask for more information when a mission description is provided
+- Output ONLY labeled sections: header on its own line, then content
+- Use professional FAA-ready language drawn from the mission text
+- Populate every field you can; omit sections with no supporting detail
 
-ALWAYS use this structured format when mission information is provided:
-
-SECTION 1: CONCEPT OF OPERATIONS (CONOPS)
+Use these exact headers (one per section):
 MISSION OBJECTIVE
-[Extract and describe the mission objective, purpose, and goals]
-
-VEHICLE DESCRIPTION  
-[Extract vehicle information, rocket type, stages, propulsion, dimensions, mass]
-
+VEHICLE DESCRIPTION
 LAUNCH/REENTRY SEQUENCE
-[Extract launch sequence, stages, trajectory, flight profile]
-
 TRAJECTORY OVERVIEW
-[Extract trajectory details, flight path, orbital parameters]
-
 SAFETY CONSIDERATIONS
-[Extract safety measures, risk assessments, termination systems, monitoring]
-
 GROUND OPERATIONS
-[Extract ground operations, facilities, procedures, support equipment]
-
-SECTION 2: VEHICLE OVERVIEW
 TECHNICAL SUMMARY
-[Extract technical specifications, payload details, power systems, communications]
-
 DIMENSIONS/MASS/STAGES
-[Extract vehicle dimensions, mass, stage configuration]
-
 PROPULSION TYPES
-[Extract propulsion system details, engine types, fuel]
-
 RECOVERY SYSTEMS
-[Extract recovery system information if applicable]
-
 GROUND SUPPORT EQUIPMENT
-[Extract ground support equipment and infrastructure]
-
-SECTION 3: PLANNED LAUNCH/REENTRY LOCATION(S)
 SITE NAMES/COORDINATES
-[Extract launch site names and precise coordinates]
-
 SITE OPERATOR
-[Extract site operator information if third party]
-
 AIRSPACE/MARITIME NOTES
-[Extract airspace or maritime considerations if applicable]
-
-SECTION 4: LAUNCH INFORMATION
 LAUNCH SITE
-[Extract specific launch site location]
-
 LAUNCH WINDOW
-[Extract launch window timing and dates]
-
 FLIGHT PATH
-[Extract flight path description and trajectory]
-
 LANDING SITE
-[Extract landing or recovery site if applicable]
-
-SECTION 5: PRELIMINARY RISK OR SAFETY CONSIDERATIONS
 EARLY RISK ASSESSMENTS
-[Extract any early risk assessments conducted]
-
 PUBLIC SAFETY CHALLENGES
-[Extract known public safety challenges]
-
 PLANNED SAFETY TOOLS
-[Extract planned use of safety tools like DEBRIS, SARA, etc.]
-
-SECTION 6: TIMELINE & INTENT
 FULL APPLICATION TIMELINE
-[Extract when full application will be submitted]
-
 INTENDED WINDOW
-[Extract intended launch/reentry window]
-
 LICENSE TYPE INTENT
-[Extract whether seeking vehicle/operator license or mission-specific license]
-
-SECTION 7: LIST OF QUESTIONS FOR FAA
 CLARIFY PART 450
-[Extract any questions about Part 450 requirements]
-
-UNIQUE TECH/INTERNATIONAL
-[Extract any unique technology or international aspects]
-
-WHEN USER PROVIDES INSUFFICIENT DETAILS:
-Extract whatever information you can find, even if incomplete. If truly no mission information is provided, then ask for details.
-
-CRITICAL INSTRUCTIONS:
-- ALWAYS extract information when mission details are provided, even if incomplete
-- Extract partial information and populate whatever fields you can
-- Use professional, FAA-ready language
-- Be comprehensive and thorough in extraction
-- Fill as many form fields as possible with available information`;
+UNIQUE TECH/INTERNATIONAL`;
 
       case 'compliance':
         return `${basePrompt}
@@ -397,20 +330,14 @@ Use bullet points under each section.`;
         return `${basePrompt}
 
 CHAT MODE:
-Engage in professional conversation about:
-- Space missions and aerospace technology
-- FAA licensing processes and requirements
-- Industry trends and developments
-- Best practices and recommendations
-- General questions and guidance
+- Keep replies short: 2–4 sentences unless the user asks for detail
+- When the user wants CONOPS or form help but has not pasted a mission yet, ask them to paste their mission description in one sentence — do not list what to include
+- Answer FAA and licensing questions clearly and directly
 
 RESPONSE FORMAT:
-- Use markdown: headers (##), bullet lists, **bold** for key terms, \`code\` for technical values
-- Be structured and scannable — break long answers into sections
-- End every response with a "Suggested follow-ups" section listing 2-3 short follow-up questions the user might ask next, formatted as:
-  FOLLOW_UP: ["question 1", "question 2", "question 3"]
-
-Always maintain professional expertise while being helpful and engaging.`;
+- Use light markdown when it helps scannability
+- End with at most 2 short follow-ups when useful, formatted as:
+  FOLLOW_UP: ["question 1", "question 2"]`;
     }
   }
 
@@ -445,11 +372,15 @@ Always maintain professional expertise while being helpful and engaging.`;
   }
 
   // Process AI response intelligently
-  private async processAIResponse(response: string, mode: string): Promise<AIAnalysisResponse> {
+  private async processAIResponse(
+    response: string,
+    mode: string,
+    sourceMissionText?: string
+  ): Promise<AIAnalysisResponse> {
     try {
       switch (mode) {
         case 'form-fill':
-          return this.processFormFillResponse(response);
+          return this.processFormFillResponse(response, sourceMissionText);
         case 'compliance':
           return this.processComplianceResponse(response);
         case 'analysis':
@@ -464,7 +395,7 @@ Always maintain professional expertise while being helpful and engaging.`;
   }
 
   // Process form filling responses
-  private processFormFillResponse(response: string): AIAnalysisResponse {
+  private processFormFillResponse(response: string, sourceMissionText?: string): AIAnalysisResponse {
     // Check if the AI is asking for more information instead of providing form data
     const isAskingForInfo = response.toLowerCase().includes('please provide') || 
                            response.toLowerCase().includes('please share') ||
@@ -497,8 +428,7 @@ Always maintain professional expertise while being helpful and engaging.`;
     Object.entries(sections).forEach(([section, content]) => {
       if (content && content !== 'Information not provided' && content.trim().length > 0) {
         const confidence = this.calculateConfidence(content);
-        // Include all suggestions with reasonable confidence (>= 0.5)
-        if (confidence >= 0.5) {
+        if (confidence >= 0.35) {
           suggestions.push({
             field: section,
             value: content,
@@ -510,12 +440,29 @@ Always maintain professional expertise while being helpful and engaging.`;
       }
     });
 
+    const mergedSuggestions = sourceMissionText
+      ? mergeFormSuggestions(suggestions, parseMissionToFormFields(sourceMissionText))
+      : suggestions;
+
+    const fieldLabel = (field: string) =>
+      field.replace(/([A-Z])/g, ' $1').replace(/^./, (s) => s.toUpperCase()).trim();
+
+    if (mergedSuggestions.length > 0) {
+      return {
+        suggestions: mergedSuggestions,
+        summary: buildFormFillSummaryMessage(mergedSuggestions, fieldLabel),
+        confidence: this.calculateOverallConfidence(mergedSuggestions),
+        nextSteps: [],
+        warnings: [],
+      };
+    }
+
     return {
-      suggestions,
-      summary: this.generateSummary(suggestions),
-      confidence: this.calculateOverallConfidence(suggestions),
-      nextSteps: this.generateNextSteps(suggestions),
-      warnings: this.generateWarnings(suggestions)
+      suggestions: [],
+      summary: response.trim(),
+      confidence: 0,
+      nextSteps: [],
+      warnings: [],
     };
   }
 
@@ -625,6 +572,60 @@ Always maintain professional expertise while being helpful and engaging.`;
       'unique tech': 'uniqueTechInternational',
       'international': 'uniqueTechInternational'
     };
+
+    const normalizeHeader = (header: string) =>
+      header.toLowerCase().replace(/[#*_\s]+/g, ' ').trim();
+
+    const resolveField = (header: string): string | undefined => {
+      const norm = normalizeHeader(header);
+      for (const [key, fieldName] of Object.entries(sectionMappings)) {
+        const keyNorm = key.replace(/\//g, ' ');
+        if (norm === keyNorm || norm.includes(keyNorm) || keyNorm.includes(norm)) {
+          return fieldName;
+        }
+      }
+      return undefined;
+    };
+
+    const lines = response.split('\n');
+    let currentField: string | undefined;
+    const chunks: Record<string, string[]> = {};
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed) {
+        if (currentField) chunks[currentField].push('');
+        continue;
+      }
+
+      const mdMatch = trimmed.match(/^#{1,4}\s*(.+)$/) || trimmed.match(/^\*\*(.+?)\*\*$/);
+      const capsMatch =
+        !mdMatch && /^[A-Z][A-Z0-9\s\/\-]{2,55}$/.test(trimmed) ? trimmed : null;
+      const rawHeader = mdMatch?.[1] ?? capsMatch;
+      if (rawHeader) {
+        const field = resolveField(rawHeader);
+        if (field) {
+          currentField = field;
+          chunks[field] = chunks[field] ?? [];
+          continue;
+        }
+      }
+
+      if (currentField) {
+        chunks[currentField].push(line);
+      }
+    }
+
+    for (const [field, contentLines] of Object.entries(chunks)) {
+      const content = contentLines.join('\n').trim();
+      if (content && content !== 'Information not provided') {
+        sections[field] = content;
+      }
+    }
+
+    if (Object.keys(sections).length > 0) {
+      return sections;
+    }
 
     // Try to extract sections from structured AI response first
     const sectionRegex = /^([A-Z\s\/]+)\s*\n(.+?)(?=\n[A-Z\s\/]+\s*\n|$)/gm;
@@ -1807,7 +1808,7 @@ Always maintain professional expertise while being helpful and engaging.`;
     try {
       const parsed = JSON.parse(followUpMatch[1]);
       const followUpPrompts = Array.isArray(parsed)
-        ? parsed.filter((p): p is string => typeof p === 'string').slice(0, 3)
+        ? parsed.filter((p): p is string => typeof p === 'string').slice(0, 2)
         : [];
       return { cleanContent, followUpPrompts };
     } catch {
@@ -1820,7 +1821,8 @@ Always maintain professional expertise while being helpful and engaging.`;
     userInput: string,
     mode: 'chat' | 'form-fill' | 'analysis' | 'compliance' = 'chat',
     onChunk: (text: string) => void,
-    copilotContext?: string
+    copilotContext?: string,
+    sourceMissionText?: string
   ): Promise<AIAnalysisResponse> {
     const messages = this.buildConversationMessages(userInput, mode, copilotContext);
     const systemPrompt = this.getSystemPrompt(mode);
@@ -1836,7 +1838,7 @@ Always maintain professional expertise while being helpful and engaging.`;
       onChunk
     );
 
-    const processedResponse = await this.processAIResponse(fullText, mode);
+    const processedResponse = await this.processAIResponse(fullText, mode, sourceMissionText);
     this.updateConversationHistory(userInput, processedResponse);
     return processedResponse;
   }
