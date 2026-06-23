@@ -25,7 +25,7 @@ const WELCOME_MESSAGE: ChatMessage = {
   timestamp: new Date(),
   followUpPrompts: [
     'Check my application for cross-section inconsistencies',
-    'Help me draft CONOPS from my mission description',
+    'Paste my mission description to auto-fill CONOPS fields',
     'What are the key Part 450 requirements?',
   ],
 };

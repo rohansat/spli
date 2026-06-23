@@ -10,7 +10,7 @@ import {
   getMentionQueryAtCursor,
   MentionItem,
 } from '@/lib/ai-mentions';
-import { resolveAIMode } from '@/lib/ai-mode';
+import { resolveAIMode, shouldAutoApplyFormSuggestions, looksLikeMissionDescription } from '@/lib/ai-mode';
 import type { ApplicationActionResult } from '@/lib/application-ai-actions';
 import { readDocumentContents, ParsedDocument } from '@/lib/document-reader';
 import { useSpeechRecognition } from '@/hooks/use-speech-recognition';
@@ -71,7 +71,7 @@ const WELCOME_MESSAGE: ChatMessage = {
   timestamp: new Date(),
   followUpPrompts: [
     'Check my application for cross-section inconsistencies',
-    'Help me draft CONOPS from my mission description',
+    'Paste my mission description to auto-fill CONOPS fields',
     'What are the key Part 450 requirements?',
   ],
 };
@@ -82,6 +82,10 @@ const QUICK_PROMPTS = [
   { label: 'Analyze docs', icon: MessageSquare, prompt: 'Analyze my uploaded documents and extract relevant application data' },
   { label: 'Best practices', icon: Sparkles, prompt: 'What are best practices for a successful Part 450 application?' },
 ];
+
+function formatFieldLabel(field: string): string {
+  return field.replace(/([A-Z])/g, ' $1').replace(/^./, (s) => s.toUpperCase()).trim();
+}
 
 export const AIChatInsights = forwardRef<AIChatInsightsHandle, AIChatInsightsProps>(function AIChatInsights({
   onFormUpdate,
@@ -327,10 +331,13 @@ export const AIChatInsights = forwardRef<AIChatInsightsHandle, AIChatInsightsPro
     const userDisplayContent =
       trimmed ||
       `Analyze the attached document${docNames.length > 1 ? 's' : ''}: ${docNames.join(', ')}`;
-
-    const apiInput = hasDocs
-      ? `${expandedContent || 'Analyze the attached documents for Part 450 application relevance. Extract technical specifications, mission objectives, safety considerations, timeline information, missing information, compliance requirements, and integration suggestions.'}`
-      : expandedContent;
+    const resolvedMode = resolveAIMode(undefined, expandedContent, hasDocs, conversationHistory);
+    const apiInput =
+      resolvedMode === 'form-fill' && looksLikeMissionDescription(expandedContent)
+        ? `Extract all FAA Part 450 application form fields from this mission description. Use the structured section format and populate every field you can.\n\n${expandedContent}`
+        : hasDocs
+          ? `${expandedContent || 'Analyze the attached documents for Part 450 application relevance. Extract technical specifications, mission objectives, safety considerations, timeline information, missing information, compliance requirements, and integration suggestions.'}`
+          : expandedContent;
 
     if (!isRetry) {
       setMessages((prev) => {
@@ -376,7 +383,7 @@ export const AIChatInsights = forwardRef<AIChatInsightsHandle, AIChatInsightsPro
           formSummary,
           formData,
           copilotState,
-          mode: resolveAIMode(undefined, apiInput, hasDocs),
+          mode: resolvedMode,
         }),
       });
 
@@ -416,10 +423,24 @@ export const AIChatInsights = forwardRef<AIChatInsightsHandle, AIChatInsightsPro
             }
 
             if (event.type === 'done') {
-              const finalContent =
+              const suggestions = (event.suggestions ?? []) as FormSuggestion[];
+              const autoApply =
+                shouldAutoApplyFormSuggestions(event.mode as string, suggestions.length) &&
+                !!onFormUpdate;
+
+              if (autoApply) {
+                onFormUpdate!(suggestions);
+              }
+
+              const appliedFieldLabels = suggestions.map((s) => formatFieldLabel(s.field));
+              let finalContent =
                 event.mode === 'chat'
                   ? event.message || streamedText
                   : streamedText || event.message;
+
+              if (autoApply) {
+                finalContent = `I've parsed your mission description and filled **${suggestions.length} field${suggestions.length !== 1 ? 's' : ''}** in your application.\n\n**Updated:** ${appliedFieldLabels.join(', ')}\n\nReview each section in the form and edit anything before submitting.`;
+              }
 
               setConversationHistory((prev) => {
                 const next = [
@@ -434,7 +455,7 @@ export const AIChatInsights = forwardRef<AIChatInsightsHandle, AIChatInsightsPro
                           ...m,
                           content: finalContent,
                           isStreaming: false,
-                          suggestions: event.suggestions,
+                          suggestions: autoApply ? undefined : suggestions,
                           confidence: event.confidence,
                           nextSteps: event.nextSteps,
                           warnings: event.warnings,
@@ -442,6 +463,8 @@ export const AIChatInsights = forwardRef<AIChatInsightsHandle, AIChatInsightsPro
                           documentInsights: event.documentInsights,
                           mode: event.mode,
                           inconsistencies: event.inconsistencies,
+                          autoApplied: autoApply,
+                          appliedFields: autoApply ? suggestions.map((s) => s.field) : undefined,
                         }
                       : m
                   );

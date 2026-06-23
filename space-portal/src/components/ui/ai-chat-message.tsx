@@ -50,6 +50,8 @@ export interface ChatMessage {
     fieldName?: string;
     fieldLabel?: string;
   }>;
+  autoApplied?: boolean;
+  appliedFields?: string[];
 }
 
 export interface DocumentInsights {
@@ -250,10 +252,18 @@ export function AiChatMessage({
                 <Sparkles className="h-3 w-3 opacity-60" />
                 {MODE_LABELS[message.mode] || message.mode}
               </span>
-              <span className="inline-flex items-center gap-1 text-[11px] text-zinc-600">
-                <Shield className="h-3 w-3" />
-                Draft — review required
-              </span>
+              {message.autoApplied && (
+                <span className="inline-flex items-center gap-1 text-[11px] text-emerald-400/90 px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20">
+                  <Check className="h-3 w-3" />
+                  Applied to form
+                </span>
+              )}
+              {!message.autoApplied && (
+                <span className="inline-flex items-center gap-1 text-[11px] text-zinc-600">
+                  <Shield className="h-3 w-3" />
+                  Draft — review required
+                </span>
+              )}
             </div>
           )}
 

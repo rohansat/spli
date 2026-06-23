@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
       aiService.setApplicationContext(applicationId, formSummary);
     }
 
-    const processingMode = resolveAIMode(mode, userInput, documents.length > 0);
+    const processingMode = resolveAIMode(mode, userInput, documents.length > 0, conversationHistory);
 
     const typedFormData = (formData ?? {}) as Record<string, string>;
     const inconsistencies = detectInconsistencies(typedFormData);

@@ -477,14 +477,17 @@ Always maintain professional expertise while being helpful and engaging.`;
                            response.toLowerCase().includes('tell me about');
 
     if (isAskingForInfo) {
-      // AI is asking for more information - return simple response without suggestions
-      return {
-        suggestions: [],
-        summary: response,
-        confidence: 0.0,
-        nextSteps: [],
-        warnings: []
-      };
+      // Still try extraction — the model may ask questions and provide sections
+      const sections = this.extractFormSections(response);
+      if (Object.keys(sections).length === 0) {
+        return {
+          suggestions: [],
+          summary: response,
+          confidence: 0.0,
+          nextSteps: [],
+          warnings: [],
+        };
+      }
     }
 
     const suggestions: AIFormSuggestion[] = [];
