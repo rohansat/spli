@@ -10,10 +10,9 @@ import {
   getMentionQueryAtCursor,
   MentionItem,
 } from '@/lib/ai-mentions';
-import { resolveAIMode, shouldAutoApplyFormSuggestions, looksLikeMissionDescription } from '@/lib/ai-mode';
+import { resolveAIMode, shouldAutoApplyFormSuggestions, getMissionContentForProcessing } from '@/lib/ai-mode';
 import {
   buildFormFillSummaryMessage,
-  extractRawMissionText,
   mergeFormSuggestions,
   parseMissionToFormFields,
 } from '@/lib/mission-field-parser';
@@ -332,13 +331,17 @@ export const AIChatInsights = forwardRef<AIChatInsightsHandle, AIChatInsightsPro
       trimmed ||
       `Analyze the attached document${docNames.length > 1 ? 's' : ''}: ${docNames.join(', ')}`;
     const resolvedMode = resolveAIMode(undefined, expandedContent, hasDocs, conversationHistory);
-    const isMissionPaste = looksLikeMissionDescription(expandedContent);
-    const silentFormFill = resolvedMode === 'form-fill' && isMissionPaste;
-    const missionText = isMissionPaste ? extractRawMissionText(expandedContent) : '';
-    const localFormSuggestions = missionText ? parseMissionToFormFields(missionText) : [];
+    const missionContent = getMissionContentForProcessing(expandedContent, conversationHistory);
+    const isMissionPaste = resolvedMode === 'form-fill' && !!missionContent;
+    const isSectionEdit = resolvedMode === 'section-edit';
+    const silentFormFill = isMissionPaste;
+    const missionText = missionContent ?? '';
+    const localFormSuggestions = isMissionPaste ? parseMissionToFormFields(missionText) : [];
     const apiInput =
-      resolvedMode === 'form-fill' && isMissionPaste
-        ? `Extract all FAA Part 450 application form fields from this mission description. Use the structured section format and populate every field you can.\n\n${expandedContent}`
+      isMissionPaste
+        ? `Extract all FAA Part 450 application fields (Sections 1–7) from this mission description. Use the structured section format and populate every field you can.\n\n${missionText}`
+        : isSectionEdit
+          ? `Update the Part 450 application per this instruction. Output only the changed field headers and new content.\n\n${expandedContent}`
         : hasDocs
           ? `${expandedContent || 'Analyze the attached documents for Part 450 application relevance. Extract technical specifications, mission objectives, safety considerations, timeline information, missing information, compliance requirements, and integration suggestions.'}`
           : expandedContent;
@@ -373,7 +376,7 @@ export const AIChatInsights = forwardRef<AIChatInsightsHandle, AIChatInsightsPro
       {
         id: assistantId,
         role: 'assistant',
-        content: silentFormFill ? 'Parsing your mission description…' : '',
+        content: silentFormFill ? 'Parsing your mission description…' : isSectionEdit ? 'Updating your application…' : '',
         timestamp: new Date(),
         isStreaming: true,
       },
@@ -427,7 +430,7 @@ export const AIChatInsights = forwardRef<AIChatInsightsHandle, AIChatInsightsPro
 
             if (event.type === 'chunk' && event.text) {
               streamedText += event.text;
-              if (!silentFormFill) {
+              if (!silentFormFill && !isSectionEdit) {
                 setMessages((prev) =>
                   prev.map((m) => (m.id === assistantId ? { ...m, content: streamedText } : m))
                 );
@@ -440,8 +443,12 @@ export const AIChatInsights = forwardRef<AIChatInsightsHandle, AIChatInsightsPro
                 localFormSuggestions
               );
               const autoApply =
-                shouldAutoApplyFormSuggestions(event.mode as string, suggestions.length) &&
-                !!onFormUpdate;
+                shouldAutoApplyFormSuggestions(
+                  event.mode as string,
+                  suggestions.length,
+                  expandedContent,
+                  conversationHistory
+                ) && !!onFormUpdate;
 
               if (autoApply) {
                 onFormUpdate!(suggestions);
@@ -453,7 +460,10 @@ export const AIChatInsights = forwardRef<AIChatInsightsHandle, AIChatInsightsPro
                   : streamedText || event.message;
 
               if (autoApply) {
-                finalContent = buildFormFillSummaryMessage(suggestions, formatFieldLabel);
+                finalContent =
+                  event.mode === 'section-edit'
+                    ? `Updated **${suggestions.length} field${suggestions.length === 1 ? '' : 's'}** in your application. Review the form on the left.`
+                    : buildFormFillSummaryMessage(suggestions, formatFieldLabel);
               }
 
               setConversationHistory((prev) => {

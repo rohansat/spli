@@ -8,6 +8,7 @@ import {
   mergeFormSuggestions,
   parseMissionToFormFields,
 } from '@/lib/mission-field-parser';
+import { buildPart450AIKnowledgeBlock } from '@/lib/part450-ai-context';
 
 // Core AI interfaces
 export interface AIFormSuggestion {
@@ -22,7 +23,7 @@ export interface AIAnalysisRequest {
   userInput: string;
   formFields?: Array<{ name: string; label: string; type: string }>;
   context?: string;
-  mode?: 'chat' | 'form-fill' | 'analysis' | 'compliance';
+  mode?: 'chat' | 'form-fill' | 'section-edit' | 'analysis' | 'compliance';
 }
 
 export interface DocumentInsights {
@@ -121,7 +122,7 @@ export class SPLIAIService {
   // Core AI processing method
   async processUserInput(
     userInput: string, 
-    mode: 'chat' | 'form-fill' | 'analysis' | 'compliance' = 'chat'
+    mode: 'chat' | 'form-fill' | 'section-edit' | 'analysis' | 'compliance' = 'chat'
   ): Promise<AIAnalysisResponse> {
     try {
       // Skip cache when conversation has history (context-dependent)
@@ -216,7 +217,10 @@ export class SPLIAIService {
 
   // Get sophisticated system prompt based on mode
   private getSystemPrompt(mode: string): string {
+    const part450Knowledge = buildPart450AIKnowledgeBlock();
     const basePrompt = `You are SPLI Chat, a professional AI assistant specializing in space licensing and FAA Part 450 applications. You are part of a high-end startup providing regulatory compliance solutions for the aerospace industry.
+
+${part450Knowledge}
 
 CORE IDENTITY:
 - Expert in FAA Part 450 regulations and space licensing
@@ -252,7 +256,7 @@ CONVERSATION STYLE:
         return `${basePrompt}
 
 FORM FILLING MODE:
-Extract mission details into FAA Part 450 fields. The application form updates automatically from your output.
+Extract mission details into every applicable FAA Part 450 field across all 7 application sections. The form updates automatically from your output.
 
 OUTPUT RULES (CRITICAL):
 - No introductions, summaries, questions, or follow-ups
@@ -288,6 +292,19 @@ INTENDED WINDOW
 LICENSE TYPE INTENT
 CLARIFY PART 450
 UNIQUE TECH/INTERNATIONAL`;
+
+      case 'section-edit':
+        return `${basePrompt}
+
+SECTION EDIT MODE:
+The user wants to update specific Part 450 field(s) or section(s). Use the current application context and their instruction.
+
+OUTPUT RULES:
+- No introductions or follow-ups
+- Output ONLY the field header(s) being changed, each on its own line, then the new FAA-ready draft content
+- Use the exact headers from the Part 450 structure above
+- Keep content consistent with other sections already in the application
+- Only output fields the user asked to change`;
 
       case 'compliance':
         return `${basePrompt}
@@ -331,8 +348,9 @@ Use bullet points under each section.`;
 
 CHAT MODE:
 - Keep replies short: 2–4 sentences unless the user asks for detail
-- When the user wants CONOPS or form help but has not pasted a mission yet, ask them to paste their mission description in one sentence — do not list what to include
-- Answer FAA and licensing questions clearly and directly
+- When the user wants to draft or fill the application from a mission description but has NOT pasted the description yet, respond with exactly one short ask: "Paste your mission description here and I'll map it to all Part 450 sections (1–7)." Do not fill form fields, do not ask bullet-list questions, and do not pretend work was done
+- When the user asks to update a specific section or field, tell them they can say e.g. "Rewrite the mission objective to …" or "Improve Section 2 vehicle overview"
+- Answer FAA and licensing questions clearly and directly using Part 450 standards above
 
 RESPONSE FORMAT:
 - Use light markdown when it helps scannability
@@ -380,6 +398,7 @@ RESPONSE FORMAT:
     try {
       switch (mode) {
         case 'form-fill':
+        case 'section-edit':
           return this.processFormFillResponse(response, sourceMissionText);
         case 'compliance':
           return this.processComplianceResponse(response);
@@ -444,14 +463,18 @@ RESPONSE FORMAT:
       ? mergeFormSuggestions(suggestions, parseMissionToFormFields(sourceMissionText))
       : suggestions;
 
+    const qualitySuggestions = mergedSuggestions.filter(
+      (s) => s.value.trim().length >= 20 && !/^information not provided$/i.test(s.value.trim())
+    );
+
     const fieldLabel = (field: string) =>
       field.replace(/([A-Z])/g, ' $1').replace(/^./, (s) => s.toUpperCase()).trim();
 
-    if (mergedSuggestions.length > 0) {
+    if (qualitySuggestions.length > 0) {
       return {
-        suggestions: mergedSuggestions,
-        summary: buildFormFillSummaryMessage(mergedSuggestions, fieldLabel),
-        confidence: this.calculateOverallConfidence(mergedSuggestions),
+        suggestions: qualitySuggestions,
+        summary: buildFormFillSummaryMessage(qualitySuggestions, fieldLabel),
+        confidence: this.calculateOverallConfidence(qualitySuggestions),
         nextSteps: [],
         warnings: [],
       };
@@ -1819,7 +1842,7 @@ RESPONSE FORMAT:
   // Stream AI response for real-time chat
   async streamUserInput(
     userInput: string,
-    mode: 'chat' | 'form-fill' | 'analysis' | 'compliance' = 'chat',
+    mode: 'chat' | 'form-fill' | 'section-edit' | 'analysis' | 'compliance' = 'chat',
     onChunk: (text: string) => void,
     copilotContext?: string,
     sourceMissionText?: string

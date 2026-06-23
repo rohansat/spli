@@ -76,6 +76,7 @@ interface AiChatMessageProps {
 
 const MODE_LABELS: Record<string, string> = {
   'form-fill': 'Form Fill',
+  'section-edit': 'Section Update',
   compliance: 'Compliance',
   analysis: 'Analysis',
 };

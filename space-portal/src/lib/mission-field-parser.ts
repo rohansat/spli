@@ -66,8 +66,40 @@ const FIELD_RULES: Array<{ field: string; patterns: RegExp[] }> = [
     patterns: [/recovery zones/i, /reentry according/i, /disposal maneuver/i],
   },
   {
+    field: 'siteNamesCoordinates',
+    patterns: [/coordinates/i, /latitude/i, /longitude/i, /site name/i],
+  },
+  {
+    field: 'siteOperator',
+    patterns: [/site operator/i, /third.?party/i, /launch provider/i],
+  },
+  {
+    field: 'groundSupportEquipment',
+    patterns: [/ground support equipment/i, /mobile service tower/i, /gse\b/i],
+  },
+  {
+    field: 'publicSafetyChallenges',
+    patterns: [/public safety challenge/i, /overflight/i, /population/i, /debris corridor/i],
+  },
+  {
+    field: 'fullApplicationTimeline',
+    patterns: [/submit.*application/i, /full application/i, /timeline/i, /months prior/i],
+  },
+  {
+    field: 'intendedWindow',
+    patterns: [/launch window/i, /intended window/i, /reentry window/i, /q[1-4]/i],
+  },
+  {
+    field: 'clarifyPart450',
+    patterns: [/clarif/i, /part 450 requirement/i, /question for faa/i],
+  },
+  {
+    field: 'uniqueTechInternational',
+    patterns: [/international/i, /export control/i, /unique technolog/i, /itar/i],
+  },
+  {
     field: 'licenseTypeIntent',
-    patterns: [/commercial/i, /part 450/i, /applicant/i],
+    patterns: [/vehicle\/operator license/i, /mission-specific license/i, /license type/i, /commercial orbital/i],
   },
 ];
 
@@ -162,7 +194,7 @@ export function parseMissionToFormFields(missionText: string): FormSuggestion[] 
     if (!fieldValues.groundOperations && /payload integration|vehicle assembly|pre-launch checks/i.test(paragraph)) {
       fieldValues.groundOperations = [paragraph];
     }
-    if (!fieldValues.licenseTypeIntent && /commercial orbital|part 450|commercial launch/i.test(paragraph)) {
+    if (!fieldValues.licenseTypeIntent && /vehicle\/operator license|mission-specific license|license type/i.test(paragraph)) {
       fieldValues.licenseTypeIntent = [paragraph];
     }
   }
