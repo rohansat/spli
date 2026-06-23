@@ -7,6 +7,7 @@ import {
   buildFormFillSummaryMessage,
   mergeFormSuggestions,
   parseMissionToFormFields,
+  sanitizeFormSuggestions,
 } from '@/lib/mission-field-parser';
 import { buildPart450AIKnowledgeBlock } from '@/lib/part450-ai-context';
 
@@ -463,9 +464,7 @@ RESPONSE FORMAT:
       ? mergeFormSuggestions(suggestions, parseMissionToFormFields(sourceMissionText))
       : suggestions;
 
-    const qualitySuggestions = mergedSuggestions.filter(
-      (s) => s.value.trim().length >= 8 && !/^information not provided$/i.test(s.value.trim())
-    );
+    const qualitySuggestions = sanitizeFormSuggestions(mergedSuggestions, sourceMissionText);
 
     const fieldLabel = (field: string) =>
       field.replace(/([A-Z])/g, ' $1').replace(/^./, (s) => s.toUpperCase()).trim();

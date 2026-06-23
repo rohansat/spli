@@ -15,6 +15,7 @@ import {
   buildFormFillSummaryMessage,
   mergeFormSuggestions,
   parseMissionToFormFields,
+  sanitizeFormSuggestions,
 } from '@/lib/mission-field-parser';
 import { extractFormSuggestionsFromText } from '@/lib/form-field-extract';
 import type { ApplicationActionResult } from '@/lib/application-ai-actions';
@@ -445,24 +446,18 @@ export const AIChatInsights = forwardRef<AIChatInsightsHandle, AIChatInsightsPro
                 { sender: 'user', content: userDisplayContent },
               ];
 
-              let suggestions = mergeFormSuggestions(
+              let suggestions = mergeFormSuggestions(parseMissionToFormFields(missionText), []);
+              suggestions = mergeFormSuggestions(
                 (event.suggestions ?? []) as FormSuggestion[],
-                localFormSuggestions
+                suggestions
               );
-
-              if (missionText) {
-                suggestions = mergeFormSuggestions(
-                  suggestions,
-                  parseMissionToFormFields(missionText)
-                );
-              }
-
               if (streamedText.trim()) {
                 suggestions = mergeFormSuggestions(
-                  suggestions,
-                  extractFormSuggestionsFromText(streamedText)
+                  extractFormSuggestionsFromText(streamedText),
+                  suggestions
                 );
               }
+              suggestions = sanitizeFormSuggestions(suggestions, missionText || expandedContent);
 
               const autoApply =
                 shouldAutoApplyFormSuggestions(
@@ -478,7 +473,11 @@ export const AIChatInsights = forwardRef<AIChatInsightsHandle, AIChatInsightsPro
 
               let finalContent =
                 autoApply
-                  ? buildFormFillSummaryMessage(suggestions, formatFieldLabel)
+                  ? buildFormFillSummaryMessage(
+                      suggestions,
+                      formatFieldLabel,
+                      missionText || expandedContent
+                    )
                   : event.mode === 'chat'
                     ? event.message || streamedText
                     : streamedText || event.message;

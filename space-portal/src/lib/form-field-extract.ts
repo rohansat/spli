@@ -71,6 +71,7 @@ function cleanFieldContent(lines: string[]): string {
       if (t.startsWith('|')) return false;
       if (/^not provided/i.test(t)) return false;
       if (/^please (supply|confirm|provide|advise)/i.test(t)) return false;
+      if (t.startsWith('(') && t.length > 400) return false;
       return true;
     })
     .join('\n')
