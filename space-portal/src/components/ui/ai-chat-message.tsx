@@ -67,6 +67,7 @@ interface AiChatMessageProps {
   onRetry?: (content: string) => void;
   onApplySuggestions?: (suggestions: FormSuggestion[]) => void;
   onFollowUp?: (prompt: string) => void;
+  onFieldClick?: (fieldName: string) => void;
   previousUserMessage?: string;
   isWelcome?: boolean;
 }
@@ -149,6 +150,7 @@ export function AiChatMessage({
   onRetry,
   onApplySuggestions,
   onFollowUp,
+  onFieldClick,
   previousUserMessage,
   isWelcome = false,
 }: AiChatMessageProps) {
@@ -295,16 +297,20 @@ export function AiChatMessage({
                 {message.suggestions.map((suggestion, index) => (
                   <div
                     key={index}
-                    className={`border px-3 py-2.5 ${
+                    className={`border px-3 py-2.5 rounded-lg ${
                       appliedSuggestions.has(index)
                         ? 'border-zinc-800/50 bg-zinc-950/20 opacity-50'
                         : 'border-zinc-800 bg-black/30'
                     }`}
                   >
                     <div className="flex items-start justify-between gap-2">
-                      <span className="text-xs font-medium text-zinc-200">
+                      <button
+                        type="button"
+                        onClick={() => onFieldClick?.(suggestion.field)}
+                        className="text-xs font-medium text-zinc-200 hover:text-white text-left"
+                      >
                         {formatFieldName(suggestion.field)}
-                      </span>
+                      </button>
                       {appliedSuggestions.has(index) ? (
                         <span className="text-[11px] text-zinc-500 flex items-center gap-1">
                           <Check className="h-3 w-3" /> Applied
@@ -360,7 +366,13 @@ export function AiChatMessage({
               <ul className="space-y-1.5">
                 {message.inconsistencies.map((item) => (
                   <li key={item.id} className="text-xs text-orange-200/90 leading-relaxed">
-                    <span className="font-medium text-orange-300">{item.sectionTitle}:</span>{' '}
+                    <button
+                      type="button"
+                      onClick={() => item.fieldName && onFieldClick?.(item.fieldName)}
+                      className="font-medium text-orange-300 hover:text-orange-200 text-left"
+                    >
+                      {item.sectionTitle}:
+                    </button>{' '}
                     {item.message}
                   </li>
                 ))}

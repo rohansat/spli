@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, forwardRef, useImperativeHandle } from 'react';
 import { Button } from '@/components/ui/button';
 import { AiChatMessage, ChatMessage, FormSuggestion } from '@/components/ui/ai-chat-message';
 import { AiMentionMenu } from '@/components/ui/ai-mention-menu';
@@ -10,6 +10,8 @@ import {
   getMentionQueryAtCursor,
   MentionItem,
 } from '@/lib/ai-mentions';
+import { resolveAIMode } from '@/lib/ai-mode';
+import type { ApplicationActionResult } from '@/lib/application-ai-actions';
 import { readDocumentContents, ParsedDocument } from '@/lib/document-reader';
 import { useSpeechRecognition } from '@/hooks/use-speech-recognition';
 import { useToast } from '@/components/ui/use-toast';
@@ -48,6 +50,17 @@ interface AIChatInsightsProps {
     conversationHistory: Array<{ sender: string; content: string }>
   ) => void;
   welcomeMessage?: ChatMessage;
+  onCommand?: (input: string) => Promise<ApplicationActionResult | void>;
+  onFieldClick?: (fieldName: string) => void;
+}
+
+export interface AIChatInsightsHandle {
+  addAIMsg: (content: string) => void;
+  addDiffMsg: (msg: string, oldContent: string, newContent: string, filePath: string, description: string) => void;
+  addDocumentAnalysisMsg: (msg: string, insights: Record<string, unknown>) => void;
+  showTypingIndicator: () => void;
+  hideTypingIndicator: () => void;
+  sendPrompt: (prompt: string) => void;
 }
 
 const WELCOME_MESSAGE: ChatMessage = {
@@ -70,7 +83,7 @@ const QUICK_PROMPTS = [
   { label: 'Best practices', icon: Sparkles, prompt: 'What are best practices for a successful Part 450 application?' },
 ];
 
-export function AIChatInsights({
+export const AIChatInsights = forwardRef<AIChatInsightsHandle, AIChatInsightsProps>(function AIChatInsights({
   onFormUpdate,
   className = '',
   isInline = false,
@@ -86,7 +99,9 @@ export function AIChatInsights({
   initialConversationHistory,
   onSessionUpdate,
   welcomeMessage,
-}: AIChatInsightsProps) {
+  onCommand,
+  onFieldClick,
+}, ref) {
   const defaultWelcome = welcomeMessage ?? WELCOME_MESSAGE;
   const { toast } = useToast();
   const [messages, setMessages] = useState<ChatMessage[]>(
@@ -130,6 +145,28 @@ export function AIChatInsights({
       onSessionUpdate?.(nextMessages, nextHistory);
     },
     [onSessionUpdate]
+  );
+
+  const appendAssistantMessage = useCallback(
+    (content: string, extras: Partial<ChatMessage> = {}) => {
+      const assistantMessage: ChatMessage = {
+        id: `assistant-${Date.now()}`,
+        role: 'assistant',
+        content,
+        timestamp: new Date(),
+        ...extras,
+      };
+      setMessages((prev) => {
+        const next = [...prev, assistantMessage];
+        setConversationHistory((history) => {
+          const updatedHistory = [...history, { sender: 'assistant', content }];
+          persistSession(next, updatedHistory);
+          return updatedHistory;
+        });
+        return next;
+      });
+    },
+    [persistSession]
   );
 
   const scrollToBottom = useCallback(() => {
@@ -249,6 +286,38 @@ export function AIChatInsights({
     const hasDocs = attachedDocuments.length > 0;
     if ((!trimmed && !hasDocs) || isLoading) return;
 
+    if (onCommand && trimmed && !hasDocs && !isRetry) {
+      const actionResult = await onCommand(trimmed);
+      if (actionResult?.handled) {
+        const userMessage: ChatMessage = {
+          id: `user-${Date.now()}`,
+          role: 'user',
+          content: trimmed,
+          timestamp: new Date(),
+        };
+        const assistantMessage: ChatMessage = {
+          id: `assistant-${Date.now()}`,
+          role: 'assistant',
+          content: actionResult.message,
+          timestamp: new Date(),
+        };
+        setInput('');
+        setMentionOpen(false);
+        setMessages((prev) => {
+          const next = [...prev, userMessage, assistantMessage];
+          const nextHistory = [
+            ...conversationHistory,
+            { sender: 'user', content: trimmed },
+            { sender: 'assistant', content: actionResult.message },
+          ];
+          setConversationHistory(nextHistory);
+          persistSession(next, nextHistory);
+          return next;
+        });
+        return;
+      }
+    }
+
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
@@ -307,7 +376,7 @@ export function AIChatInsights({
           formSummary,
           formData,
           copilotState,
-          mode: hasDocs ? 'analysis' : 'chat',
+          mode: resolveAIMode(undefined, apiInput, hasDocs),
         }),
       });
 
@@ -430,6 +499,18 @@ export function AIChatInsights({
     sendMessageWithContent(previousContent, true);
   };
 
+  useImperativeHandle(ref, () => ({
+    addAIMsg: (content: string) => appendAssistantMessage(content),
+    addDiffMsg: (msg: string) => appendAssistantMessage(msg),
+    addDocumentAnalysisMsg: (msg: string, insights: Record<string, unknown>) =>
+      appendAssistantMessage(msg, { documentInsights: insights as ChatMessage['documentInsights'] }),
+    showTypingIndicator: () => setIsLoading(true),
+    hideTypingIndicator: () => setIsLoading(false),
+    sendPrompt: (prompt: string) => {
+      void sendMessageWithContent(prompt);
+    },
+  }));
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (mentionOpen && mentionItems.length > 0) {
       if (e.key === 'ArrowDown') {
@@ -486,9 +567,18 @@ export function AIChatInsights({
               <p className="text-[12px] font-medium text-amber-400/90 mb-0.5">
                 {inconsistencies.length} cross-section alert{inconsistencies.length !== 1 ? 's' : ''}
               </p>
-              <p className="text-[11px] text-amber-200/60 leading-relaxed">
+              <p className="text-[11px] text-amber-200/60 leading-relaxed mb-2">
                 {inconsistencies[0].message}
               </p>
+              {inconsistencies[0].fieldName && onFieldClick && (
+                <button
+                  type="button"
+                  onClick={() => onFieldClick(inconsistencies[0].fieldName!)}
+                  className="text-[11px] text-amber-300/90 hover:text-amber-200 underline-offset-2 hover:underline"
+                >
+                  Open conflicting field in form
+                </button>
+              )}
             </div>
           )}
 
@@ -524,6 +614,7 @@ export function AIChatInsights({
               onRetry={handleRetry}
               onApplySuggestions={onFormUpdate ? (s) => onFormUpdate(s) : undefined}
               onFollowUp={(prompt) => sendMessageWithContent(prompt)}
+              onFieldClick={onFieldClick}
             />
           ))}
 
@@ -673,4 +764,4 @@ export function AIChatInsights({
       </div>
     </div>
   );
-}
+});

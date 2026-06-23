@@ -5,6 +5,7 @@ import { AIAssistantPanel, AIAssistantPanelHandle } from './AIAssistantPanel';
 import { ChatHistoryRail } from './chat-history-rail';
 import { useResizablePanel } from '@/hooks/use-resizable-panel';
 import type { ChatMessage, FormSuggestion } from './ai-chat-message';
+import type { ApplicationActionResult } from '@/lib/application-ai-actions';
 import type { CopilotState } from '@/types/copilot';
 import type { ChatSessionStore } from '@/types/chat-session';
 import {
@@ -36,7 +37,7 @@ interface SpliChatWorkspaceProps {
   formData?: Record<string, string>;
   onClose: () => void;
   onFormUpdate?: (suggestions: FormSuggestion[]) => void;
-  onCommand?: (command: string) => void;
+  onCommand?: (command: string) => Promise<ApplicationActionResult | void>;
   onFileDrop?: (files: FileList | File[]) => void;
   onFieldClick?: (fieldName: string) => void;
   onCopilotStateChange?: (state: CopilotState) => void;

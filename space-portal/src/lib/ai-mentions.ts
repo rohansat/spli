@@ -26,6 +26,22 @@ export interface MentionItem {
 
 const ACTION_MENTIONS: MentionItem[] = [
   {
+    id: 'action-save',
+    type: 'action',
+    label: 'Save Draft',
+    description: 'Save the current application',
+    prompt: 'save draft',
+    icon: FileText,
+  },
+  {
+    id: 'action-analyze-app',
+    type: 'action',
+    label: 'Analyze Application',
+    description: 'Check completeness and missing fields',
+    prompt: 'analyze application',
+    icon: CheckCircle,
+  },
+  {
     id: 'action-fill',
     type: 'action',
     label: 'Fill Form',

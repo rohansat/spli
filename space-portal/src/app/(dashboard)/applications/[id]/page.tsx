@@ -29,12 +29,7 @@ import { AICursor } from "@/components/ui/ai-cursor";
 import { AIAssistantPanelHandle } from "@/components/ui/AIAssistantPanel";
 import { SpliChatWorkspace } from "@/components/ui/spli-chat-workspace";
 import { useToast } from "@/components/ui/use-toast";
-import {
-  loadCopilotState,
-  saveCopilotState,
-  recordChange,
-  markSuggestionApplied,
-} from "@/lib/copilot-service";
+import { useApplicationAIHandlers } from "@/hooks/use-application-ai-handlers";
 import type { Document } from "@/types";
 // import { ComplianceDashboard } from '@/components/ui/compliance-dashboard';
 
@@ -642,10 +637,6 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
     }
   };
 
-  if (!application) {
-    return null;
-  }
-
   const handleInputChange = (fieldName: string, value: string) => {
     setFormData((prev) => ({
       ...prev,
@@ -685,6 +676,17 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
       setIsSaving(false);
     }
   };
+
+  const { applySuggestions, handleApplicationInput } = useApplicationAIHandlers({
+    applicationId,
+    userEmail: user?.email ?? undefined,
+    formData,
+    setFormData,
+    handleSave,
+    navigateToField,
+    executeCommand: async (command, params) => executeCommand(command, params),
+    toast,
+  });
 
   const handleSubmit = () => {
     if (!workflowReadiness.canSubmit) {
@@ -911,6 +913,10 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
       setIsSendingMessage(false);
     }
   };
+
+  if (!application) {
+    return null;
+  }
 
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)] bg-black overflow-hidden">
@@ -1366,313 +1372,8 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
           formData={formData}
           onClose={() => setShowFloatingChat(false)}
           onFieldClick={navigateToField}
-          onFormUpdate={(suggestions) => {
-            if (suggestions && suggestions.length > 0 && user?.email) {
-              const copilotState = loadCopilotState(user.email, applicationId);
-              let nextState = copilotState;
-              const newFormData = { ...formData };
-
-              suggestions.forEach((suggestion: { field: string; value: string }) => {
-                const prev = formData[suggestion.field] ?? '';
-                newFormData[suggestion.field] = suggestion.value;
-                nextState = recordChange(nextState, {
-                  fieldName: suggestion.field,
-                  previousValue: prev,
-                  newValue: suggestion.value,
-                  source: 'ai_suggestion',
-                  attribution: 'User approved AI draft',
-                });
-                const pending = nextState.aiSuggestions.find(
-                  (s) => s.field === suggestion.field && s.status === 'pending'
-                );
-                if (pending) {
-                  nextState = markSuggestionApplied(
-                    nextState,
-                    pending.id,
-                    suggestion.value,
-                    suggestion.value !== pending.suggestedValue
-                  );
-                }
-              });
-
-              saveCopilotState(user.email, applicationId, nextState);
-              setFormData(newFormData);
-              handleSave();
-              toast({
-                title: `${suggestions.length} draft${suggestions.length > 1 ? 's' : ''} applied`,
-                description: 'Review the updated fields before submitting.',
-              });
-            }
-          }}
-          onCommand={async (cmd) => {
-                const lower = cmd.trim().toLowerCase();
-                console.log('Processing command:', cmd);
-                console.log('Lowercase command:', lower);
-                
-                // Handle auto-fill suggestions from AI Assistant Panel
-                if (cmd.startsWith('auto_fill_suggestions:')) {
-                  try {
-                    const suggestions = JSON.parse(cmd.replace('auto_fill_suggestions:', ''));
-                    console.log('Received auto-fill suggestions:', suggestions);
-                    
-                    if (suggestions && suggestions.length > 0) {
-                      // Apply the suggestions to the form
-                      const newFormData = { ...formData };
-                      suggestions.forEach((suggestion: any) => {
-                        newFormData[suggestion.field] = suggestion.value;
-                      });
-                      
-                      setFormData(newFormData);
-                      
-                      // Save the updated form data
-                      await handleSave();
-                      
-                      aiPanelRef.current?.addAIMsg(`✅ Successfully applied ${suggestions.length} form field updates from your mission description!`);
-                    }
-                  } catch (error) {
-                    console.error('Error processing auto-fill suggestions:', error);
-                    aiPanelRef.current?.addAIMsg("Sorry, I encountered an error while applying the form suggestions. Please try again.");
-                  }
-                  return;
-                }
-                
-                // Check if this looks like a mission description that should auto-fill the form
-                const lowerCmd = cmd.toLowerCase();
-                const isMissionDescription = cmd.length > 50 && (
-                  lowerCmd.includes('mission') || 
-                  lowerCmd.includes('satellite') || 
-                  lowerCmd.includes('rocket') || 
-                  lowerCmd.includes('launch') ||
-                  lowerCmd.includes('lunar') ||
-                  lowerCmd.includes('space') ||
-                  lowerCmd.includes('we are') ||
-                  lowerCmd.includes('our mission') ||
-                  lowerCmd.includes('planning') ||
-                  lowerCmd.includes('deploy') ||
-                  lowerCmd.includes('conduct') ||
-                  lowerCmd.includes('kg') ||
-                  lowerCmd.includes('stage') ||
-                  lowerCmd.includes('engine') ||
-                  lowerCmd.includes('propulsion') ||
-                  lowerCmd.includes('kennedy space center') ||
-                  lowerCmd.includes('cape canaveral') ||
-                  lowerCmd.includes('timeline') ||
-                  lowerCmd.includes('specifications') ||
-                  lowerCmd.includes('safety') ||
-                  lowerCmd.includes('operations')
-                );
-
-                if (isMissionDescription) {
-                  // Auto-fill the form with the mission description
-                  try {
-                    console.log('🚀 Mission description detected, calling AI...');
-                    const response = await fetch('/api/ai', {
-                      method: 'POST',
-                      headers: {
-                        'Content-Type': 'application/json',
-                      },
-                      body: JSON.stringify({
-                        userInput: cmd,
-                        mode: 'unified',
-                        conversationHistory: []
-                      }),
-                    });
-                    
-                    if (response.ok) {
-                      const data = await response.json();
-                      console.log('📡 AI auto-fill response:', data);
-                      console.log('📝 AI message:', data.message);
-                      console.log('💡 AI suggestions:', data.suggestions);
-                      
-                      if (data.suggestions && data.suggestions.length > 0) {
-                        console.log('✅ Using AI suggestions:', data.suggestions);
-                        // Apply the suggestions to the form
-                        const newFormData = { ...formData };
-                        data.suggestions.forEach((suggestion: any) => {
-                          newFormData[suggestion.field] = suggestion.value;
-                        });
-                        
-                        setFormData(newFormData);
-                        
-                        // Show success message
-                        const filledFields = data.suggestions.length;
-                        aiPanelRef.current?.addAIMsg(`✅ Successfully filled ${filledFields} form fields with information from your mission description! The form has been updated automatically.`);
-                        
-                        // Save the updated form data
-                        await handleSave();
-                        return;
-                      } else {
-                        console.log('🔍 No suggestions found, trying to parse structured response...');
-                        // Try parsing the response as structured sections
-                        const sections = parseStructuredResponse(data.message);
-                        console.log('📊 Parsed sections:', sections);
-                        if (Object.keys(sections).length > 0) {
-                          setFormData((prev) => ({ ...prev, ...sections }));
-                          const filledFields = Object.keys(sections).length;
-                          aiPanelRef.current?.addAIMsg(`✅ Successfully filled ${filledFields} form sections with information from your mission description! The form has been updated automatically.`);
-                          await handleSave();
-                          return;
-                        } else {
-                          console.log('❌ No sections parsed from AI response');
-                          aiPanelRef.current?.addAIMsg(`I analyzed your mission description but couldn't extract structured information. Here's what the AI returned: ${data.message.substring(0, 200)}...`);
-                        }
-                      }
-                    } else {
-                      console.log('❌ AI response not ok:', response.status);
-                      aiPanelRef.current?.addAIMsg('Sorry, there was an error processing your mission description. Please try again.');
-                    }
-                  } catch (error) {
-                    console.error('❌ Auto-fill error:', error);
-                    aiPanelRef.current?.addAIMsg('Sorry, there was an error processing your mission description. Please try again.');
-                  }
-                }
-
-                // Use AI to intelligently parse and execute commands
-                try {
-                  const response = await fetch('/api/ai', {
-                    method: 'POST',
-                    headers: {
-                      'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                      userInput: cmd,
-                      context: `Current application data: ${JSON.stringify(formData)}. Available form fields: ${getAllFormFields().map(f => f.name).join(', ')}. Application status: ${application?.status}. Current tab: ${activeTab}. Parse this command and execute the appropriate action.`,
-                      mode: 'command',
-                      conversationHistory: []
-                    }),
-                  });
-                  
-                  if (response.ok) {
-                    const data = await response.json();
-                    console.log('AI command response:', data);
-                    
-                    // Parse the AI response to extract command and parameters
-                    const commandMatch = data.message.match(/COMMAND:\s*([^\n]+)/i);
-                    const paramsMatch = data.message.match(/PARAMS:\s*(\{.*\})/i);
-                    
-                    if (commandMatch && paramsMatch) {
-                      const commandName = commandMatch[1].trim();
-                      const params = JSON.parse(paramsMatch[1]);
-                      
-                      console.log('Executing command:', commandName, 'with params:', params);
-                      const result = await executeCommand(commandName, params);
-                      aiPanelRef.current?.addAIMsg(result.message);
-                      return;
-                    } else {
-                      // If AI didn't return structured command, check if it's a regular response
-                      // Only show the response if it doesn't contain command-like text
-                      if (!data.message.includes('COMMAND:') && !data.message.includes('PARAMS:')) {
-                        aiPanelRef.current?.addAIMsg(data.message);
-                      }
-                      return;
-                    }
-                  }
-                } catch (error) {
-                  console.error('AI command execution error:', error);
-                }
-
-                // Fallback to simple command detection
-                if (lower.includes('save') || lower.includes('save draft')) {
-                  const result = await executeCommand('save_draft');
-                  aiPanelRef.current?.addAIMsg(result.message);
-                  return;
-                }
-
-                if (lower.includes('submit') || lower.includes('submit application')) {
-                  const result = await executeCommand('submit_application');
-                  aiPanelRef.current?.addAIMsg(result.message);
-                  return;
-                }
-
-                if (lower.includes('analyze') || lower.includes('analysis')) {
-                  const result = await executeCommand('analyze_application');
-                  aiPanelRef.current?.addAIMsg(result.message);
-                  return;
-                }
-
-                // Handle auto-fill suggestions from AI Assistant Panel
-                if (cmd.startsWith('auto_fill_suggestions:')) {
-                  try {
-                    const suggestions = JSON.parse(cmd.replace('auto_fill_suggestions:', ''));
-                    console.log('Received auto-fill suggestions:', suggestions);
-                    
-                    if (suggestions && suggestions.length > 0) {
-                      // Apply the suggestions to the form
-                      const newFormData = { ...formData };
-                      suggestions.forEach((suggestion: any) => {
-                        newFormData[suggestion.field] = suggestion.value;
-                      });
-                      
-                      setFormData(newFormData);
-                      
-                      // Show success message
-                      const filledFields = suggestions.length;
-                      aiPanelRef.current?.addAIMsg(`✅ Auto-filled ${filledFields} form fields based on your mission description! The form has been updated with the extracted information.`);
-                      
-                      // Save the updated form data
-                      await handleSave();
-                    } else {
-                      aiPanelRef.current?.addAIMsg("I analyzed your mission description but couldn't extract specific information for the form fields. Please provide more detailed information about your mission, vehicle, launch site, and timeline.");
-                    }
-                  } catch (error) {
-                    console.error('Error processing auto-fill suggestions:', error);
-                    aiPanelRef.current?.addAIMsg("Sorry, I encountered an error while applying the form suggestions. Please try again.");
-                  }
-                  return;
-                }
-
-                // Fallback to original regex method for field replacement
-                const replaceMatch = lower.match(/^replace (.+) with (.+)$/);
-                if (replaceMatch) {
-                  const result = await executeCommand('replace_field', { field: replaceMatch[1], value: replaceMatch[2] });
-                  aiPanelRef.current?.addAIMsg(result.message);
-                  return;
-                }
-                
-                // For Part 450 questions, application analysis, and general help
-                if (lower.includes("part 450") || lower.includes("faa") || lower.includes("compliance") || 
-                    lower.includes("regulation") || lower.includes("requirement") || lower.includes("license") ||
-                    lower.includes("application") || lower.includes("mission") || lower.includes("vehicle") ||
-                    lower.includes("launch") || lower.includes("safety") || lower.includes("risk") ||
-                    lower.includes("trajectory") || lower.includes("ground operations") || lower.includes("recovery") ||
-                    lower.includes("propulsion") || lower.includes("site") || lower.includes("timeline") ||
-                    lower.includes("help") || lower.includes("how to") || lower.includes("what is") ||
-                    lower.includes("explain") || lower.includes("tell me about") || lower.includes("guide") ||
-                    lower.includes("process") || lower.includes("steps") || lower.includes("checklist") ||
-                    lower.includes("review") || lower.includes("analyze") || lower.includes("suggest") ||
-                    lower.includes("recommend") || lower.includes("improve") || lower.includes("complete") ||
-                    lower.includes("missing") || lower.includes("required") || lower.includes("optional")) {
-                  
-                  // Use the AI service for comprehensive Part 450 assistance
-                  try {
-                    const response = await fetch('/api/ai', {
-                      method: 'POST',
-                      headers: {
-                        'Content-Type': 'application/json',
-                      },
-                      body: JSON.stringify({
-                        userInput: cmd,
-                        context: `Current application data: ${JSON.stringify(formData)}. Available form fields: ${getAllFormFields().map(f => f.name).join(', ')}. Application status: ${application?.status}`,
-                        mode: 'assistance',
-                        conversationHistory: []
-                      }),
-                    });
-                    
-                    if (response.ok) {
-                      const data = await response.json();
-                      aiPanelRef.current?.addAIMsg(data.message);
-                    } else {
-                      aiPanelRef.current?.addAIMsg("I'm here to help with Part 450 applications, FAA compliance, and aerospace regulations. You can ask me about specific requirements, get guidance on filling out sections, or request analysis of your application.");
-                    }
-                  } catch (error) {
-                    console.error('AI assistance error:', error);
-                    aiPanelRef.current?.addAIMsg("I'm here to help with Part 450 applications, FAA compliance, and aerospace regulations. You can ask me about specific requirements, get guidance on filling out sections, or request analysis of your application.");
-                  }
-                  return;
-                }
-                
-                aiPanelRef.current?.addAIMsg("I can help with Part 450 applications, FAA compliance, and aerospace regulations. You can:\n\n• Paste a mission description paragraph and I'll automatically fill out the form\n• Use commands like 'save draft', 'submit application', 'replace [field] with [content]'\n• Ask questions about Part 450 requirements, your application, or aerospace compliance\n\nJust describe your mission and I'll extract the information to fill the form!");
-              }}
+          onFormUpdate={applySuggestions}
+          onCommand={handleApplicationInput}
           onFileDrop={async (files) => {
             if (!user) return;
             for (const file of files) {

@@ -1,13 +1,14 @@
 'use client';
 
-import React, { useState, forwardRef, useImperativeHandle, useEffect, useCallback } from 'react';
-import { AIChatInsights } from './ai-chat-insights';
+import React, { useState, forwardRef, useImperativeHandle, useEffect, useCallback, useRef } from 'react';
+import { AIChatInsights, AIChatInsightsHandle } from './ai-chat-insights';
 import { AIContextMenu } from './ai-context-menu';
 import { CopilotPanel } from './copilot-panel';
 import { Button } from './button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './tabs';
 import { MessageSquare, Sparkles, Bot, Shield, X } from 'lucide-react';
 import type { CopilotState } from '@/types/copilot';
+import type { ApplicationActionResult } from '@/lib/application-ai-actions';
 import {
   detectInconsistencies,
   loadCopilotState,
@@ -16,7 +17,7 @@ import {
 
 interface AIAssistantPanelProps {
   onFormUpdate?: (suggestions: any[]) => void;
-  onCommand?: (command: string) => void;
+  onCommand?: (command: string) => Promise<ApplicationActionResult | void>;
   onFileDrop?: (files: FileList | File[]) => void;
   hideTabs?: boolean;
   className?: string;
@@ -51,6 +52,7 @@ export interface AIAssistantPanelHandle {
 
 export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPanelProps>(({
   onFormUpdate,
+  onCommand,
   onFileDrop,
   className,
   isCollapsed = false,
@@ -71,6 +73,7 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
   onSessionUpdate,
   welcomeMessage,
 }, ref) => {
+  const chatRef = useRef<AIChatInsightsHandle>(null);
   const [activeTab, setActiveTab] = useState('chat');
   const [quickActionPrompt, setQuickActionPrompt] = useState('');
   const [copilotState, setCopilotState] = useState<CopilotState>(() =>
@@ -106,11 +109,13 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
   }, [quickActionPrompt]);
 
   useImperativeHandle(ref, () => ({
-    addAIMsg: () => {},
-    addDiffMsg: () => {},
-    addDocumentAnalysisMsg: () => {},
-    showTypingIndicator: () => {},
-    hideTypingIndicator: () => {},
+    addAIMsg: (msg: string) => chatRef.current?.addAIMsg(msg),
+    addDiffMsg: (msg: string, oldContent: string, newContent: string, filePath: string, description: string) =>
+      chatRef.current?.addDiffMsg(msg, oldContent, newContent, filePath, description),
+    addDocumentAnalysisMsg: (msg: string, insights: unknown) =>
+      chatRef.current?.addDocumentAnalysisMsg(msg, insights as Record<string, unknown>),
+    showTypingIndicator: () => chatRef.current?.showTypingIndicator(),
+    hideTypingIndicator: () => chatRef.current?.hideTypingIndicator(),
   }));
 
   const handleContextAction = (_action: string, prompt?: string) => {
@@ -139,7 +144,10 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
 
   const chatContent = (
     <AIChatInsights
+      ref={chatRef}
       onFormUpdate={onFormUpdate}
+      onCommand={onCommand}
+      onFieldClick={onFieldClick}
       onFileDrop={onFileDrop}
       className="flex-1 min-h-0"
       isInline

@@ -1,47 +1,10 @@
 import { NextRequest } from 'next/server';
 import { getSPLIAIService } from '@/lib/ai-service';
+import { resolveAIMode } from '@/lib/ai-mode';
 import { buildCopilotContextSummary, detectInconsistencies } from '@/lib/copilot-service';
 import type { CopilotState } from '@/types/copilot';
 
 export const runtime = 'nodejs';
-
-function resolveMode(
-  mode: string | undefined,
-  userInput: string,
-  hasDocuments: boolean
-): 'chat' | 'form-fill' | 'analysis' | 'compliance' {
-  const lowerInput = userInput.toLowerCase();
-
-  if (hasDocuments && (lowerInput.includes('document') || lowerInput.includes('analyze') || lowerInput.includes('upload'))) {
-    return 'analysis';
-  }
-
-  if (hasDocuments && mode !== 'chat' && mode !== 'compliance') {
-    return 'analysis';
-  }
-
-  if (mode === 'form-fill' || lowerInput.includes('fill form') || lowerInput.includes('auto fill')) {
-    return 'form-fill';
-  }
-  if (mode === 'compliance' || lowerInput.includes('compliance')) {
-    return 'compliance';
-  }
-  if (mode === 'analysis' || lowerInput.includes('analyze') || lowerInput.includes('review')) {
-    return 'analysis';
-  }
-
-  const isMissionDescription =
-    userInput.length > 50 &&
-    ['mission', 'satellite', 'rocket', 'launch', 'lunar', 'space', 'propulsion', 'safety'].some(
-      (kw) => lowerInput.includes(kw)
-    );
-
-  if (isMissionDescription && (lowerInput.includes('we are') || lowerInput.includes('our mission'))) {
-    return 'form-fill';
-  }
-
-  return 'chat';
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -91,7 +54,7 @@ export async function POST(request: NextRequest) {
       aiService.setApplicationContext(applicationId, formSummary);
     }
 
-    const processingMode = resolveMode(mode, userInput, documents.length > 0);
+    const processingMode = resolveAIMode(mode, userInput, documents.length > 0);
 
     const typedFormData = (formData ?? {}) as Record<string, string>;
     const inconsistencies = detectInconsistencies(typedFormData);
