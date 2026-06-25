@@ -128,6 +128,7 @@ export const AIChatInsights = forwardRef<AIChatInsightsHandle, AIChatInsightsPro
   const [mentionItems, setMentionItems] = useState<MentionItem[]>([]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -179,8 +180,12 @@ export const AIChatInsights = forwardRef<AIChatInsightsHandle, AIChatInsightsPro
   }, []);
 
   useEffect(() => {
+    if (isEmptyState) {
+      messagesContainerRef.current?.scrollTo({ top: 0, behavior: 'auto' });
+      return;
+    }
     scrollToBottom();
-  }, [messages, isLoading, scrollToBottom]);
+  }, [messages, isLoading, isEmptyState, scrollToBottom]);
 
   useEffect(() => {
     if (initialPrompt?.trim()) {
@@ -627,7 +632,10 @@ export const AIChatInsights = forwardRef<AIChatInsightsHandle, AIChatInsightsPro
       onDrop={handleDrop}
     >
       {/* Messages */}
-      <div className={`flex-1 overflow-y-auto spli-chat-messages ${isInline ? 'px-4 py-4' : 'p-4'} ai-chat-scrollbar`}>
+      <div
+        ref={messagesContainerRef}
+        className={`flex-1 overflow-y-auto spli-chat-messages ${isInline ? 'px-4 py-4' : 'p-4'} ai-chat-scrollbar`}
+      >
         <div className="space-y-5 max-w-none">
           {inconsistencies.length > 0 && (
             <div className="rounded-lg border border-amber-500/20 bg-amber-500/[0.06] px-3 py-2.5">
@@ -773,7 +781,7 @@ export const AIChatInsights = forwardRef<AIChatInsightsHandle, AIChatInsightsPro
               updateMentionState(input, (e.target as HTMLTextAreaElement).selectionStart ?? 0)
             }
             placeholder="Ask anything about your application…"
-            className="w-full min-h-[44px] max-h-[140px] px-3.5 pt-3 pb-1 bg-transparent text-[13px] text-zinc-100 placeholder:text-zinc-600 resize-none focus:outline-none"
+            className="w-full min-h-[44px] max-h-[140px] resize-none bg-transparent px-3.5 pb-1 pt-3 text-[13px] text-white placeholder:text-white/30 focus:outline-none"
             disabled={isLoading}
             rows={1}
             style={{ height: '44px', lineHeight: '1.5' }}
@@ -788,7 +796,7 @@ export const AIChatInsights = forwardRef<AIChatInsightsHandle, AIChatInsightsPro
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isLoading}
                 title="Attach document"
-                className="h-7 w-7 p-0 rounded-md text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.06]"
+                className="h-7 w-7 rounded-md p-0 text-white/40 hover:!bg-white/[0.06] hover:!text-white"
               >
                 <Paperclip className="h-4 w-4" />
               </Button>
@@ -800,8 +808,8 @@ export const AIChatInsights = forwardRef<AIChatInsightsHandle, AIChatInsightsPro
                   onClick={toggleListening}
                   disabled={isLoading}
                   title={isListening ? 'Stop listening' : 'Voice input'}
-                  className={`h-7 w-7 p-0 rounded-md hover:bg-white/[0.06] ${
-                    isListening ? 'text-red-400' : 'text-zinc-500 hover:text-zinc-300'
+                  className={`h-7 w-7 rounded-md p-0 hover:!bg-white/[0.06] ${
+                    isListening ? 'text-red-400' : 'text-white/40 hover:!text-white'
                   }`}
                 >
                   {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
@@ -814,7 +822,7 @@ export const AIChatInsights = forwardRef<AIChatInsightsHandle, AIChatInsightsPro
               onClick={() => sendMessageWithContent(input)}
               disabled={!canSend}
               size="sm"
-              className="h-7 w-7 p-0 rounded-md bg-zinc-100 text-zinc-900 hover:bg-white disabled:opacity-20 disabled:bg-zinc-700 disabled:text-zinc-500"
+              className="h-8 w-8 rounded-full bg-white p-0 text-black hover:bg-white/90 disabled:bg-white/20 disabled:text-white/40"
               title="Send"
             >
               {isLoading ? (
@@ -825,7 +833,7 @@ export const AIChatInsights = forwardRef<AIChatInsightsHandle, AIChatInsightsPro
             </Button>
           </div>
         </div>
-        <p className="text-[10px] text-zinc-600 text-center mt-2">
+        <p className="mt-2 text-center text-[10px] text-white/30">
           SPLI drafts suggestions — you review and submit
         </p>
       </div>

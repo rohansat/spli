@@ -193,8 +193,8 @@ export function AiChatMessage({
     return (
       <div className="flex justify-end pl-8">
         <div className="max-w-[92%]">
-          <div className="rounded-2xl rounded-br-md bg-zinc-800/90 px-3.5 py-2.5">
-            <p className="text-[13px] leading-relaxed text-zinc-100 whitespace-pre-wrap">
+          <div className="rounded-2xl rounded-br-md border border-white/[0.08] bg-white/[0.06] px-3.5 py-2.5">
+            <p className="whitespace-pre-wrap text-[13px] leading-relaxed text-white/90">
               {message.content}
             </p>
             {message.attachedFiles && message.attachedFiles.length > 0 && (
@@ -218,16 +218,14 @@ export function AiChatMessage({
 
   if (isWelcome) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[min(320px,45vh)] py-8 px-2">
-        <div className="h-10 w-10 rounded-full bg-white/[0.04] border border-white/[0.08] flex items-center justify-center mb-4">
-          <Sparkles className="h-4 w-4 text-zinc-400" />
+      <div className="flex min-h-[min(300px,42vh)] flex-col items-center justify-center px-4 py-10">
+        <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-full border border-white/[0.1] bg-white/[0.04]">
+          <Sparkles className="h-4 w-4 text-blue-300/80" />
         </div>
-        <p className="text-[15px] font-medium text-zinc-200 mb-1.5">SPLI Copilot</p>
-        <div className="text-[13px] text-zinc-500 text-center max-w-[280px] leading-relaxed mb-6">
-          <ChatMarkdown content={message.content} />
-        </div>
+        <p className="mb-6 text-sm font-semibold uppercase tracking-wide text-white">Pilot</p>
         {message.followUpPrompts && message.followUpPrompts.length > 0 && !message.isStreaming && (
-          <div className="w-full max-w-[320px] space-y-1.5">
+          <div className="w-full max-w-[340px] space-y-2">
+            <p className="spli-chat-label px-1">Suggested prompts</p>
             {message.followUpPrompts.map((prompt, index) => (
               <button
                 key={index}

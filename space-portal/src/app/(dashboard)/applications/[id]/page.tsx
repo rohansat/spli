@@ -31,6 +31,7 @@ import { SpliChatWorkspace } from "@/components/ui/spli-chat-workspace";
 import { useToast } from "@/components/ui/use-toast";
 import { useApplicationAIHandlers } from "@/hooks/use-application-ai-handlers";
 import type { Document } from "@/types";
+import { cn } from "@/lib/utils";
 // import { ComplianceDashboard } from '@/components/ui/compliance-dashboard';
 
 interface FormField {
@@ -732,6 +733,9 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
     return fields;
   };
 
+  const formFieldClass =
+    'rounded-lg border border-white/[0.08] bg-white/[0.03] text-white placeholder:text-white/30 transition-all duration-300 focus:border-white/20 focus:ring-1 focus:ring-white/10';
+
   const renderField = (field: FormField, sectionIndex: number) => {
     const isRecentlyUpdated = aiLastUpdated === field.name;
     const sectionId = PART450_SCHEMA.sectionIds[sectionIndex];
@@ -743,7 +747,7 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
     const fieldMeta = (
       <div className="mt-2 space-y-1">
         {authorship && (
-          <p className="text-[10px] text-zinc-500">
+          <p className="text-[10px] text-white/35">
             Last edited by {authorship.lastModifiedBy.split('@')[0]} ·{' '}
             {new Date(authorship.lastModifiedAt).toLocaleDateString()}
           </p>
@@ -755,7 +759,7 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
                 key={`${ref.sourceField}-${ref.targetField}`}
                 type="button"
                 onClick={() => navigateToField(ref.sourceField === field.name ? ref.targetField : ref.sourceField)}
-                className="text-[10px] px-1.5 py-0.5 rounded-md bg-zinc-800/80 text-zinc-500 border border-zinc-700/50 hover:text-zinc-300 hover:border-zinc-600 flex items-center gap-1 transition-colors"
+                className="flex items-center gap-1 rounded-full border border-blue-500/20 bg-blue-500/[0.08] px-2 py-0.5 text-[10px] text-blue-200/80 transition-colors hover:border-blue-500/30 hover:bg-blue-500/12 hover:text-blue-100"
                 title={ref.description}
               >
                 <Link2 className="h-2.5 w-2.5 opacity-60" />
@@ -769,7 +773,7 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
     );
 
     const lockBanner = isLocked ? (
-      <p className="text-xs text-zinc-500 flex items-center gap-1 mb-2">
+      <p className="mb-2 flex items-center gap-1 text-xs text-white/40">
         <Lock className="h-3 w-3" />
         {sectionState?.lockReason}
       </p>
@@ -788,9 +792,11 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
               onChange={(e) => handleInputChange(field.name, e.target.value)}
               placeholder={field.label}
               disabled={isLocked}
-              className={`bg-zinc-900 border-zinc-700 text-white placeholder:text-zinc-600 transition-all duration-300 ${
-                isRecentlyUpdated ? 'border-green-600/50 bg-green-950/20' : ''
-              } ${isLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className={cn(
+                formFieldClass,
+                isRecentlyUpdated && 'border-emerald-500/40 bg-emerald-500/[0.06]',
+                isLocked && 'cursor-not-allowed opacity-50'
+              )}
             />
             {isRecentlyUpdated && (
               <div className="absolute top-0 right-0 bg-green-500 text-white text-xs px-2 py-1 rounded-full animate-pulse">
@@ -811,9 +817,12 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
               placeholder={field.label}
               rows={4}
               disabled={isLocked}
-              className={`bg-zinc-900 border-zinc-700 text-white placeholder:text-zinc-600 max-h-[300px] overflow-y-auto transition-all duration-300 ${
-                isRecentlyUpdated ? 'border-green-600/50 bg-green-950/20' : ''
-              } ${isLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className={cn(
+                formFieldClass,
+                'max-h-[300px] overflow-y-auto',
+                isRecentlyUpdated && 'border-emerald-500/40 bg-emerald-500/[0.06]',
+                isLocked && 'cursor-not-allowed opacity-50'
+              )}
             />
             {isRecentlyUpdated && (
               <div className="absolute top-0 right-0 bg-green-500 text-white text-xs px-2 py-1 rounded-full animate-pulse">
@@ -832,9 +841,12 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
               value={formData[field.name] || ""}
               onChange={(e) => handleInputChange(field.name, e.target.value)}
               disabled={isLocked}
-              className={`w-full p-2 rounded-md bg-zinc-900 border border-zinc-700 text-white transition-all duration-300 ${
-                isRecentlyUpdated ? 'border-green-600/50 bg-green-950/20' : ''
-              } ${isLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className={cn(
+                formFieldClass,
+                'w-full p-2',
+                isRecentlyUpdated && 'border-emerald-500/40 bg-emerald-500/[0.06]',
+                isLocked && 'cursor-not-allowed opacity-50'
+              )}
             >
               <option value="">Select {field.label}</option>
               {field.options?.map((option: string) => (
@@ -856,7 +868,12 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
     }
   };
 
-  const buttonSizeClass = showFloatingChat ? 'h-8 px-3 text-sm' : 'h-10 px-6 text-base';
+  const buttonSizeClass = showFloatingChat ? 'h-8 px-4 text-sm' : 'h-10 px-5 text-sm';
+  const toolbarButtonClass = cn(
+    'rounded-full border border-white/[0.12] bg-white/[0.03] text-white shadow-none',
+    'hover:!border-white/20 hover:!bg-white/[0.08] hover:!text-white',
+    buttonSizeClass
+  );
 
   const handleSendMessage = async () => {
     setIsSendingMessage(true);
@@ -924,32 +941,52 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] bg-black overflow-hidden">
-      <div className={`flex-shrink-0 px-6 pt-8 pb-4 w-full ${showFloatingChat ? '' : 'max-w-[1400px] mx-auto'}`}>
-        <div className="mb-8">
-          <Link href="/dashboard" className="flex items-center text-white/70 hover:text-white transition-colors">
+    <div className="relative flex h-[calc(100vh-4rem)] flex-col overflow-hidden bg-black">
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.03]"
+        style={{
+          backgroundImage:
+            'linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)',
+          backgroundSize: '64px 64px',
+        }}
+        aria-hidden
+      />
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-48"
+        style={{
+          background:
+            'radial-gradient(ellipse 80% 60% at 50% -20%, rgba(59, 130, 246, 0.1) 0%, transparent 70%)',
+        }}
+        aria-hidden
+      />
+
+      <div className={`relative z-10 flex-shrink-0 px-6 pt-8 pb-4 w-full ${showFloatingChat ? '' : 'max-w-[1400px] mx-auto'}`}>
+        <div className="mb-6">
+          <Link href="/dashboard" className="inline-flex items-center text-sm text-white/50 transition-colors hover:text-white">
             <ChevronLeft className="mr-1 h-4 w-4" />
-            Back to Dashboard
+            Back to dashboard
           </Link>
         </div>
 
         <div className="mb-2">
-          <h1 className={`${showFloatingChat ? 'text-2xl lg:text-3xl' : 'text-3xl'} font-bold text-white mb-3 break-words`}>{application.name}</h1>
-          <div className={`flex ${showFloatingChat ? 'flex-col sm:flex-row' : 'items-center'} ${showFloatingChat ? 'gap-2' : ''}`}>
-            <p className={`text-white/60 ${showFloatingChat ? 'text-sm' : 'mr-3'}`}>
+          <p className="text-xs font-bold uppercase tracking-[0.28em] text-white/40">
+            Workbench
+          </p>
+          <h1 className={`${showFloatingChat ? 'text-2xl lg:text-3xl' : 'text-3xl'} mb-3 mt-2 break-words font-bold tracking-tight text-white`}>{application.name}</h1>
+          <div className={`flex ${showFloatingChat ? 'flex-col sm:flex-row' : 'items-center'} ${showFloatingChat ? 'gap-2' : 'gap-3'}`}>
+            <p className={`text-white/45 ${showFloatingChat ? 'text-sm' : 'text-sm'}`}>
               {application.type} • Created on{" "}
               {new Date(application.createdAt).toLocaleDateString()}
             </p>
             <span
-              className={`px-3 py-1 rounded-full text-xs font-medium self-start ${
-                application.status === "draft"
-                  ? "bg-zinc-500/20 text-zinc-300"
-                  : application.status === "under_review"
-                  ? "bg-yellow-500/20 text-yellow-300"
-                  : application.status === "submitted"
-                  ? "bg-blue-500/20 text-blue-300"
-                  : "bg-green-500/20 text-green-300"
-              }`}
+              className={cn(
+                'self-start rounded-full border px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-wide',
+                application.status === 'draft' && 'border-white/15 bg-white/10 text-white/80',
+                application.status === 'under_review' && 'border-amber-500/30 bg-amber-500/10 text-amber-200',
+                application.status === 'submitted' && 'border-orange-500/30 bg-orange-500/10 text-orange-200',
+                application.status === 'approved' && 'border-emerald-500/30 bg-emerald-500/10 text-emerald-200',
+                application.status === 'pending_approval' && 'border-blue-500/30 bg-blue-500/10 text-blue-200'
+              )}
             >
               {application.status === "submitted" ? "SUBMITTED" : application.status.replace("_", " ").toUpperCase()}
             </span>
@@ -957,7 +994,7 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
         </div>
       </div>
 
-      <div className="flex flex-1 min-h-0 w-full">
+      <div className="relative z-10 flex min-h-0 w-full flex-1">
         <div className={`flex flex-col flex-1 min-w-0 min-h-0 ${showFloatingChat ? '' : 'max-w-[1400px] mx-auto w-full'}`}>
           <div className={`flex-shrink-0 px-6 pb-4 flex flex-col ${showFloatingChat ? 'lg:flex-row' : 'md:flex-row'} flex-wrap gap-2 ${showFloatingChat ? 'lg:items-center' : 'md:items-center'}`}>
             <Button
@@ -968,7 +1005,7 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
                 e.currentTarget.blur();
                 setShowFloatingChat(!showFloatingChat);
               }}
-              className={`border-white/40 text-white flex items-center justify-center ${buttonSizeClass}`}
+              className={toolbarButtonClass}
             >
               <Brain className="mr-2 h-4 w-4" />
               {showFloatingChat ? 'Hide AI' : 'AI Mode'}
@@ -985,7 +1022,7 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
               />
               <label
                 htmlFor="file-upload"
-                className={`cursor-pointer inline-flex items-center justify-center border border-white/40 rounded-md text-white hover:bg-white/5 transition-colors ${buttonSizeClass}`}
+                className={cn('inline-flex cursor-pointer items-center justify-center transition-colors', toolbarButtonClass)}
               >
                 <Upload className="mr-2 h-4 w-4" />
                 Upload Documents
@@ -996,7 +1033,7 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
               variant="outline"
               onClick={() => void handleSave()}
               disabled={isSaving || application.status === "approved"}
-              className={`border-white/40 text-white flex items-center justify-center ${buttonSizeClass}`}
+              className={toolbarButtonClass}
             >
               <Save className="mr-2 h-4 w-4" />
               {isSaving ? "Saving..." : "Save Draft"}
@@ -1006,7 +1043,10 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
               onClick={handleSubmit}
               disabled={application.status === "approved" || !workflowReadiness.canSubmit}
               title={workflowReadiness.submissionGateMessage}
-              className={`bg-gradient-to-r from-blue-500 to-purple-500 text-white flex items-center justify-center ${buttonSizeClass} disabled:opacity-40`}
+              className={cn(
+                'rounded-full bg-white font-semibold text-black hover:bg-white/90 disabled:opacity-40',
+                buttonSizeClass
+              )}
             >
               <Mail className="mr-2 h-4 w-4" />
               {workflowReadiness.canSubmit ? 'Submit Application' : 'Submit Locked'}
@@ -1073,7 +1113,7 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
                   <Button
                     variant="outline"
                     onClick={() => setIsComposeOpen(false)}
-                    className="border-white/40 text-white"
+                    className="rounded-full border-white/20 text-white hover:!bg-white/[0.08] hover:!text-white"
                   >
                     Cancel
                   </Button>
@@ -1105,7 +1145,7 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
           </Alert>
         )}
 
-        <div className="mb-6 grid grid-cols-1 lg:grid-cols-2 gap-3">
+        <div className="mb-6 grid grid-cols-1 items-start gap-3 lg:grid-cols-2">
           <WorkflowReadinessPanel
             formData={formData}
             record={applicationRecord}
@@ -1126,27 +1166,29 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
         </div>
 
         {application.status === "draft" && (
-          <Alert className="mb-6 bg-zinc-900/50 border-zinc-800 text-zinc-300">
-            <AlertTriangle className="h-4 w-4 text-yellow-500" />
-            <AlertTitle className="text-zinc-200">Draft mode</AlertTitle>
-            <AlertDescription className="text-zinc-400">
-              Complete required fields in each section before submitting.
-            </AlertDescription>
-          </Alert>
+          <div className="mb-6 flex items-center gap-3 rounded-xl border border-amber-500/20 bg-amber-500/[0.06] px-4 py-3">
+            <AlertTriangle className="h-4 w-4 shrink-0 text-amber-400" />
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-amber-200/90">Draft mode</p>
+              <p className="text-xs text-white/45">
+                Complete required fields in each section before submitting.
+              </p>
+            </div>
+          </div>
         )}
 
         {uploadedFiles.length > 0 && (
-          <div className="mb-8 bg-white/5 p-4 rounded-lg border border-white/10">
-            <h3 className="text-white font-medium mb-3">Uploaded Documents</h3>
+          <div className="mb-8 rounded-xl border border-white/[0.08] bg-white/[0.03] p-4">
+            <h3 className="mb-3 text-sm font-medium text-white">Uploaded documents</h3>
             <div className="space-y-2">
               {uploadedFiles.map((file, index) => (
-                <div key={index} className="flex items-center justify-between bg-white/5 p-2 rounded">
-                  <span className="text-sm text-white/80">{file.name}</span>
+                <div key={index} className="flex items-center justify-between rounded-lg border border-white/[0.06] bg-black/20 p-2">
+                  <span className="text-sm text-white/70">{file.name}</span>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => removeFile(index)}
-                    className="text-white/60 hover:text-white"
+                    className="text-white/40 hover:text-white"
                   >
                     <X className="h-4 w-4" />
                   </Button>
@@ -1158,39 +1200,45 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
 
         <div>
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex gap-8 items-start">
-            <aside className="w-[240px] flex-shrink-0 sticky top-4 self-start">
-              <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-500 mb-3 px-1">
+            <aside className="sticky top-4 w-[260px] flex-shrink-0 self-start">
+              <p className="mb-3 px-1 text-[11px] font-medium uppercase tracking-wider text-white/40">
                 Sections
               </p>
-              <TabsList className="flex flex-col w-full gap-1 bg-transparent p-0 h-auto">
+              <TabsList className="flex h-auto w-full flex-col gap-1 bg-transparent p-0">
                 {part450FormTemplate.sections.map((section, index) => {
                   const sectionId = PART450_SCHEMA.sectionIds[index];
                   const state = workflowReadiness.sectionStates.find((s) => s.sectionId === sectionId);
                   const isActive = activeTab === `section-${index}`;
+                  const completion = state?.completionPercent ?? 0;
                   return (
                   <TabsTrigger
                     key={`section-${index}`}
                     value={`section-${index}`}
                     disabled={state?.isLocked}
-                    className="relative flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-left justify-start
-                      bg-transparent text-zinc-500 border border-transparent
-                      hover:bg-zinc-900 hover:text-zinc-300
-                      data-[state=active]:bg-zinc-900 data-[state=active]:text-white data-[state=active]:border-zinc-800
-                      disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                    className={cn(
+                      'relative flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left justify-start transition-colors',
+                      'border-transparent bg-transparent text-white/45',
+                      'hover:border-white/[0.06] hover:bg-white/[0.03] hover:text-white/70',
+                      'data-[state=active]:border-white/[0.1] data-[state=active]:bg-white/[0.05] data-[state=active]:text-white',
+                      'disabled:cursor-not-allowed disabled:opacity-40'
+                    )}
                   >
-                    <div className={`flex-shrink-0 w-6 h-6 rounded-md flex items-center justify-center text-xs font-medium ${
-                      isActive ? 'bg-zinc-800 text-white' : 'bg-zinc-900 text-zinc-500 border border-zinc-800'
-                    }`}>
+                    <div className={cn(
+                      'flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg border text-xs font-medium',
+                      isActive
+                        ? 'border-blue-500/30 bg-blue-500/15 text-blue-200'
+                        : 'border-white/[0.08] bg-black/30 text-white/40'
+                    )}>
                       {state?.isLocked ? (
                         <Lock className="h-3 w-3" />
                       ) : (
                         index + 1
                       )}
                     </div>
-                    <div className="flex flex-col min-w-0 flex-1">
+                    <div className="flex min-w-0 flex-1 flex-col">
                       <span className="text-xs font-medium leading-snug whitespace-pre-line">{section.title}</span>
-                      <span className="text-[10px] text-zinc-600 mt-0.5 truncate">
-                        {state?.isLocked ? 'Locked' : `${state?.completionPercent ?? 0}% complete`}
+                      <span className="mt-0.5 truncate text-[10px] text-white/30">
+                        {state?.isLocked ? 'Locked' : `${completion}% complete`}
                       </span>
                     </div>
                   </TabsTrigger>
@@ -1199,31 +1247,31 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
               </TabsList>
             </aside>
 
-            <div className="flex-1 min-w-0">
+            <div className="min-w-0 flex-1">
               {part450FormTemplate.sections.map((section, sectionIndex) => (
                 <TabsContent
                   key={`section-content-${sectionIndex}`}
                   value={`section-${sectionIndex}`}
-                  className="space-y-6 mt-0 focus-visible:outline-none focus-visible:ring-0"
+                  className="mt-0 space-y-6 focus-visible:outline-none focus-visible:ring-0"
                 >
-                  <div className="pb-2 border-b border-zinc-800">
-                    <h2 className="text-xl font-semibold text-white whitespace-pre-line leading-snug">
-                      {section.title}
-                    </h2>
-                    <p className="text-sm text-zinc-500 mt-1">
+                  <div className="border-b border-white/[0.06] pb-4">
+                    <p className="text-[11px] font-medium uppercase tracking-wider text-white/40">
                       Section {sectionIndex + 1} of {part450FormTemplate.sections.length}
                     </p>
+                    <h2 className="mt-1 whitespace-pre-line text-xl font-semibold leading-snug text-white">
+                      {section.title}
+                    </h2>
                   </div>
 
                   <div className="space-y-4">
                     {section.fields.map((field, fieldIndex) => (
                       <div 
                         key={`field-${sectionIndex}-${fieldIndex}`} 
-                        className="space-y-2 rounded-lg border border-zinc-800 bg-zinc-950/50 p-4"
+                        className="space-y-2 rounded-xl border border-white/[0.06] bg-white/[0.02] p-4"
                       >
                         <label
                           htmlFor={field.name}
-                          className="text-sm font-medium text-zinc-200 block"
+                          className="block text-xs font-medium uppercase tracking-wide text-white/60"
                         >
                           {field.label}
                         </label>
@@ -1233,11 +1281,11 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
                   </div>
 
                   {sectionIndex < 6 && (
-                    <div className="flex justify-end pt-2 border-t border-zinc-800">
+                    <div className="flex justify-end border-t border-white/[0.06] pt-4">
                       <Button
                         onClick={() => setActiveTab(`section-${sectionIndex + 1}`)}
                         variant="outline"
-                        className="border-zinc-700 text-zinc-300 hover:bg-zinc-900 hover:text-white"
+                        className={toolbarButtonClass}
                       >
                         Next section
                         <ArrowRight className="ml-2 h-4 w-4" />
@@ -1258,17 +1306,17 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
                   )}
 
                   {sectionIndex === 6 && (
-                    <div className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 p-6 rounded-xl border border-blue-500/30">
+                    <div className="rounded-xl border border-blue-500/20 bg-blue-500/[0.06] p-6">
                       <div className="flex items-center justify-between">
                         <div>
-                          <h3 className="text-xl font-bold text-white mb-2">Ready to Contact FAA?</h3>
-                          <p className="text-white/70">
+                          <h3 className="mb-2 text-xl font-bold text-white">Ready to Contact FAA?</h3>
+                          <p className="text-white/60">
                             Send your application to FAA officials for review and consultation.
                           </p>
                         </div>
                         <Dialog open={isComposeOpen} onOpenChange={setIsComposeOpen}>
                           <DialogTrigger asChild>
-                            <Button className="bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:opacity-90 transition-opacity px-6 py-3">
+                            <Button className="rounded-full bg-white px-6 py-3 font-semibold text-black hover:bg-white/90">
                               <Mail className="mr-2 h-4 w-4" />
                               Ready for FAA
                             </Button>
@@ -1333,7 +1381,7 @@ Commercial space transportation license for lunar mission under FAA Part 450.`;
                               <Button
                                 variant="outline"
                                 onClick={() => setIsComposeOpen(false)}
-                                className="border-white/40 text-white"
+                                className="rounded-full border-white/20 text-white hover:!bg-white/[0.08] hover:!text-white"
                               >
                                 Cancel
                               </Button>

@@ -181,123 +181,207 @@ export default function MessagesPage() {
     }
   };
 
+  const toolbarButtonClass =
+    'h-10 rounded-full border border-white/[0.12] bg-white/[0.03] text-sm text-white shadow-none hover:!border-white/20 hover:!bg-white/[0.08] hover:!text-white';
+  const fieldClass =
+    'rounded-lg border border-white/[0.08] bg-white/[0.03] text-white placeholder:text-white/35 focus:border-white/20 focus:outline-none focus:ring-1 focus:ring-white/10';
+  const glassCardClass =
+    'overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.03] shadow-xl shadow-black/20 backdrop-blur-sm';
+
+  const unreadCount = messages.filter((m) => !m.isRead).length;
+
   return (
-    <div className="min-h-screen flex flex-col bg-black">
-      <main className="flex-1 px-8 pt-24">
-        <div className="max-w-[1400px] mx-auto">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-white mb-2">MESSAGES</h1>
-          <p className="text-white/60">
-            Communicate with FAA officials and receive automated notifications
-          </p>
-        </div>
-        <div className="flex items-center space-x-4 mt-4 md:mt-0">
-          <button
-            className={`px-4 py-2 rounded-md font-semibold border transition-colors ${mailbox === 'inbox' ? 'bg-white text-black border-white' : 'bg-black text-white border-white/40 hover:bg-white/10'}`}
-            onClick={() => setMailbox('inbox')}
-          >
-            Inbox
-          </button>
-          <button
-            className={`px-4 py-2 rounded-md font-semibold border transition-colors ${mailbox === 'sent' ? 'bg-white text-black border-white' : 'bg-black text-white border-white/40 hover:bg-white/10'}`}
-            onClick={() => setMailbox('sent')}
-          >
-            Sent
-          </button>
-        </div>
-        <Dialog open={isComposeOpen} onOpenChange={setIsComposeOpen}>
-          <DialogTrigger asChild>
-            <Button className="spacex-button mt-4 md:mt-0">
-              <Plus className="mr-2 h-4 w-4" />
-              NEW MESSAGE
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="bg-black text-white border border-white/20">
-            <DialogHeader>
-              <DialogTitle>Compose Message</DialogTitle>
-              <DialogDescription className="text-white/60">
-                Send a message to FAA officials
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <label htmlFor="recipient" className="text-sm font-medium">
-                  To
-                </label>
-                <Input
-                  id="recipient"
-                  value={newMessage.recipient}
-                  onChange={(e) =>
-                    setNewMessage({ ...newMessage, recipient: e.target.value })
-                  }
-                  placeholder="recipient@faa.gov"
-                  className="bg-white/10 border-white/20 text-white"
-                />
-              </div>
-              <div className="space-y-2">
-                <label htmlFor="subject" className="text-sm font-medium">
-                  Subject
-                </label>
-                <Input
-                  id="subject"
-                  value={newMessage.subject}
-                  onChange={(e) =>
-                    setNewMessage({ ...newMessage, subject: e.target.value })
-                  }
-                  placeholder="Enter subject"
-                  className="bg-white/10 border-white/20 text-white"
-                />
-              </div>
-              <div className="space-y-2">
-                <label htmlFor="body" className="text-sm font-medium">
-                  Message
-                </label>
-                <Textarea
-                  id="body"
-                  value={newMessage.body}
-                  onChange={(e) =>
-                    setNewMessage({ ...newMessage, body: e.target.value })
-                  }
-                  placeholder="Type your message here"
-                  rows={8}
-                  className="bg-white/10 border-white/20 text-white max-h-[400px] overflow-y-auto"
-                  autoResize={true}
-                />
-              </div>
+    <div className="relative flex min-h-screen flex-col bg-black">
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.03]"
+        style={{
+          backgroundImage:
+            'linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)',
+          backgroundSize: '64px 64px',
+        }}
+        aria-hidden
+      />
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-64"
+        style={{
+          background:
+            'radial-gradient(ellipse 80% 60% at 50% -20%, rgba(59, 130, 246, 0.12) 0%, transparent 70%)',
+        }}
+        aria-hidden
+      />
+
+      <main className="relative flex-1 px-6 pb-32 pt-24 lg:px-10">
+        <div className="mx-auto max-w-[1400px]">
+          <div className="mb-8 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.28em] text-white/40">
+                Communications
+              </p>
+              <h1 className="mt-3 text-[clamp(1.5rem,3vw,2rem)] font-bold tracking-tight text-white">
+                Channel
+              </h1>
+              <p className="mt-2 max-w-xl text-sm leading-relaxed text-white/50">
+                Communicate with FAA officials and receive automated notifications
+              </p>
             </div>
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setIsComposeOpen(false)}
-                className="border-white/40 text-white"
-              >
-                Cancel
-              </Button>
-              <Button onClick={handleSendMessage} className="spacex-button">
-                <Send className="mr-2 h-4 w-4" />
-                Send
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-1">
-          <Card className="space-card">
-            <CardHeader>
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex rounded-full border border-white/[0.12] bg-white/[0.03] p-1">
+                <button
+                  type="button"
+                  className={cn(
+                    'rounded-full px-4 py-2 text-sm font-medium transition-colors',
+                    mailbox === 'inbox'
+                      ? 'bg-white text-black'
+                      : 'text-white/60 hover:text-white'
+                  )}
+                  onClick={() => setMailbox('inbox')}
+                >
+                  Inbox
+                </button>
+                <button
+                  type="button"
+                  className={cn(
+                    'rounded-full px-4 py-2 text-sm font-medium transition-colors',
+                    mailbox === 'sent'
+                      ? 'bg-white text-black'
+                      : 'text-white/60 hover:text-white'
+                  )}
+                  onClick={() => setMailbox('sent')}
+                >
+                  Sent
+                </button>
+              </div>
+              <Dialog open={isComposeOpen} onOpenChange={setIsComposeOpen}>
+                <DialogTrigger asChild>
+                  <Button className="h-10 gap-2 rounded-full border-0 bg-white px-5 text-sm font-semibold text-black hover:bg-white/90">
+                    <Plus className="h-4 w-4" />
+                    New message
+                  </Button>
+                </DialogTrigger>
+              <DialogContent className="max-w-md w-full overflow-hidden border border-white/[0.08] bg-black/95 p-0 text-white shadow-2xl shadow-black/50 backdrop-blur-xl sm:rounded-2xl [&>button]:right-5 [&>button]:top-5 [&>button]:rounded-full [&>button]:border [&>button]:border-white/[0.08] [&>button]:bg-white/[0.03] [&>button]:p-2 [&>button]:text-white/50 [&>button]:opacity-100 [&>button]:hover:bg-white/[0.06] [&>button]:hover:text-white">
+                <div className="border-b border-white/[0.06] px-6 pb-4 pt-6">
+                  <DialogHeader className="space-y-0">
+                    <DialogTitle className="text-sm font-semibold uppercase tracking-wide text-white">
+                      Compose message
+                    </DialogTitle>
+                    <DialogDescription className="mt-1 text-xs text-white/45">
+                      Send a message to FAA officials
+                    </DialogDescription>
+                  </DialogHeader>
+                </div>
+                <div className="space-y-5 px-6 py-5">
+                  <div className="space-y-2">
+                    <label htmlFor="recipient" className="text-xs font-medium uppercase tracking-wide text-white/60">
+                      To
+                    </label>
+                    <Input
+                      id="recipient"
+                      value={newMessage.recipient}
+                      onChange={(e) =>
+                        setNewMessage({ ...newMessage, recipient: e.target.value })
+                      }
+                      placeholder="recipient@faa.gov"
+                      className={fieldClass}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label htmlFor="subject" className="text-xs font-medium uppercase tracking-wide text-white/60">
+                      Subject
+                    </label>
+                    <Input
+                      id="subject"
+                      value={newMessage.subject}
+                      onChange={(e) =>
+                        setNewMessage({ ...newMessage, subject: e.target.value })
+                      }
+                      placeholder="Enter subject"
+                      className={fieldClass}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label htmlFor="body" className="text-xs font-medium uppercase tracking-wide text-white/60">
+                      Message
+                    </label>
+                    <Textarea
+                      id="body"
+                      value={newMessage.body}
+                      onChange={(e) =>
+                        setNewMessage({ ...newMessage, body: e.target.value })
+                      }
+                      placeholder="Type your message here"
+                      rows={8}
+                      className={cn(fieldClass, 'max-h-[400px] overflow-y-auto')}
+                      autoResize={true}
+                    />
+                  </div>
+                </div>
+                <DialogFooter className="gap-2 border-t border-white/[0.06] px-6 py-4 sm:justify-end">
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsComposeOpen(false)}
+                    className="h-10 rounded-full border border-white/[0.12] bg-transparent px-6 text-sm text-white/70 hover:!bg-white/[0.04] hover:!text-white"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleSendMessage}
+                    className="h-10 gap-2 rounded-full bg-white px-6 text-sm font-semibold text-black hover:bg-white/90"
+                  >
+                    <Send className="h-4 w-4" />
+                    Send
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+            </div>
+          </div>
+
+          <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-3">
+            <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-4 backdrop-blur-sm">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-white">Inbox</CardTitle>
-                <span className="text-xs bg-blue-500/20 text-blue-300 px-2 py-1 rounded-full">
-                  {messages.filter((m) => !m.isRead).length} Unread
+                <Mail className="h-4 w-4 text-blue-300/70" />
+                <span className="text-2xl font-semibold tabular-nums text-white">{filteredMessages.length}</span>
+              </div>
+              <p className="mt-2 text-[11px] font-medium uppercase tracking-wide text-white/40">
+                {mailbox === 'inbox' ? 'Inbox messages' : 'Sent messages'}
+              </p>
+            </div>
+            <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-4 backdrop-blur-sm">
+              <div className="flex items-center justify-between">
+                <MessageSquare className="h-4 w-4 text-blue-300/70" />
+                <span className="text-2xl font-semibold tabular-nums text-white">{unreadCount}</span>
+              </div>
+              <p className="mt-2 text-[11px] font-medium uppercase tracking-wide text-white/40">Unread</p>
+            </div>
+            <div className="col-span-2 rounded-xl border border-white/[0.08] bg-white/[0.03] p-4 backdrop-blur-sm lg:col-span-1">
+              <div className="flex items-center justify-between">
+                <AlertTriangle className="h-4 w-4 text-amber-300/70" />
+                <span className="text-2xl font-semibold tabular-nums text-white">
+                  {messages.filter((m) => m.isAutomated).length}
+                </span>
+              </div>
+              <p className="mt-2 text-[11px] font-medium uppercase tracking-wide text-white/40">Automated</p>
+            </div>
+          </div>
+
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-3">
+        <div className="lg:col-span-1">
+          <Card className={glassCardClass}>
+            <CardHeader className="space-y-4 border-b border-white/[0.06] p-0 px-5 py-4">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-semibold uppercase tracking-wide text-white">
+                  {mailbox === 'inbox' ? 'Inbox' : 'Sent'}
+                </CardTitle>
+                <span className="rounded-full border border-blue-500/20 bg-blue-500/10 px-2.5 py-0.5 text-[10px] font-medium text-blue-200">
+                  {unreadCount} unread
                 </span>
               </div>
               <div className="flex gap-2">
                 <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/40 h-4 w-4" />
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/35" />
                   <Input
                     placeholder="Search messages..."
-                    className="pl-10 bg-white/10 border-white/20 text-white"
+                    className={cn(fieldClass, 'h-10 pl-10')}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
@@ -307,69 +391,60 @@ export default function MessagesPage() {
                   disabled={isRefreshing}
                   variant="outline"
                   size="sm"
-                  className="h-10 px-3 border-white/20 text-white hover:bg-white/10"
+                  className={cn(toolbarButtonClass, 'h-10 w-10 shrink-0 px-0')}
                   title="Refresh emails"
                 >
-                  <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                  <RefreshCw className={cn('h-4 w-4', isRefreshing && 'animate-spin')} />
                 </Button>
               </div>
-              
-              {/* Filter Info */}
-              <div className="mt-3">
-                <Badge variant="secondary" className="text-xs bg-blue-500/20 text-blue-300 border-blue-500/30">
-                  Showing only application & Part 450 related emails
-                </Badge>
-              </div>
+              <Badge variant="outline" className="w-fit border-blue-500/20 bg-blue-500/[0.06] text-[10px] font-normal text-blue-200/80">
+                Application & Part 450 related only
+              </Badge>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-1 max-h-[500px] overflow-y-auto pr-2 ai-chat-scrollbar">
+            <CardContent className="p-3">
+              <div className="ai-chat-scrollbar max-h-[500px] space-y-1 overflow-y-auto pr-1">
                 {filteredMessages.length > 0 ? (
                   filteredMessages.map((message) => (
                     <div
                       key={message.id}
-                      className={`p-3 cursor-pointer flex hover:bg-white/10 ${
-                        selectedMessage?.id === message.id
-                          ? "bg-white/10"
-                          : ""
-                      } ${
-                        !message.isRead
-                          ? "border-l-2 border-blue-400"
-                          : "border-l-2 border-transparent"
-                      }`}
+                      className={cn(
+                        'flex cursor-pointer rounded-xl border border-transparent p-3 transition-colors',
+                        'hover:border-white/[0.06] hover:bg-white/[0.04]',
+                        selectedMessage?.id === message.id && 'border-white/[0.1] bg-white/[0.06]',
+                        !message.isRead && 'border-l-2 border-l-blue-400/80'
+                      )}
                       onClick={() => handleSelectMessage(message)}
                     >
-                      <div className="mr-3 mt-1">
+                      <div className="mr-3 mt-0.5">
                         {message.isAutomated ? (
-                          <MessageSquare className="h-5 w-5 text-blue-400" />
+                          <MessageSquare className="h-4 w-4 text-blue-300/80" />
                         ) : (
-                          <Mail className="h-5 w-5 text-white/70" />
+                          <Mail className="h-4 w-4 text-white/40" />
                         )}
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex justify-between items-baseline mb-1">
+                      <div className="min-w-0 flex-1">
+                        <div className="mb-1 flex items-baseline justify-between">
                           <p
-                            className={`text-sm font-medium truncate ${
-                              !message.isRead
-                                ? "text-white"
-                                : "text-white/70"
-                            }`}
+                            className={cn(
+                              'truncate text-sm font-medium',
+                              !message.isRead ? 'text-white' : 'text-white/65'
+                            )}
                           >
                             {message.sender}
                           </p>
-                          <span className="text-xs text-white/50 ml-2 whitespace-nowrap">
+                          <span className="ml-2 whitespace-nowrap text-[10px] text-white/35">
                             {formatDate(message.createdAt)}
                           </span>
                         </div>
                         <p
-                          className={`text-sm truncate ${
-                            !message.isRead
-                              ? "text-white/90"
-                              : "text-white/60"
-                          }`}
+                          className={cn(
+                            'truncate text-sm',
+                            !message.isRead ? 'text-white/85' : 'text-white/50'
+                          )}
                         >
                           {message.subject}
                         </p>
-                        <p className="text-xs text-white/50 truncate">
+                        <p className="truncate text-xs text-white/35">
                           {message.bodyContentType === 'html'
                             ? stripHtml(message.body).slice(0, 60)
                             : message.body.slice(0, 60)}
@@ -381,9 +456,9 @@ export default function MessagesPage() {
                     </div>
                   ))
                 ) : (
-                  <div className="text-center py-8 text-white/60">
-                    <Mail className="mx-auto h-10 w-10 mb-4 opacity-50" />
-                    <p>No messages found</p>
+                  <div className="py-10 text-center text-white/40">
+                    <Mail className="mx-auto mb-4 h-10 w-10 opacity-40" />
+                    <p className="text-sm">No messages found</p>
                     {searchQuery && (
                       <p className="text-sm">Try a different search query</p>
                     )}
@@ -396,75 +471,77 @@ export default function MessagesPage() {
 
         <div className="lg:col-span-2">
           {selectedMessage ? (
-            <Card className="space-card h-full">
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle className="text-white">{selectedMessage.subject}</CardTitle>
-                    <CardDescription className="text-white/60 mt-1">
-                      From: {selectedMessage.sender} | To: {selectedMessage.recipient}
+            <Card className={cn(glassCardClass, 'h-full')}>
+              <CardHeader className="space-y-3 border-b border-white/[0.06] p-0 px-6 py-5">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <CardTitle className="text-lg font-semibold text-white">{selectedMessage.subject}</CardTitle>
+                    <CardDescription className="mt-2 text-sm text-white/45">
+                      From: {selectedMessage.sender} · To: {selectedMessage.recipient}
                     </CardDescription>
-                    <p className="text-xs text-white/40 mt-1">
+                    <p className="mt-1 text-xs text-white/30">
                       {new Date(selectedMessage.createdAt).toLocaleString()}
                     </p>
                   </div>
-                  <div className="flex space-x-2">
+                  <div className="flex shrink-0 gap-1">
                     <Button
                       variant="outline"
                       size="icon"
-                      className="h-8 w-8 border-white/40"
+                      className="h-8 w-8 rounded-full border-white/[0.12] bg-white/[0.03] hover:!bg-white/[0.06]"
                     >
-                      <Star className="h-4 w-4 text-yellow-400" />
+                      <Star className="h-4 w-4 text-amber-400" />
                     </Button>
                     <Button
                       variant="outline"
                       size="icon"
-                      className="h-8 w-8 border-white/40"
+                      className="h-8 w-8 rounded-full border-white/[0.12] bg-white/[0.03] hover:!bg-white/[0.06]"
                     >
                       <Trash2 className="h-4 w-4 text-red-400" />
                     </Button>
                   </div>
                 </div>
                 {selectedMessage.isAutomated && (
-                  <div className="flex items-center space-x-2 mt-2 bg-blue-500/10 text-blue-300 px-3 py-2 rounded-md">
-                    <AlertTriangle className="h-4 w-4" />
-                    <p className="text-sm">This is an automated system message</p>
+                  <div className="flex items-center gap-2 rounded-lg border border-blue-500/20 bg-blue-500/[0.06] px-3 py-2 text-blue-200/90">
+                    <AlertTriangle className="h-4 w-4 shrink-0" />
+                    <p className="text-xs">Automated system message</p>
                   </div>
                 )}
                 {selectedMessage.applicationId && (
-                  <div className="bg-white/10 px-3 py-2 rounded-md mt-2">
-                    <p className="text-sm text-white/80">
+                  <div className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2">
+                    <p className="text-xs text-white/60">
                       Related to application: {selectedMessage.applicationId}
                     </p>
                   </div>
                 )}
               </CardHeader>
-              <CardContent>
-                <div className="prose prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: selectedMessage.body }} />
+              <CardContent className="px-6 py-5">
+                <div className="prose prose-invert max-w-none text-sm text-white/80" dangerouslySetInnerHTML={{ __html: selectedMessage.body }} />
 
-                <div className="mt-8 border-t border-white/10 pt-6">
-                  <p className="text-sm font-medium mb-3 text-white">Reply</p>
+                <div className="mt-8 border-t border-white/[0.06] pt-6">
+                  <p className="mb-3 text-xs font-medium uppercase tracking-wide text-white/50">Reply</p>
                   <Textarea
                     placeholder="Type your reply here..."
                     rows={4}
-                    className="bg-white/10 border-white/20 text-white mb-4 max-h-[300px] overflow-y-auto"
+                    className={cn(fieldClass, 'mb-4 max-h-[300px] overflow-y-auto')}
                     autoResize={true}
                   />
                   <div className="flex justify-end">
-                    <Button className="spacex-button">
-                      <Send className="mr-2 h-4 w-4" />
-                      Send Reply
+                    <Button className="h-10 gap-2 rounded-full bg-white px-5 text-sm font-semibold text-black hover:bg-white/90">
+                      <Send className="h-4 w-4" />
+                      Send reply
                     </Button>
                   </div>
                 </div>
               </CardContent>
             </Card>
           ) : (
-            <Card className="space-card h-full flex items-center justify-center">
-              <div className="text-center py-20 px-4">
-                <Mail className="mx-auto h-16 w-16 mb-6 text-white/30" />
-                <h3 className="text-xl font-medium text-white mb-2">No Message Selected</h3>
-                <p className="text-white/60 max-w-md mx-auto">
+            <Card className={cn(glassCardClass, 'flex h-full min-h-[420px] items-center justify-center')}>
+              <div className="px-6 py-16 text-center">
+                <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full border border-white/[0.1] bg-white/[0.04]">
+                  <Mail className="h-6 w-6 text-white/30" />
+                </div>
+                <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-white">No message selected</h3>
+                <p className="mx-auto max-w-md text-sm leading-relaxed text-white/45">
                   Select a message from your inbox to view its contents, or compose a new
                   message to communicate with FAA officials.
                 </p>
