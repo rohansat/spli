@@ -3,27 +3,62 @@ import Link from 'next/link';
 export function Footer() {
   const currentYear = new Date().getFullYear();
 
+  const productLinks = [
+    { href: '/', label: 'Home' },
+    { href: '/company', label: 'Company' },
+    { href: '/signin', label: 'Log in' },
+  ];
+
+  const legalLinks = [
+    { href: '/privacy', label: 'PRIVACY POLICY' },
+    { href: '/terms', label: 'TERMS OF SERVICE' },
+    { href: '/compliance', label: 'COMPLIANCE' },
+    { href: '/contact', label: 'CONTACT' },
+  ];
+
   return (
-    <footer className="relative py-8 bg-black border-t border-white/10 text-white/60 overflow-hidden transition-all duration-1000 ease-in-out transform">
-      <div className="relative z-10 space-container">
-        <div className="flex flex-col md:flex-row justify-between items-center">
-          <div className="mb-4 md:mb-0">
-            <p>SPLI © {currentYear}</p>
+    <footer className="relative overflow-hidden border-t border-white/10 bg-black py-12 text-white/50">
+      <div className="relative z-10 mx-auto max-w-7xl px-6 lg:px-12">
+        <div className="grid gap-10 md:grid-cols-[1.2fr_1fr_1fr]">
+          <div>
+            <p className="text-sm font-bold uppercase tracking-[0.18em] text-white">SPLI</p>
+            <p className="mt-6 text-sm text-white/50">SPLI © {currentYear}</p>
           </div>
 
-          <div className="flex space-x-6">
-            <Link href="/privacy" className="text-sm hover:text-white transition-colors">
-              PRIVACY POLICY
-            </Link>
-            <Link href="/terms" className="text-sm hover:text-white transition-colors">
-              TERMS OF SERVICE
-            </Link>
-            <Link href="/compliance" className="text-sm hover:text-white transition-colors">
-              COMPLIANCE
-            </Link>
-            <Link href="/contact" className="text-sm hover:text-white transition-colors">
-              CONTACT
-            </Link>
+          <div>
+            <p className="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-white/35">
+              Product
+            </p>
+            <ul className="space-y-2">
+              {productLinks.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    className="text-sm text-white/50 transition-colors hover:text-white"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <p className="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-white/35">
+              Legal
+            </p>
+            <ul className="space-y-2">
+              {legalLinks.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    className="text-sm text-white/50 transition-colors hover:text-white"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       </div>

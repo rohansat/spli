@@ -2,12 +2,11 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Send, CheckCircle } from "lucide-react";
 import { Footer } from "@/components/Footer";
+import { PublicNav } from "@/components/layout/PublicNav";
+import { LandingBackground } from "@/components/landing/LandingBackground";
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -62,9 +61,12 @@ export default function Contact() {
   };
 
   return (
-    <div className="min-h-screen bg-black">
-      <div className="max-w-[1400px] mx-auto px-8 pt-24 pb-24">
-        <h1 className="text-[28px] font-medium text-white mb-8">CONTACT US</h1>
+    <div className="relative min-h-screen bg-black">
+      <LandingBackground variant="section" />
+      <PublicNav />
+      <div className="relative z-10 mx-auto max-w-[1400px] px-6 pb-24 pt-28 md:px-8">
+        <p className="mb-3 text-xs font-bold uppercase tracking-[0.28em] text-white/40">Contact</p>
+        <h1 className="mb-10 text-[28px] font-medium text-white">CONTACT US</h1>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
           <div>
@@ -109,7 +111,7 @@ export default function Contact() {
                 />
               </div>
 
-              <Button className="w-full bg-white hover:bg-white/90 text-black">
+              <Button className="w-full rounded-full bg-white text-black hover:bg-white/90">
                 SEND MESSAGE
               </Button>
             </div>

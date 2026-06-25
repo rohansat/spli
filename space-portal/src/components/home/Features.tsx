@@ -1,204 +1,219 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import {
   FileText,
   MessageSquare,
   Clock,
   Shield,
   Rocket,
-  RefreshCw
+  RefreshCw,
+  type LucideIcon,
 } from 'lucide-react';
+import { LandingBackground } from '@/components/landing/LandingBackground';
 
-const features = [
+type FeatureModule = {
+  icon: LucideIcon;
+  title: string;
+  description: string;
+  moduleId: string;
+  status: string;
+  signal: string;
+};
+
+const features: FeatureModule[] = [
   {
-    icon: <FileText className="h-8 w-8" />,
+    icon: FileText,
     title: 'FAA PART 450 LICENSING',
-    description: 'Streamlined application process for commercial launch and reentry vehicle operations.',
-    gradient: 'from-blue-500 to-cyan-500'
+    description:
+      'Streamlined application process for commercial launch and reentry vehicle operations.',
+    moduleId: 'MC-01',
+    status: 'Active',
+    signal: 'Form pipeline',
   },
   {
-    icon: <MessageSquare className="h-8 w-8" />,
+    icon: MessageSquare,
     title: 'INTEGRATED MESSAGING',
-    description: 'Direct communication with FAA officials and automatic notifications about your application status.',
-    gradient: 'from-purple-500 to-pink-500'
+    description:
+      'Direct communication with FAA officials and automatic notifications about your application status.',
+    moduleId: 'MC-02',
+    status: 'Linked',
+    signal: 'FAA channel',
   },
   {
-    icon: <Clock className="h-8 w-8" />,
+    icon: Clock,
     title: 'REAL-TIME UPDATES',
-    description: 'Receive instant updates on the status of your applications and any required changes.',
-    gradient: 'from-green-500 to-emerald-500'
+    description:
+      'Receive instant updates on the status of your applications and any required changes.',
+    moduleId: 'MC-03',
+    status: 'Live',
+    signal: 'Status feed',
   },
   {
-    icon: <Shield className="h-8 w-8" />,
+    icon: Shield,
     title: 'SECURE DOCUMENT MANAGEMENT',
-    description: 'Centralized, secure storage for all your licensing documents and correspondence.',
-    gradient: 'from-orange-500 to-red-500'
+    description:
+      'Centralized, secure storage for all your licensing documents and correspondence.',
+    moduleId: 'MC-04',
+    status: 'Secured',
+    signal: 'Doc vault',
   },
   {
-    icon: <Rocket className="h-8 w-8" />,
+    icon: Rocket,
     title: 'LAUNCH TRACKING',
-    description: 'Monitor the entire lifecycle of your launch operations from application to completion.',
-    gradient: 'from-indigo-500 to-purple-500'
+    description:
+      'Monitor the entire lifecycle of your launch operations from application to completion.',
+    moduleId: 'MC-05',
+    status: 'Tracking',
+    signal: 'Ops timeline',
   },
   {
-    icon: <RefreshCw className="h-8 w-8" />,
+    icon: RefreshCw,
     title: 'STREAMLINED WORKFLOW',
-    description: 'Optimized process flow to reduce paperwork and expedite approval timelines.',
-    gradient: 'from-teal-500 to-blue-500'
+    description:
+      'Optimized process flow to reduce paperwork and expedite approval timelines.',
+    moduleId: 'MC-06',
+    status: 'Synced',
+    signal: 'Workflow engine',
   },
 ];
 
+const consoleMetrics = [
+  { label: 'Active filings', value: '3' },
+  { label: 'Compliance', value: '82%' },
+  { label: 'FAA queue', value: '1 thread' },
+  { label: 'System', value: 'Nominal' },
+];
+
+function StatusDot({ tone = 'green' }: { tone?: 'green' | 'amber' | 'blue' }) {
+  const colors = {
+    green: 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.45)]',
+    amber: 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.45)]',
+    blue: 'bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,0.45)]',
+  };
+  return <span className={`inline-block h-1.5 w-1.5 rounded-full ${colors[tone]}`} />;
+}
+
 export function Features() {
-  const [isVisible, setIsVisible] = useState(false);
-  const sectionRef = useRef<HTMLElement>(null);
+  const [utcTime, setUtcTime] = useState<string | null>(null);
 
-  // Intersection Observer for smooth fade-in
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    if (sectionRef.current) {
-      observer.observe(sectionRef.current);
-    }
-
-    return () => observer.disconnect();
+    const tick = () => setUtcTime(new Date().toISOString().slice(11, 16));
+    tick();
+    const interval = setInterval(tick, 60000);
+    return () => clearInterval(interval);
   }, []);
+
   return (
-    <section 
-      ref={sectionRef}
-      className={`relative py-20 bg-black overflow-hidden transition-all duration-1000 ease-in-out transform section-fade-in ${
-        isVisible ? 'visible' : ''
-      }`}
-    >
-      {/* Constellation background - matching Hero section */}
-      <div className="absolute inset-0 bg-black">
-        {/* Stars */}
-        <div className="absolute inset-0">
-          {Array.from({ length: 60 }, (_, i) => (
-            <div
-              key={i}
-              className="absolute bg-white rounded-full animate-pulse"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                width: `${Math.random() * 2 + 1}px`,
-                height: `${Math.random() * 2 + 1}px`,
-                animationDelay: `${Math.random() * 4}s`,
-                animationDuration: `${Math.random() * 3 + 2}s`,
-                opacity: Math.random() * 0.5 + 0.1,
-              }}
-            />
-          ))}
-        </div>
+    <section className="relative overflow-hidden py-24 md:py-32">
+      <LandingBackground variant="section" />
 
-        {/* Orion Constellation */}
-        <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ opacity: 0.2 }}>
-          <defs>
-            <filter id="glow3">
-              <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
-              <feMerge>
-                <feMergeNode in="coloredBlur"/>
-                <feMergeNode in="SourceGraphic"/>
-              </feMerge>
-            </filter>
-          </defs>
-          {/* Orion stars and lines */}
-          <circle cx="20%" cy="20%" r="2.5" fill="white" filter="url(#glow3)" opacity="0.9"/>
-          <circle cx="30%" cy="25%" r="2" fill="white" filter="url(#glow3)" opacity="0.8"/>
-          <circle cx="40%" cy="30%" r="2.2" fill="white" filter="url(#glow3)" opacity="0.9"/>
-          <circle cx="50%" cy="35%" r="1.8" fill="white" filter="url(#glow3)" opacity="0.7"/>
-          <circle cx="60%" cy="40%" r="2.3" fill="white" filter="url(#glow3)" opacity="0.8"/>
-          <circle cx="70%" cy="45%" r="1.6" fill="white" filter="url(#glow3)" opacity="0.6"/>
-          <circle cx="80%" cy="50%" r="2" fill="white" filter="url(#glow3)" opacity="0.8"/>
-          <circle cx="25%" cy="60%" r="1.8" fill="white" filter="url(#glow3)" opacity="0.7"/>
-          <circle cx="35%" cy="65%" r="2.1" fill="white" filter="url(#glow3)" opacity="0.8"/>
-          <circle cx="45%" cy="70%" r="1.9" fill="white" filter="url(#glow3)" opacity="0.7"/>
-
-          {/* Orion connecting lines */}
-          <line x1="20%" y1="20%" x2="30%" y2="25%" stroke="white" strokeWidth="1" opacity="0.3"/>
-          <line x1="30%" y1="25%" x2="40%" y2="30%" stroke="white" strokeWidth="1" opacity="0.3"/>
-          <line x1="40%" y1="30%" x2="50%" y2="35%" stroke="white" strokeWidth="1" opacity="0.3"/>
-          <line x1="50%" y1="35%" x2="60%" y2="40%" stroke="white" strokeWidth="1" opacity="0.3"/>
-          <line x1="60%" y1="40%" x2="70%" y2="45%" stroke="white" strokeWidth="1" opacity="0.3"/>
-          <line x1="70%" y1="45%" x2="80%" y2="50%" stroke="white" strokeWidth="1" opacity="0.3"/>
-          <line x1="25%" y1="60%" x2="35%" y2="65%" stroke="white" strokeWidth="1" opacity="0.3"/>
-          <line x1="35%" y1="65%" x2="45%" y2="70%" stroke="white" strokeWidth="1" opacity="0.3"/>
-        </svg>
-
-        {/* Ursa Major (Big Dipper) Constellation */}
-        <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ opacity: 0.2 }}>
-          <defs>
-            <filter id="glow4">
-              <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
-              <feMerge>
-                <feMergeNode in="coloredBlur"/>
-                <feMergeNode in="SourceGraphic"/>
-              </feMerge>
-            </filter>
-          </defs>
-          {/* Ursa Major stars and lines */}
-          <circle cx="10%" cy="80%" r="2" fill="white" filter="url(#glow4)" opacity="0.8"/>
-          <circle cx="20%" cy="75%" r="2.3" fill="white" filter="url(#glow4)" opacity="0.9"/>
-          <circle cx="30%" cy="70%" r="1.8" fill="white" filter="url(#glow4)" opacity="0.7"/>
-          <circle cx="40%" cy="65%" r="2.1" fill="white" filter="url(#glow4)" opacity="0.8"/>
-          <circle cx="50%" cy="60%" r="1.9" fill="white" filter="url(#glow4)" opacity="0.7"/>
-          <circle cx="60%" cy="55%" r="2.2" fill="white" filter="url(#glow4)" opacity="0.8"/>
-          <circle cx="70%" cy="50%" r="1.7" fill="white" filter="url(#glow4)" opacity="0.6"/>
-          <circle cx="80%" cy="45%" r="2" fill="white" filter="url(#glow4)" opacity="0.8"/>
-
-          {/* Ursa Major connecting lines */}
-          <line x1="10%" y1="80%" x2="20%" y2="75%" stroke="white" strokeWidth="1" opacity="0.3"/>
-          <line x1="20%" y1="75%" x2="30%" y2="70%" stroke="white" strokeWidth="1" opacity="0.3"/>
-          <line x1="30%" y1="70%" x2="40%" y2="65%" stroke="white" strokeWidth="1" opacity="0.3"/>
-          <line x1="40%" y1="65%" x2="50%" y2="60%" stroke="white" strokeWidth="1" opacity="0.3"/>
-          <line x1="50%" y1="60%" x2="60%" y2="55%" stroke="white" strokeWidth="1" opacity="0.3"/>
-          <line x1="60%" y1="55%" x2="70%" y2="50%" stroke="white" strokeWidth="1" opacity="0.3"/>
-          <line x1="70%" y1="50%" x2="80%" y2="45%" stroke="white" strokeWidth="1" opacity="0.3"/>
-        </svg>
-      </div>
-
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-6 tracking-tight">
+      <div className="relative mx-auto max-w-[1400px] px-6 lg:px-12">
+        <div className="mb-12 max-w-2xl">
+          <p className="text-xs font-bold uppercase tracking-[0.28em] text-white/40">
+            Platform
+          </p>
+          <h2 className="mt-3 text-[clamp(1.75rem,3.5vw,2.5rem)] font-bold leading-tight tracking-[-0.02em] text-white">
             MISSION CONTROL FOR YOUR LICENSING NEEDS
           </h2>
-          <p className="text-lg text-white/70 max-w-2xl mx-auto leading-relaxed">
-            Our platform simplifies the complex world of aerospace licensing with an intuitive interface and powerful features.
+          <p className="mt-5 text-base leading-relaxed text-white/50 md:text-lg">
+            Our platform simplifies the complex world of aerospace licensing with an intuitive
+            interface and powerful features.
           </p>
         </div>
 
-        {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {features.map((feature, index) => (
-            <div
-              key={index}
-              className="group relative"
-            >
-              {/* Card */}
-              <div className="relative p-8 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-sm transition-all duration-300 hover:bg-white/10 hover:border-white/20">
-                {/* Icon */}
-                <div className="text-white mb-5 group-hover:scale-110 transition-transform duration-300">
-                  {feature.icon}
-                </div>
-                
-                {/* Content */}
-                <h3 className="text-lg font-bold text-white mb-3">
-                  {feature.title}
-                </h3>
-                <p className="text-sm text-white/70 leading-relaxed">
-                  {feature.description}
+        <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#0a0a0c] shadow-2xl shadow-black/40">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 bg-white/[0.02] px-4 py-3 md:px-5">
+            <div className="flex items-center gap-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-black/50">
+                <Rocket className="h-4 w-4 text-white/60" />
+              </div>
+              <div>
+                <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/45">
+                  SPLI · Mission control
                 </p>
+                <p className="text-xs font-medium text-white/75">Licensing operations console</p>
               </div>
             </div>
-          ))}
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider text-emerald-300/90">
+                <StatusDot tone="green" />
+                Live
+              </span>
+              <span className="hidden font-mono text-[10px] text-white/30 sm:inline">
+                UTC {utcTime ?? '—:—'}
+              </span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-px border-b border-white/10 bg-white/[0.06] md:grid-cols-4">
+            {consoleMetrics.map((metric) => (
+              <div key={metric.label} className="bg-[#0a0a0c] px-4 py-3">
+                <p className="font-mono text-[10px] uppercase tracking-wider text-white/35">
+                  {metric.label}
+                </p>
+                <p className="mt-1 text-sm font-semibold tabular-nums text-white/85">
+                  {metric.value}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <div className="relative p-4 md:p-5">
+            <div
+              className="pointer-events-none absolute inset-0 opacity-[0.04]"
+              style={{
+                backgroundImage:
+                  'linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)',
+                backgroundSize: '24px 24px',
+              }}
+            />
+
+            <div className="relative grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+              {features.map((feature, index) => {
+                const Icon = feature.icon;
+                return (
+                  <article
+                    key={feature.moduleId}
+                    className="group relative overflow-hidden rounded-xl border border-white/10 bg-black/40 p-4 transition-colors hover:border-white/20 hover:bg-white/[0.03]"
+                  >
+                    <div className="pointer-events-none absolute left-0 top-0 h-3 w-3 border-l border-t border-white/20" />
+                    <div className="pointer-events-none absolute bottom-0 right-0 h-3 w-3 border-b border-r border-white/20" />
+
+                    <div className="mb-3 flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-[10px] text-white/30">{feature.moduleId}</span>
+                        <span className="text-white/15">·</span>
+                        <span className="font-mono text-[10px] uppercase tracking-wide text-white/40">
+                          {feature.signal}
+                        </span>
+                      </div>
+                      <span className="inline-flex items-center gap-1 font-mono text-[9px] uppercase tracking-wider text-emerald-400/80">
+                        <StatusDot tone={index % 3 === 0 ? 'green' : index % 3 === 1 ? 'blue' : 'amber'} />
+                        {feature.status}
+                      </span>
+                    </div>
+
+                    <div className="mb-3 inline-flex rounded-lg border border-white/10 bg-white/[0.04] p-2.5 text-white/70">
+                      <Icon className="h-4 w-4" strokeWidth={1.75} />
+                    </div>
+
+                    <h3 className="mb-2 text-sm font-bold leading-snug text-white">{feature.title}</h3>
+                    <p className="text-xs leading-relaxed text-white/45">{feature.description}</p>
+                  </article>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-white/10 bg-black/30 px-4 py-2.5 font-mono text-[10px] uppercase tracking-wider text-white/30 md:px-5">
+            <span>6 modules online</span>
+            <span className="hidden sm:inline">Part 450 · Readiness · Messaging · Documents</span>
+            <span className="inline-flex items-center gap-1.5">
+              <StatusDot tone="green" />
+              All systems nominal
+            </span>
+          </div>
         </div>
       </div>
     </section>
