@@ -412,29 +412,29 @@ ${Object.entries(doc.emailMetadata.applicationData)
         <div key={node.id}>
           <div 
             className={cn(
-              "flex items-center py-2 px-3 hover:bg-zinc-800/50 cursor-pointer transition-colors",
-              "border-l-2 border-transparent hover:border-blue-500"
+              "flex cursor-pointer items-center rounded-lg border border-transparent px-3 py-2 transition-colors",
+              "hover:border-white/[0.06] hover:bg-white/[0.04]"
             )}
             style={{ paddingLeft: `${indent + 12}px` }}
             onClick={() => toggleFolder(node.id)}
           >
-            <div className="flex items-center gap-2 flex-1">
+            <div className="flex flex-1 items-center gap-2">
               {hasChildren ? (
                 isExpanded ? (
-                  <ChevronDown className="h-4 w-4 text-zinc-400" />
+                  <ChevronDown className="h-4 w-4 text-white/40" />
                 ) : (
-                  <ChevronRight className="h-4 w-4 text-zinc-400" />
+                  <ChevronRight className="h-4 w-4 text-white/40" />
                 )
               ) : (
-                <div className="w-4 h-4" />
+                <div className="h-4 w-4" />
               )}
               {isExpanded ? (
-                <FolderOpen className="h-5 w-5 text-blue-500" />
+                <FolderOpen className="h-5 w-5 text-blue-300/80" />
               ) : (
-                <Folder className="h-5 w-5 text-blue-400" />
+                <Folder className="h-5 w-5 text-blue-300/60" />
               )}
-              <span className="text-white font-medium">{node.name}</span>
-              <span className="text-zinc-500 text-sm">({node.children?.length || 0})</span>
+              <span className="font-medium text-white">{node.name}</span>
+              <span className="text-sm text-white/35">({node.children?.length || 0})</span>
             </div>
           </div>
           
@@ -453,24 +453,24 @@ ${Object.entries(doc.emailMetadata.applicationData)
         <div 
           key={node.id}
           className={cn(
-            "flex items-center py-2 px-3 hover:bg-zinc-800/50 cursor-pointer transition-colors",
-            "border-l-2 border-transparent hover:border-green-500"
+            "flex cursor-pointer items-center rounded-lg border border-transparent px-3 py-2 transition-colors",
+            "hover:border-white/[0.06] hover:bg-white/[0.04]"
           )}
           style={{ paddingLeft: `${indent + 32}px` }}
           onClick={() => handleDocumentClick(doc)}
         >
-          <div className="flex items-center gap-3 flex-1">
+          <div className="flex flex-1 items-center gap-3">
             {doc.type === 'email' ? (
-              <Mail className="h-4 w-4 text-blue-400" />
+              <Mail className="h-4 w-4 text-blue-300/70" />
             ) : (
-              <FileText className="h-4 w-4 text-zinc-400" />
+              <FileText className="h-4 w-4 text-white/40" />
             )}
-            <div className="flex-1 min-w-0">
+            <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <span className="text-white truncate">{node.name}</span>
+                <span className="truncate text-white">{node.name}</span>
                 {getStatusIcon(node.status || 'draft')}
               </div>
-              <div className="flex items-center gap-2 text-xs text-zinc-500">
+              <div className="flex items-center gap-2 text-xs text-white/35">
                 <span>{doc.fileSize}</span>
                 <span>•</span>
                 <span>{new Date(doc.uploadedAt).toLocaleDateString()}</span>
@@ -496,7 +496,7 @@ ${Object.entries(doc.emailMetadata.applicationData)
             {node.tags?.map(tag => (
               <span 
                 key={tag}
-                className="px-2 py-1 text-xs bg-zinc-700 text-zinc-300 rounded"
+                className="rounded-full border border-white/[0.1] bg-white/[0.04] px-2 py-0.5 text-[10px] text-white/55"
               >
                 {tag}
               </span>
@@ -507,7 +507,7 @@ ${Object.entries(doc.emailMetadata.applicationData)
             <Button 
               variant="ghost" 
               size="icon" 
-              className="h-6 w-6 text-zinc-400 hover:text-white hover:bg-zinc-800"
+              className="h-6 w-6 text-white/40 hover:!bg-white/[0.06] hover:!text-white"
               onClick={(e) => {
                 e.stopPropagation();
                 handleDownload(doc);
@@ -519,7 +519,7 @@ ${Object.entries(doc.emailMetadata.applicationData)
             <Button 
               variant="ghost" 
               size="icon"
-              className="h-6 w-6 text-zinc-400 hover:text-white hover:bg-zinc-800"
+              className="h-6 w-6 text-white/40 hover:!bg-white/[0.06] hover:!text-white"
               onClick={(e) => {
                 e.stopPropagation();
                 handleDelete(doc.id);
@@ -534,19 +534,47 @@ ${Object.entries(doc.emailMetadata.applicationData)
     }
   };
 
+  const toolbarButtonClass =
+    'h-10 rounded-full border border-white/[0.12] bg-white/[0.03] text-sm text-white shadow-none hover:!border-white/20 hover:!bg-white/[0.08] hover:!text-white';
+  const fieldClass =
+    'rounded-lg border border-white/[0.08] bg-white/[0.03] text-white placeholder:text-white/35 focus:border-white/20 focus:outline-none focus:ring-1 focus:ring-white/10';
+
   return (
-    <div className="min-h-screen flex flex-col bg-black">
-      <main className="flex-1 px-8 pt-24">
-        <div className="max-w-[1400px] mx-auto">
-          <div className="flex justify-between items-start mb-8">
+    <div className="relative flex min-h-screen flex-col bg-black">
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.03]"
+        style={{
+          backgroundImage:
+            'linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)',
+          backgroundSize: '64px 64px',
+        }}
+        aria-hidden
+      />
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-64"
+        style={{
+          background:
+            'radial-gradient(ellipse 80% 60% at 50% -20%, rgba(59, 130, 246, 0.12) 0%, transparent 70%)',
+        }}
+        aria-hidden
+      />
+
+      <main className="relative flex-1 px-6 pb-32 pt-24 lg:px-10">
+        <div className="mx-auto max-w-[1400px]">
+          <div className="mb-8 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <h1 className="text-[28px] font-medium text-white mb-2">DOCUMENT MANAGEMENT</h1>
-              <p className="text-zinc-500">
+              <p className="text-xs font-bold uppercase tracking-[0.28em] text-white/40">
+                Document storage
+              </p>
+              <h1 className="mt-3 text-[clamp(1.5rem,3vw,2rem)] font-bold tracking-tight text-white">
+                Vault
+              </h1>
+              <p className="mt-2 max-w-xl text-sm leading-relaxed text-white/50">
                 Manage all documents organized by application folders
               </p>
             </div>
-            <div className="flex gap-2">
-              <Button 
+            <div className="flex flex-wrap gap-2">
+              <Button
                 onClick={async () => {
                   await refreshDocuments();
                   toast({
@@ -555,31 +583,33 @@ ${Object.entries(doc.emailMetadata.applicationData)
                   });
                 }}
                 variant="outline"
-                className="border-zinc-600 text-zinc-300 hover:bg-zinc-800 gap-2 px-4 py-2 rounded-md flex items-center"
+                className={cn(toolbarButtonClass, 'gap-2 px-5')}
               >
                 <RefreshCw className="h-4 w-4" />
-                REFRESH ({documents.length})
+                Refresh ({documents.length})
               </Button>
               <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button 
-                    className="bg-white hover:bg-white/90 text-black gap-2 px-4 py-2 rounded-md flex items-center"
-                  >
+                  <Button className="h-10 gap-2 rounded-full border-0 bg-white px-5 text-sm font-semibold text-black hover:bg-white/90">
                     <Upload className="h-4 w-4" />
-                    UPLOAD DOCUMENT
+                    Upload document
                   </Button>
                 </DialogTrigger>
-              <DialogContent className="bg-black border border-zinc-800 text-white">
-                <DialogHeader>
-                  <DialogTitle className="text-2xl font-medium">UPLOAD DOCUMENT</DialogTitle>
-                  <DialogDescription className="text-zinc-400">
-                    Upload a document to associate with an application
-                  </DialogDescription>
-                </DialogHeader>
+              <DialogContent className="max-w-md w-full overflow-hidden border border-white/[0.08] bg-black/95 p-0 text-white shadow-2xl shadow-black/50 backdrop-blur-xl sm:rounded-2xl [&>button]:right-5 [&>button]:top-5 [&>button]:rounded-full [&>button]:border [&>button]:border-white/[0.08] [&>button]:bg-white/[0.03] [&>button]:p-2 [&>button]:text-white/50 [&>button]:opacity-100 [&>button]:hover:bg-white/[0.06] [&>button]:hover:text-white">
+                <div className="border-b border-white/[0.06] px-6 pb-4 pt-6">
+                  <DialogHeader className="space-y-0">
+                    <DialogTitle className="text-sm font-semibold uppercase tracking-wide text-white">
+                      Upload document
+                    </DialogTitle>
+                    <DialogDescription className="mt-1 text-xs text-white/45">
+                      Upload a document to associate with an application
+                    </DialogDescription>
+                  </DialogHeader>
+                </div>
                 
-                <div className="space-y-6 py-4">
+                <div className="space-y-5 px-6 py-5">
                   <div className="space-y-2">
-                    <label className="text-lg font-medium text-white">Select File</label>
+                    <label className="text-xs font-medium uppercase tracking-wide text-white/60">Select file</label>
                     <div className="relative">
                       <input
                         type="file"
@@ -590,19 +620,19 @@ ${Object.entries(doc.emailMetadata.applicationData)
                       />
                       <div 
                         onClick={() => document.getElementById('file-upload')?.click()}
-                        className="w-full h-10 bg-[#161616] border border-zinc-800 rounded-md pl-4 pr-10 text-sm text-zinc-400 flex items-center cursor-pointer"
+                        className="flex h-11 w-full cursor-pointer items-center rounded-lg border border-dashed border-white/[0.12] bg-white/[0.02] px-4 text-sm text-white/40 transition-colors hover:border-white/20 hover:bg-white/[0.04]"
                       >
-                        {selectedFile ? selectedFile.name : "Choose File"}
+                        {selectedFile ? selectedFile.name : "Choose file"}
                       </div>
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-lg font-medium text-white">Associated Application</label>
+                    <label className="text-xs font-medium uppercase tracking-wide text-white/60">Associated application</label>
                     <select
                       value={selectedApplication}
                       onChange={(e) => setSelectedApplication(e.target.value)}
-                      className="w-full h-10 bg-[#161616] border border-zinc-800 rounded-md px-4 text-sm text-white appearance-none cursor-pointer"
+                      className={cn(fieldClass, 'h-11 w-full cursor-pointer px-4 text-sm appearance-none')}
                     >
                       <option value="">Select an application</option>
                       {applications.map((app) => (
@@ -614,11 +644,11 @@ ${Object.entries(doc.emailMetadata.applicationData)
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-lg font-medium text-white">Document Type</label>
+                    <label className="text-xs font-medium uppercase tracking-wide text-white/60">Document type</label>
                     <select
                       value={documentType}
                       onChange={(e) => setDocumentType(e.target.value as Document["type"])}
-                      className="w-full h-10 bg-[#161616] border border-zinc-800 rounded-md px-4 text-sm text-white appearance-none cursor-pointer"
+                      className={cn(fieldClass, 'h-11 w-full cursor-pointer px-4 text-sm appearance-none')}
                     >
                       <option value="attachment">Attachment</option>
                       <option value="application">Application</option>
@@ -628,20 +658,20 @@ ${Object.entries(doc.emailMetadata.applicationData)
                   </div>
                 </div>
 
-                <DialogFooter className="flex justify-end gap-3">
+                <DialogFooter className="gap-2 border-t border-white/[0.06] px-6 py-4 sm:justify-end">
                   <Button
                     variant="outline"
                     onClick={() => setIsUploadDialogOpen(false)}
-                    className="border-zinc-800 text-white hover:bg-zinc-800"
+                    className="h-10 rounded-full border border-white/[0.12] bg-transparent px-6 text-sm text-white/70 hover:!bg-white/[0.04] hover:!text-white"
                   >
                     Cancel
                   </Button>
                   <Button
                     onClick={handleUpload}
                     disabled={!selectedFile}
-                    className="bg-white text-black hover:bg-white/90"
+                    className="h-10 rounded-full bg-white px-6 text-sm font-semibold text-black hover:bg-white/90"
                   >
-                    UPLOAD
+                    Upload
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -649,84 +679,116 @@ ${Object.entries(doc.emailMetadata.applicationData)
             </div>
           </div>
 
-          <div className="flex gap-3 mb-8">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-zinc-400" />
+          <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-4 backdrop-blur-sm">
+              <div className="flex items-center justify-between">
+                <FileText className="h-4 w-4 text-blue-300/70" />
+                <span className="text-2xl font-semibold tabular-nums text-white">{documents.length}</span>
+              </div>
+              <p className="mt-2 text-[11px] font-medium uppercase tracking-wide text-white/40">Total documents</p>
+            </div>
+            <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-4 backdrop-blur-sm">
+              <div className="flex items-center justify-between">
+                <Folder className="h-4 w-4 text-blue-300/70" />
+                <span className="text-2xl font-semibold tabular-nums text-white">{applications.length}</span>
+              </div>
+              <p className="mt-2 text-[11px] font-medium uppercase tracking-wide text-white/40">Application folders</p>
+            </div>
+            <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-4 backdrop-blur-sm">
+              <div className="flex items-center justify-between">
+                <Mail className="h-4 w-4 text-blue-300/70" />
+                <span className="text-2xl font-semibold tabular-nums text-white">
+                  {documents.filter((d) => d.type === 'email').length}
+                </span>
+              </div>
+              <p className="mt-2 text-[11px] font-medium uppercase tracking-wide text-white/40">Email records</p>
+            </div>
+            <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-4 backdrop-blur-sm">
+              <div className="flex items-center justify-between">
+                <AlertCircle className="h-4 w-4 text-amber-300/70" />
+                <span className="text-2xl font-semibold tabular-nums text-white">
+                  {documents.filter((d) => !d.applicationId).length}
+                </span>
+              </div>
+              <p className="mt-2 text-[11px] font-medium uppercase tracking-wide text-white/40">Unassigned</p>
+            </div>
+          </div>
+
+          <div className="mb-6 flex gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/35" />
               <input
                 type="text"
                 placeholder="Search documents and folders..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-10 bg-[#161616] border border-zinc-800 rounded-md pl-10 pr-4 text-sm text-white placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-white/20"
+                className={cn(fieldClass, 'h-11 w-full pl-11 pr-4 text-sm')}
               />
             </div>
-            <Button 
-              variant="outline" 
-              className="border-zinc-800 hover:bg-[#161616] text-white gap-2 px-4 h-10"
+            <Button
+              variant="outline"
+              className={cn(toolbarButtonClass, 'gap-2 px-5')}
             >
               <Filter className="h-4 w-4" />
               Filter
             </Button>
           </div>
 
-          <div className="bg-[#111111] rounded-lg border border-zinc-800/50 overflow-hidden">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
+          <div className="overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.03] shadow-xl shadow-black/20 backdrop-blur-sm">
+            <div className="border-b border-white/[0.06] px-6 py-4">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <h2 className="text-lg font-medium text-white mb-1">Document Tree</h2>
-                  <p className="text-sm text-zinc-400">Organized by application folders</p>
+                  <h2 className="text-sm font-semibold uppercase tracking-wide text-white">Document tree</h2>
+                  <p className="mt-1 text-xs text-white/45">Organized by application folders</p>
                 </div>
                 <div className="flex gap-2">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={expandAll}
-                    className="border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+                    className="h-8 rounded-full border-white/[0.12] bg-white/[0.03] text-xs text-white/70 hover:!bg-white/[0.06] hover:!text-white"
                   >
-                    Expand All
+                    Expand all
                   </Button>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={collapseAll}
-                    className="border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+                    className="h-8 rounded-full border-white/[0.12] bg-white/[0.03] text-xs text-white/70 hover:!bg-white/[0.06] hover:!text-white"
                   >
-                    Collapse All
+                    Collapse all
                   </Button>
                 </div>
               </div>
-              
-              {/* Status Legend */}
-              <div className="flex gap-4 mb-6 p-3 bg-zinc-900/50 rounded-lg border border-zinc-800">
+            </div>
+
+            <div className="px-6 py-4">
+              <div className="mb-4 flex flex-wrap gap-3 rounded-xl border border-white/[0.06] bg-black/20 px-4 py-3">
                 <div className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span className="text-xs text-zinc-400">Approved</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-yellow-500" />
-                  <span className="text-xs text-zinc-400">Under Review</span>
+                  <CheckCircle className="h-3.5 w-3.5 text-emerald-400" />
+                  <span className="text-xs text-white/45">Approved</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <AlertCircle className="h-4 w-4 text-blue-500" />
-                  <span className="text-xs text-zinc-400">Draft</span>
+                  <Clock className="h-3.5 w-3.5 text-amber-400" />
+                  <span className="text-xs text-white/45">Under review</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <XCircle className="h-4 w-4 text-red-500" />
-                  <span className="text-xs text-zinc-400">Expired</span>
-                </div>
-                <div className="flex items-center gap-2 ml-4">
-                  <span className="text-xs text-zinc-500">• Status follows application state</span>
+                  <AlertCircle className="h-3.5 w-3.5 text-blue-300" />
+                  <span className="text-xs text-white/45">Draft</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-zinc-500">• Licenses expire after 1 year</span>
+                  <XCircle className="h-3.5 w-3.5 text-red-400" />
+                  <span className="text-xs text-white/45">Expired</span>
                 </div>
+                <span className="text-xs text-white/30">· Status follows application state</span>
+                <span className="text-xs text-white/30">· Licenses expire after 1 year</span>
               </div>
               
               <div className="space-y-1">
                 {filteredTree.length === 0 ? (
                   <div className="py-12 text-center">
-                    <Folder className="h-12 w-12 text-zinc-600 mx-auto mb-4" />
-                    <p className="text-zinc-400 text-sm">No documents found</p>
+                    <Folder className="mx-auto mb-4 h-12 w-12 text-white/15" />
+                    <p className="text-sm text-white/40">No documents found</p>
                   </div>
                 ) : (
                   filteredTree.map(node => renderTreeNode(node))
@@ -819,7 +881,7 @@ ${Object.entries(doc.emailMetadata.applicationData)
                   {getDocumentTags(selectedDocument).map(tag => (
                     <span 
                       key={tag}
-                      className="px-2 py-1 text-xs bg-zinc-700 text-zinc-300 rounded"
+                      className="rounded-full border border-white/[0.1] bg-white/[0.04] px-2 py-0.5 text-[10px] text-white/55"
                     >
                       {tag}
                     </span>

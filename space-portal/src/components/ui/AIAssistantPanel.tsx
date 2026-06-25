@@ -166,10 +166,10 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
   );
 
   const shellClass = workspace
-    ? 'flex flex-col h-full min-h-0 overflow-hidden bg-[#0c0c0e]'
+    ? 'flex h-full min-h-0 flex-col overflow-hidden bg-transparent'
     : embedded
-      ? 'flex flex-col h-full min-h-0 spli-chat-shell overflow-hidden'
-      : 'flex flex-col h-full min-h-0 spli-chat-shell overflow-hidden shadow-2xl shadow-black/40';
+      ? 'spli-chat-shell flex h-full min-h-0 flex-col overflow-hidden'
+      : 'spli-chat-shell flex h-full min-h-0 flex-col overflow-hidden shadow-2xl shadow-black/40';
 
   const showPanelHeader = !workspace;
 
@@ -234,26 +234,26 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
             )}
 
             {workspace && (
-            <div className="flex-shrink-0 flex items-center justify-between border-b border-white/[0.06] bg-[#0c0c0e] pl-2 pr-1 h-9">
+            <div className="flex h-11 flex-shrink-0 items-center justify-between border-b border-white/[0.06] bg-black/30 pl-1 pr-2">
               <div className="flex items-center">
                 <button
                   type="button"
                   onClick={() => setActiveTab('chat')}
-                  className={`spli-chat-tab ${activeTab === 'chat' ? 'spli-chat-tab-active' : 'hover:text-zinc-300'}`}
+                  className={`spli-chat-tab ${activeTab === 'chat' ? 'spli-chat-tab-active' : 'hover:text-white/70'}`}
                 >
                   Chat
                 </button>
                 <button
                   type="button"
                   onClick={() => setActiveTab('copilot')}
-                  className={`spli-chat-tab ${activeTab === 'copilot' ? 'spli-chat-tab-active' : 'hover:text-zinc-300'}`}
+                  className={`spli-chat-tab ${activeTab === 'copilot' ? 'spli-chat-tab-active' : 'hover:text-white/70'}`}
                 >
                   Memory
                 </button>
                 <button
                   type="button"
                   onClick={() => setActiveTab('actions')}
-                  className={`spli-chat-tab ${activeTab === 'actions' ? 'spli-chat-tab-active' : 'hover:text-zinc-300'}`}
+                  className={`spli-chat-tab ${activeTab === 'actions' ? 'spli-chat-tab-active' : 'hover:text-white/70'}`}
                 >
                   Actions
                 </button>
@@ -262,7 +262,7 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
                 <button
                   type="button"
                   onClick={onClose}
-                  className="h-8 w-8 mr-1 flex items-center justify-center rounded-md text-zinc-500 hover:text-zinc-200 hover:bg-white/[0.05] transition-colors"
+                  className="mr-1 flex h-8 w-8 items-center justify-center rounded-full border border-transparent text-white/40 transition-colors hover:border-white/[0.08] hover:bg-white/[0.04] hover:text-white"
                   title="Close panel"
                 >
                   <X className="h-4 w-4" />
@@ -275,7 +275,7 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
               {chatContent}
             </TabsContent>
 
-            <TabsContent value="copilot" className="flex-1 min-h-0 mt-0 data-[state=inactive]:hidden bg-[#0c0c0e]">
+            <TabsContent value="copilot" className="mt-0 min-h-0 flex-1 data-[state=inactive]:hidden">
               <CopilotPanel
                 state={copilotState}
                 inconsistencies={inconsistencies}
@@ -285,7 +285,7 @@ export const AIAssistantPanel = forwardRef<AIAssistantPanelHandle, AIAssistantPa
               />
             </TabsContent>
 
-            <TabsContent value="actions" className="flex-1 min-h-0 mt-0 overflow-y-auto ai-chat-scrollbar p-4 bg-[#0c0c0e] data-[state=inactive]:hidden">
+            <TabsContent value="actions" className="ai-chat-scrollbar mt-0 min-h-0 flex-1 overflow-y-auto p-4 data-[state=inactive]:hidden">
               <AIContextMenu onAction={handleContextAction} />
             </TabsContent>
           </Tabs>

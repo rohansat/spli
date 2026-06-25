@@ -21,9 +21,9 @@ export function Navbar() {
   const { data: session } = useSession();
 
   const navigation = [
-    { name: "HOME", href: "/dashboard" },
-    { name: "DOCUMENT MANAGEMENT", href: "/documents" },
-    { name: "MESSAGES", href: "/messages" },
+    { name: "WORKBENCH", href: "/dashboard" },
+    { name: "VAULT", href: "/documents" },
+    { name: "CHANNEL", href: "/messages" },
   ];
 
   return (
