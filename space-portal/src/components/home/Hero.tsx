@@ -1,113 +1,89 @@
 'use client';
+
+import Link from 'next/link';
 import { PublicNav } from '@/components/layout/PublicNav';
+import { LandingBackground } from '@/components/landing/LandingBackground';
+import { WorkflowPipelineVisual } from '@/components/landing/WorkflowPipelineVisual';
+
+const audience = [
+  'Launch operators',
+  'Satellite companies',
+  'Spaceports filing Part 450',
+];
 
 export function Hero() {
   return (
-    <div className="relative h-screen w-full flex flex-col justify-between items-center text-white overflow-hidden">
+    <div className="relative flex min-h-screen w-full flex-col overflow-hidden text-white">
+      <LandingBackground variant="hero" />
       <PublicNav transparent />
 
-      {/* Centered headline */}
-      <div className="absolute inset-0 flex items-center justify-center z-10">
-        <div className="text-center max-w-4xl px-6">
-          <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 tracking-tight drop-shadow-lg">
-            Unlocking a New Era in Space Licensing
-          </h1>
-          <p className="text-lg md:text-xl text-white/70 max-w-2xl mx-auto leading-relaxed">
-            Streamline your aerospace licensing process with AI-powered efficiency
-          </p>
+      <div className="relative z-10 mx-auto flex w-full max-w-[1400px] flex-1 flex-col justify-center px-6 pb-16 pt-28 lg:px-12 lg:pb-20 lg:pt-32">
+        <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.95fr)] lg:gap-16">
+          <div className="max-w-xl text-center lg:text-left">
+            <p className="text-xs font-bold uppercase tracking-[0.28em] text-white/40">
+              SPLI - SPECIALIZED LICENSING
+            </p>
+
+            <h1 className="mt-4 text-[clamp(1.75rem,4vw,3.25rem)] font-bold leading-[1.1] tracking-[-0.02em] text-white">
+              Unlocking a New Era in Space Licensing
+            </h1>
+
+            <p className="mt-5 text-base leading-relaxed text-white/55 md:text-lg">
+              Streamline your aerospace licensing process with efficiency
+            </p>
+
+            <div className="mt-6 flex flex-wrap justify-center gap-2 lg:justify-start">
+              {audience.map((item) => (
+                <span
+                  key={item}
+                  className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] font-medium uppercase tracking-wide text-white/55"
+                >
+                  {item}
+                </span>
+              ))}
+            </div>
+
+            <div className="mt-8 space-y-4 border-t border-white/10 pt-8 text-left">
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-red-300/80">
+                  The bottleneck
+                </p>
+                <p className="mt-2 text-sm leading-relaxed text-white/50 md:text-base">
+                  Part 450 reviews are slow, manual, and error-prone — companies miss launch
+                  windows over paperwork.
+                </p>
+              </div>
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-emerald-300/80">
+                  What SPLI does
+                </p>
+                <p className="mt-2 text-sm leading-relaxed text-white/50 md:text-base">
+                  AI fills and checks your application, flags missing items, and manages the
+                  FAA back-and-forth.
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-10 flex flex-col justify-center gap-3 sm:flex-row lg:justify-start">
+              <Link
+                href="/signin"
+                className="inline-flex items-center justify-center rounded-full bg-white px-8 py-3.5 text-sm font-bold uppercase tracking-[0.14em] text-black transition-colors hover:bg-white/90"
+              >
+                Start your application
+              </Link>
+              <Link
+                href="/company"
+                className="inline-flex items-center justify-center rounded-full border border-white/15 px-8 py-3.5 text-sm font-semibold uppercase tracking-[0.12em] text-white/70 transition-colors hover:border-white/30 hover:text-white"
+              >
+                Company
+              </Link>
+            </div>
+          </div>
+
+          <div className="mx-auto w-full max-w-lg lg:max-w-none">
+            <WorkflowPipelineVisual />
+          </div>
         </div>
-      </div>
-
-      {/* Constellation background */}
-      <div className="absolute inset-0 bg-black z-0">
-        {/* Stars */}
-        <div className="absolute inset-0">
-          {Array.from({ length: 60 }, (_, i) => (
-            <div
-              key={i}
-              className="absolute bg-white rounded-full animate-pulse"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                width: `${Math.random() * 2 + 1}px`,
-                height: `${Math.random() * 2 + 1}px`,
-                animationDelay: `${Math.random() * 4}s`,
-                animationDuration: `${Math.random() * 3 + 2}s`,
-                opacity: Math.random() * 0.5 + 0.1,
-              }}
-            />
-          ))}
-        </div>
-        
-        {/* Scorpio Constellation */}
-        <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ opacity: 0.2 }}>
-          <defs>
-            <filter id="glow">
-              <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
-              <feMerge> 
-                <feMergeNode in="coloredBlur"/>
-                <feMergeNode in="SourceGraphic"/>
-              </feMerge>
-            </filter>
-          </defs>
-          {/* Scorpio stars and lines */}
-          <circle cx="15%" cy="25%" r="2" fill="white" filter="url(#glow)" opacity="0.8"/>
-          <circle cx="25%" cy="30%" r="1.5" fill="white" filter="url(#glow)" opacity="0.7"/>
-          <circle cx="35%" cy="35%" r="2.5" fill="white" filter="url(#glow)" opacity="0.9"/>
-          <circle cx="45%" cy="40%" r="1.8" fill="white" filter="url(#glow)" opacity="0.6"/>
-          <circle cx="55%" cy="45%" r="2.2" fill="white" filter="url(#glow)" opacity="0.8"/>
-          <circle cx="65%" cy="50%" r="1.6" fill="white" filter="url(#glow)" opacity="0.7"/>
-          <circle cx="75%" cy="55%" r="2" fill="white" filter="url(#glow)" opacity="0.8"/>
-          <circle cx="85%" cy="60%" r="1.4" fill="white" filter="url(#glow)" opacity="0.6"/>
-          <circle cx="90%" cy="65%" r="1.8" fill="white" filter="url(#glow)" opacity="0.7"/>
-          <circle cx="92%" cy="70%" r="1.2" fill="white" filter="url(#glow)" opacity="0.5"/>
-          
-          {/* Scorpio connecting lines */}
-          <line x1="15%" y1="25%" x2="25%" y2="30%" stroke="white" strokeWidth="1" opacity="0.3"/>
-          <line x1="25%" y1="30%" x2="35%" y2="35%" stroke="white" strokeWidth="1" opacity="0.3"/>
-          <line x1="35%" y1="35%" x2="45%" y2="40%" stroke="white" strokeWidth="1" opacity="0.3"/>
-          <line x1="45%" y1="40%" x2="55%" y2="45%" stroke="white" strokeWidth="1" opacity="0.3"/>
-          <line x1="55%" y1="45%" x2="65%" y2="50%" stroke="white" strokeWidth="1" opacity="0.3"/>
-          <line x1="65%" y1="50%" x2="75%" y2="55%" stroke="white" strokeWidth="1" opacity="0.3"/>
-          <line x1="75%" y1="55%" x2="85%" y2="60%" stroke="white" strokeWidth="1" opacity="0.3"/>
-          <line x1="85%" y1="60%" x2="90%" y2="65%" stroke="white" strokeWidth="1" opacity="0.3"/>
-          <line x1="90%" y1="65%" x2="92%" y2="70%" stroke="white" strokeWidth="1" opacity="0.3"/>
-        </svg>
-
-        {/* Pisces Constellation */}
-        <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ opacity: 0.2 }}>
-          <defs>
-            <filter id="glow2">
-              <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
-              <feMerge> 
-                <feMergeNode in="coloredBlur"/>
-                <feMergeNode in="SourceGraphic"/>
-              </feMerge>
-            </filter>
-          </defs>
-          {/* Pisces stars and lines */}
-          <circle cx="20%" cy="75%" r="2" fill="white" filter="url(#glow2)" opacity="0.8"/>
-          <circle cx="30%" cy="80%" r="1.5" fill="white" filter="url(#glow2)" opacity="0.7"/>
-          <circle cx="40%" cy="85%" r="2.5" fill="white" filter="url(#glow2)" opacity="0.9"/>
-          <circle cx="50%" cy="80%" r="1.8" fill="white" filter="url(#glow2)" opacity="0.6"/>
-          <circle cx="60%" cy="75%" r="2.2" fill="white" filter="url(#glow2)" opacity="0.8"/>
-          <circle cx="70%" cy="70%" r="1.6" fill="white" filter="url(#glow2)" opacity="0.7"/>
-          <circle cx="80%" cy="75%" r="2" fill="white" filter="url(#glow2)" opacity="0.8"/>
-          <circle cx="85%" cy="80%" r="1.4" fill="white" filter="url(#glow2)" opacity="0.6"/>
-          <circle cx="90%" cy="85%" r="1.8" fill="white" filter="url(#glow2)" opacity="0.7"/>
-          
-          {/* Pisces connecting lines */}
-          <line x1="20%" y1="75%" x2="30%" y2="80%" stroke="white" strokeWidth="1" opacity="0.3"/>
-          <line x1="30%" y1="80%" x2="40%" y2="85%" stroke="white" strokeWidth="1" opacity="0.3"/>
-          <line x1="40%" y1="85%" x2="50%" y2="80%" stroke="white" strokeWidth="1" opacity="0.3"/>
-          <line x1="50%" y1="80%" x2="60%" y2="75%" stroke="white" strokeWidth="1" opacity="0.3"/>
-          <line x1="60%" y1="75%" x2="70%" y2="70%" stroke="white" strokeWidth="1" opacity="0.3"/>
-          <line x1="70%" y1="70%" x2="80%" y2="75%" stroke="white" strokeWidth="1" opacity="0.3"/>
-          <line x1="80%" y1="75%" x2="85%" y2="80%" stroke="white" strokeWidth="1" opacity="0.3"/>
-          <line x1="85%" y1="80%" x2="90%" y2="85%" stroke="white" strokeWidth="1" opacity="0.3"/>
-        </svg>
-        
-
       </div>
     </div>
   );

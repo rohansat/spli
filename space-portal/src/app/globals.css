@@ -176,14 +176,8 @@
     transform: translateY(0);
   }
 
-  /* Enhanced transitions for constellation elements */
-  .constellation-star {
-    transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
-  }
-
-  .constellation-star:hover {
-    transform: scale(1.2);
-    opacity: 1;
+  .landing-glass {
+    @apply border border-white/10 bg-white/[0.04] backdrop-blur-md;
   }
 
   /* SPLI Chat — IDE-style panel */
